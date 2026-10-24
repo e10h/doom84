@@ -146,6 +146,16 @@ static void tests(void) {
     }
     render_detail=1;
     engine_reset();
+    {
+        int ammo=player.ammo;
+        engine_tick(INPUT_FIRE);
+        CHECK(player.fire==19);
+        CHECK(player.ammo==ammo);
+        for(int i=0;i<4;++i) engine_tick(0);
+        CHECK(player.fire==15);
+        CHECK(player.ammo==ammo-1);
+    }
+    engine_reset();
     for(unsigned i=0;i<500;++i) engine_tick((i%100<50?INPUT_FORWARD:INPUT_RIGHT)|INPUT_FIRE|((i%35==0)?INPUT_USE:0));
     CHECK(player.health>=0 && player.health<=200);
     CHECK(player.ammo>=0 && player.ammo<=200);

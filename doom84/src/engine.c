@@ -137,7 +137,6 @@ static uint8_t floor_wait[NUM_SECTORS];
 uint8_t depthbuffer[VIEW_W*VIEW_H];
 static uint8_t planes[VIEW_W*VIEW_H];
 static uint8_t cliptop[VIEW_W],clipbottom[VIEW_W];
-uint8_t d84_open_columns;
 static int16_t vertex_side[NUM_RENDER_POINTS],vertex_depth[NUM_RENDER_POINTS],vertex_screen[NUM_RENDER_POINTS];
 static uint8_t vertex_stamp[NUM_RENDER_POINTS],frame_stamp;
 int camx,camy;
@@ -383,9 +382,13 @@ static void hurt(int damage) {
     if (player.health<=0) {player.health=0;player.dead=true;}
 }
 
-static void shoot(void) {
-    if (player.fire || !player.ammo) return;
-    --player.ammo;player.fire=8;
+/* Doom pistol states (tics): A4 -> B6(+fire/flash) -> C4 -> B5(refire). */
+#define PISTOL_TOTAL 19
+#define PISTOL_FIRE_AT 15
+
+static void fire_shot(void) {
+    if (!player.ammo) return;
+    --player.ammo;
     int c=icos(player.angle),s=isin(player.angle),best=2048,index=-1;
     int x=(int)(player.x/256),y=(int)(player.y/256);
     for (unsigned i=0;i<NUM_ACTORS;++i) {
@@ -408,10 +411,20 @@ static void shoot(void) {
     }
 }
 
+static void shoot(void) {
+    if (player.fire || !player.ammo) return;
+    player.fire=PISTOL_TOTAL;
+}
+
 void engine_tick(uint8_t input) {
     if (player.dead || player.exited) return;
     ++player.ticks;
-    if (player.fire) --player.fire;
+    if (player.fire) {
+        --player.fire;
+        if (player.fire==PISTOL_FIRE_AT) fire_shot();
+        /* A_ReFire: holding the trigger restarts at the end of the cycle. */
+        if (player.fire==0 && (input&INPUT_FIRE) && player.ammo) player.fire=PISTOL_TOTAL;
+    }
     if (player.damage) --player.damage;
     if (!(input&INPUT_STRAFE)) {
         int turn=(input&INPUT_RUN)?12:8;
@@ -612,7 +625,6 @@ __attribute__((noinline)) static void render_columns(void) {
             cliptop[x]=(uint8_t)CLAMP(MAX(top,MAX(cy,upper)),top,bottom);
             clipbottom[x]=(uint8_t)CLAMP(MIN(bottom,MIN(fy,lower)),cliptop[x],bottom);
         }
-        if (cliptop[x]>=clipbottom[x]) --d84_open_columns;
         for(unsigned k=1;k<render_detail;++k) {cliptop[x+(int)k]=cliptop[x];clipbottom[x+(int)k]=clipbottom[x];}
     }
 }
@@ -625,7 +637,6 @@ static int height_product(int height,int inverse) {
 }
 
 __attribute__((noinline)) void d84_draw_seg(const Seg *seg,const Material *side) {
-    if(!d84_open_columns) return;
     unsigned fs=side->sector;
     int bs=side->back==255?-1:side->back;
     if(bs>=0 && (side->flags&128) && sector_floor[fs]==sector_floor[bs] && sector_ceiling[fs]==sector_ceiling[bs] && side->middle==255) return;
@@ -731,7 +742,6 @@ void d84_bsp(unsigned index,unsigned depth);
 #define bsp d84_bsp
 #else
 static void bsp(unsigned index,unsigned depth) {
-    if (!d84_open_columns) return;
     if (depth>render_stats.bsp_depth) render_stats.bsp_depth=(uint8_t)depth;
     if (index&0x8000u) {
         const Subsector *sub=&subsectors[index&0x7fffu];
@@ -842,7 +852,6 @@ void engine_render(void) {
     if(player.texture_planes) memset(planes,255,sizeof(planes));
     memset(cliptop,0,sizeof(cliptop));
     memset(clipbottom,VIEW_H,sizeof(clipbottom));
-    d84_open_columns=(uint8_t)(VIEW_W/render_detail);
     frame_stamp+=2;
     if (!frame_stamp) {memset(vertex_stamp,0,sizeof(vertex_stamp));frame_stamp=2;}
     camx=(int)(player.x/256);camy=(int)(player.y/256);
@@ -859,14 +868,32 @@ void engine_render(void) {
     draw_sprites();
     if(render_detail==4) d84_quad_columns(framebuffer,VIEW_W*VIEW_H/4);
     else if(render_detail==2) d84_double_columns(framebuffer,VIEW_W*VIEW_H/2);
-    const uint8_t *gun=gun_frames[player.fire>=5];
-    int bob=(isin(player.ticks*16)/128);
-    for (int y=0;y<28;++y) {
-        int dest=52+y+bob;
+    /* Pistol frame from remaining fire tics: A / B / C / B, plus muzzle flash. */
+    unsigned frame=0;
+    if (player.fire) {
+        if (player.fire>PISTOL_FIRE_AT) frame=0;
+        else if (player.fire>9) frame=1;
+        else if (player.fire>5) frame=2;
+        else frame=1;
+    }
+    const uint8_t *gun=gun_frames[frame];
+    int bob=player.fire?0:(isin(player.ticks*16)/128);
+    for (int y=0;y<GUN_H;++y) {
+        int dest=GUN_Y+y+bob;
         if (dest<0 || dest>=VIEW_H) continue;
-        for (int x=0;x<25;++x) {
-            uint8_t pixel=gun[y*25+x];
-            if (pixel!=255) framebuffer[dest*VIEW_W+52+x]=pixel;
+        for (int x=0;x<GUN_W;++x) {
+            uint8_t pixel=gun[y*GUN_W+x];
+            if (pixel!=255) framebuffer[dest*VIEW_W+GUN_X+x]=pixel;
+        }
+    }
+    if (player.fire && player.fire<=PISTOL_FIRE_AT && player.fire>9) {
+        for (int y=0;y<GUN_H;++y) {
+            int dest=GUN_Y+y+bob;
+            if (dest<0 || dest>=VIEW_H) continue;
+            for (int x=0;x<GUN_W;++x) {
+                uint8_t pixel=gun_flash[y*GUN_W+x];
+                if (pixel!=255) framebuffer[dest*VIEW_W+GUN_X+x]=pixel;
+            }
         }
     }
     /* Subtle crosshair uses palette entry 4 (near-white in Doom PLAYPAL). */

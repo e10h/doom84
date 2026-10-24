@@ -1,5 +1,6 @@
 #include "engine.h"
 #include "generated.h"
+#include "hud.h"
 #include <fileioc.h>
 #include <graphx.h>
 #include <keypadc.h>
@@ -36,6 +37,80 @@ static uint8_t input(void) {
 }
 
 static void text(const char *s,int x,int y) {gfx_PrintStringXY(s,x,y);}
+
+static void blit_trans(const uint8_t *src,int dx,int dy,int w,int h,int stride) {
+    for(int row=0;row<h;++row) {
+        uint8_t *dst=gfx_vbuffer[dy+row]+dx;
+        const uint8_t *line=src+row*stride;
+        for(int x=0;x<w;++x) if(line[x]!=255) dst[x]=line[x];
+    }
+}
+
+/* Doom ST_* big numbers are right-aligned to the given x. */
+static void draw_stt(int value,int x,int y,bool percent) {
+    char buf[8];
+    int n=0;
+    if(value<0) value=0;
+    if(value>999) value=999;
+    if(value>=100) buf[n++]=(char)('0'+value/100);
+    if(value>=10) buf[n++]=(char)('0'+(value/10)%10);
+    buf[n++]=(char)('0'+value%10);
+    if(percent) buf[n++]='%';
+    for(int i=n-1;i>=0;--i) {
+        int digit=buf[i]=='%'?10:buf[i]-'0';
+        int w=stt_w[digit];
+        x-=w;
+        blit_trans(stt_digits[digit],x,y,w,STT_H,STT_W);
+    }
+}
+
+static void draw_sty(int value,int x,int y) {
+    char buf[4];
+    int n=0;
+    if(value<0) value=0;
+    if(value>999) value=999;
+    if(value>=100) buf[n++]=(char)('0'+value/100);
+    if(value>=10) buf[n++]=(char)('0'+(value/10)%10);
+    buf[n++]=(char)('0'+value%10);
+    for(int i=n-1;i>=0;--i) {
+        int digit=buf[i]-'0';
+        int w=sty_w[digit];
+        x-=w;
+        blit_trans(sty_digits[digit],x,y,w,STY_H,STY_W);
+    }
+}
+
+static unsigned face_index(void) {
+    if(player.dead) return 5;
+    if(player.damage) return 6;
+    int health=player.health;
+    if(health>100) health=100;
+    unsigned pain=(health<=0)?4:(unsigned)((100-health)*5/100);
+    if(pain>4) pain=4;
+    return pain;
+}
+
+static void draw_status(int y) {
+    /* STBAR is 320px wide; gfx_sprite_t only stores 8-bit dimensions. */
+    for(int row=0;row<STBAR_H;++row)
+        memcpy(gfx_vbuffer[y+row],stbar+row*STBAR_W,STBAR_W);
+
+    draw_stt(player.ammo,ST_AMMO_X,y+ST_NUM_Y,false);
+    draw_stt(player.health,ST_HEALTH_X,y+ST_NUM_Y,true);
+    draw_stt(player.armor,ST_ARMOR_X,y+ST_NUM_Y,true);
+
+    blit_trans(st_faces[face_index()],ST_FACE_X,y+ST_FACE_Y,FACE_W,FACE_H,FACE_W);
+
+    /* Current / max ammo on the right; only bullets are tracked in-sim. */
+    draw_sty(player.ammo,ST_AMMO0_X,y+ST_AMMO0_Y);
+    draw_sty(200,ST_MAXAMMO0_X,y+ST_AMMO0_Y);
+    draw_sty(0,ST_AMMO0_X,y+ST_AMMO1_Y);
+    draw_sty(50,ST_MAXAMMO0_X,y+ST_AMMO1_Y);
+    draw_sty(0,ST_AMMO0_X,y+ST_AMMO2_Y);
+    draw_sty(50,ST_MAXAMMO0_X,y+ST_AMMO2_Y);
+    draw_sty(0,ST_AMMO0_X,y+ST_AMMO3_Y);
+    draw_sty(300,ST_MAXAMMO0_X,y+ST_AMMO3_Y);
+}
 
 static void automap(void) {
     gfx_SetClipRegion(32,24,288,184);
@@ -77,12 +152,8 @@ int main(void) {
     for(unsigned i=0;i<256;++i) gfx_palette[i]=gfx_RGBTo1555(map_palette[i*3],map_palette[i*3+1],map_palette[i*3+2]);
     gfx_SetDrawBuffer();
     gfx_SetTextFGColor(4);gfx_SetTextBGColor(0);gfx_SetTextTransparentColor(0);
-    /* Initialize both physical buffers once. The opaque world replaces the
-     * viewport; subsequent clears only erase changing HUD text. */
     for(unsigned i=0;i<2;++i) {
         gfx_FillScreen(0);
-        text("2nd FIRE  ENTER USE  ALPHA STRAFE",8,219);
-        text("TRACE DETAIL  WINDOW FLATS  CLEAR EXIT",8,230);
         gfx_SwapDraw();
     }
     bool showmap=false,flatheld=false,mapheld=false,resetheld=false,paused=false,pauseheld=false,detailheld=false;
@@ -121,15 +192,14 @@ int main(void) {
         render_ms=showmap?0:(unsigned)((clock()-begin)*1000/CLOCKS_PER_SEC);
         gfx_SetColor(0);
         gfx_FillRectangle_NoClip(0,0,320,24);
-        gfx_FillRectangle_NoClip(0,184,320,32);
+        gfx_FillRectangle_NoClip(0,216,320,24);
         if(showmap) automap();
         else {
-            d84_blit_viewport(engine_view.pixels, (uint8_t*)gfx_vbuffer + 24*320 + 32);
+            gfx_ScaledSprite_NoClip((const gfx_sprite_t *)&engine_view,32,24,2,2);
         }
-        char line[64];
-        snprintf(line,sizeof(line),"E1M1  %u FPS  render %u ms",fps,render_ms);text(line,8,7);
-        snprintf(line,sizeof(line),"HP %d  ARM %d  AMMO %d",player.health,player.armor,player.ammo);text(line,18,192);
-        snprintf(line,sizeof(line),"%ux80 %s  K %u/%u",128/render_detail,player.texture_planes?"TEXTURED":"FAST",player.kills,player.total);text(line,18,204);
+        draw_status(184);
+        char line[40];
+        snprintf(line,sizeof(line),"E1M1 %uFPS %ums",fps,render_ms);text(line,8,7);
         if(paused) text("PAUSED",136,96);
         if(player.dead) text("YOU DIED - ZOOM RESTART",64,96);
         if(player.exited) text("E1M1 EXIT - ZOOM RESTART",64,96);

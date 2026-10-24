@@ -22,14 +22,6 @@ def build_geometry(root):
     out.append('static const uint16_t sector_offsets[NUM_SECTORS]={'+','.join(str(i*10) for i in range(value('NUM_SECTORS')))+'};')
     (root/'src/geometry_abi.h').write_text(f'/* Generated geometry counts for assembly. */\n#define D84_VERTEX_COUNT {value("NUM_VERTICES")}\n#define D84_NODE_COUNT {value("NUM_NODES")}\n')
     (root/'src/geometry.h').write_text('\n'.join(out)+'\n')
-    def numbers(name):
-        return list(map(int,re.search(name+r'\[[^;]*?= \{([^}]+)',h)[1].split(',')))
-    banks=numbers('tile_bank');offsets=numbers('tile_offset')
-    frames=[]
-    for tile in (value('GUN_TILE'),value('FIRE_TILE')):
-        image=(root/f'build/D84T{banks[tile]}.bin').read_bytes()[offsets[tile]:]
-        frames.append([image[(y*64//28)*64+x*64//25] for y in range(28) for x in range(25)])
-    (root/'src/gun.h').write_text('/* Generated pre-scaled pistol frames. */\nstatic const unsigned char gun_frames[2][700]={'+','.join('{'+','.join(map(str,frame))+'}' for frame in frames)+'};\n')
 
 if __name__=='__main__':
     build_geometry(Path(__file__).resolve().parents[1])

@@ -233,9 +233,12 @@ def build(wad_path, out=ROOT, convbin=None):
         if convbin:
             subprocess.run([str(convbin),'-j','bin','-k','8xv','-r','-n',name,'-i',str(path),'-o',str(out/'bin'/f'{name}.8xv')],check=True)
     from build_geometry import build_geometry
+    from build_hud import build_hud
     build_geometry(out)
+    hud = build_hud(w, out)
     print(f'E1M1: {len(vertices)} vertices, {len(segs)} segs, {len(sectors)} sectors, {len(actors)} things')
     print(f'Map {len(blob):,} bytes; {len(tiles)} textures/sprites in {len(banks)} banks; total {sum(len(b) for _,b in files):,} bytes in archive')
+    print(f'Pistol frames {hud["gun"][0]}x{hud["gun"][1]}; status bar ~{hud["hud_bytes"]} bytes')
     return manifest
 
 
