@@ -41,17 +41,22 @@ before entering graphics mode. Archive all four again if that happens.
 | 2nd, held | Fire pistol |
 | Enter | Use a door or the exit switch |
 | Graph | Toggle automap; pauses simulation |
-| Window | Toggle textured / solid-color planes |
+| Window | Cycle solid planes → textured → wireframe |
 | Trace | Cycle 64×80 → 32×80 → 128×80 sampling |
 | Y= | Pause / resume |
 | Zoom | Restart the level |
 | Clear | Exit to TI-OS |
 
 The default is 64×80 with solid-color planes. Trace cycles sampling modes;
-Window enables textured planes. The framebuffer remains 128×80: lower
+Window cycles solid planes, textured planes, and a wireframe mode that draws
+only occluded wall edges (no textures, sprites, or flats). Wireframe still
+runs the same BSP traversal and per-column clip/DDA setup as a normal frame,
+so it is usually not much faster than solid-color mode — most of the cost is
+visibility work, not texel fetches. The framebuffer remains 128×80: lower
 sampling modes duplicate each world/sprite column two or four times. The
-pistol and HUD retain their usual resolution. These are explicit quality/performance settings;
-the lower-resolution mode has not met the playability target either.
+pistol and HUD retain their usual resolution. These are explicit
+quality/performance settings; the lower-resolution mode has not met the
+playability target either.
 
 The header reports elapsed-time-corrected whole-program FPS and time spent rendering, in
 milliseconds. Compare those at the starting position, facing the courtyard,

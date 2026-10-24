@@ -29,7 +29,7 @@ typedef struct {
     int16_t eye,floor,health,armor,ammo;
     uint16_t angle,kills,total,ticks;
     uint8_t sector,fire,damage;
-    bool exited,dead,texture_planes;
+    bool exited,dead,texture_planes,wireframe;
 } Player;
 typedef struct {
     uint16_t segs,subsectors,wall_columns,plane_spans;
@@ -54,4 +54,5 @@ void engine_tick(uint8_t input);
 void engine_render(void);
 uint8_t engine_sector(int x,int y);
 bool engine_can_move(int x,int y,int floor);
+void d84_blit_viewport(const uint8_t *src, uint8_t *dest);
 #endif

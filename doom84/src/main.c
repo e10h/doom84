@@ -154,11 +154,13 @@ int main(void) {
     gfx_SetTextFGColor(4);gfx_SetTextBGColor(0);gfx_SetTextTransparentColor(0);
     for(unsigned i=0;i<2;++i) {
         gfx_FillScreen(0);
+        draw_status(184);
         gfx_SwapDraw();
     }
     bool showmap=false,flatheld=false,mapheld=false,resetheld=false,paused=false,pauseheld=false,detailheld=false;
     clock_t last=clock(),accumulator=0,fps_start=last;
     unsigned frames=0,fps=0,render_ms=0;
+    int hud_health=-1,hud_armor=-1,hud_ammo=-1;unsigned hud_face=999,hud_dirty=0;
     for(;;) {
         kb_Scan();
         if(kb_Data[6]&kb_Clear) break;
@@ -166,13 +168,22 @@ int main(void) {
         if(mapkey && !mapheld) showmap=!showmap;
         mapheld=mapkey;
         bool flatkey=(kb_Data[1]&kb_Window)!=0;
-        if(flatkey && !flatheld) player.texture_planes=!player.texture_planes;
+        /* Window cycles FAST (flat) -> TEXTURED -> WIRE (edge-only). */
+        if(flatkey && !flatheld) {
+            if(player.wireframe) {player.wireframe=false;player.texture_planes=false;}
+            else if(!player.texture_planes) player.texture_planes=true;
+            else {player.texture_planes=false;player.wireframe=true;}
+        }
         flatheld=flatkey;
         bool detailkey=(kb_Data[1]&kb_Trace)!=0;
         if(detailkey && !detailheld) render_detail=render_detail==2?4:render_detail==4?1:2;
         detailheld=detailkey;
         bool resetkey=(kb_Data[1]&kb_Zoom)!=0;
-        if(resetkey && !resetheld) {bool textured=player.texture_planes;engine_reset();player.texture_planes=textured;}
+        if(resetkey && !resetheld) {
+            bool textured=player.texture_planes,wire=player.wireframe;
+            engine_reset();
+            player.texture_planes=textured;player.wireframe=wire;
+        }
         resetheld=resetkey;
         bool pausekey=(kb_Data[1]&kb_Yequ)!=0;
         if(pausekey && !pauseheld) paused=!paused;
@@ -192,14 +203,25 @@ int main(void) {
         render_ms=showmap?0:(unsigned)((clock()-begin)*1000/CLOCKS_PER_SEC);
         gfx_SetColor(0);
         gfx_FillRectangle_NoClip(0,0,320,24);
-        gfx_FillRectangle_NoClip(0,216,320,24);
         if(showmap) automap();
         else {
+#ifdef __TICE__
+            /* Same addressing as the previously working blit path. */
+            d84_blit_viewport(engine_view.pixels,(uint8_t *)gfx_vbuffer+24*320+32);
+#else
             gfx_ScaledSprite_NoClip((const gfx_sprite_t *)&engine_view,32,24,2,2);
+#endif
         }
-        draw_status(184);
+        /* STBAR only when stats change; dirty=2 covers both LCD buffers. */
+        unsigned face=face_index();
+        if(player.health!=hud_health || player.armor!=hud_armor || player.ammo!=hud_ammo || face!=hud_face) {
+            hud_health=player.health;hud_armor=player.armor;hud_ammo=player.ammo;hud_face=face;hud_dirty=2;
+        }
+        if(hud_dirty) {draw_status(184);--hud_dirty;}
         char line[40];
-        snprintf(line,sizeof(line),"E1M1 %uFPS %ums",fps,render_ms);text(line,8,7);
+        snprintf(line,sizeof(line),"E1M1 %uFPS %ums %s",fps,render_ms,
+                 player.wireframe?"WIRE":player.texture_planes?"TEX":"FAST");
+        text(line,8,7);
         if(paused) text("PAUSED",136,96);
         if(player.dead) text("YOU DIED - ZOOM RESTART",64,96);
         if(player.exited) text("E1M1 EXIT - ZOOM RESTART",64,96);

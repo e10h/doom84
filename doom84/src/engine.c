@@ -586,6 +586,55 @@ typedef struct {
 } RenderWall;
 RenderWall d84_rw;
 #define rw d84_rw
+
+/* Wireframe uses the real BSP + portal clip, so near walls occlude far ones.
+ * Only the silhouette edges are plotted — no textures/planes/sprites. */
+static uint8_t wire_screen_y(int value) {
+    if(value<=0) return 0;
+    if(value>=VIEW_H*256) return VIEW_H;
+    return (uint8_t)(value>>8);
+}
+static void wire_plot(int x,int y,uint8_t color) {
+    if((unsigned)x<VIEW_W && (unsigned)y<VIEW_H) framebuffer[y*VIEW_W+x]=color;
+}
+__attribute__((noinline)) static void render_wire_columns(void) {
+    uint8_t color=rw.solid?4:196;
+    for(int x=rw.start;x<rw.end;x+=(int)rw.stride,rw.iz+=rw.diz,rw.cyq+=rw.cy_step,rw.fyq+=rw.fy_step,rw.upperq+=rw.upper_step,rw.lowerq+=rw.lower_step) {
+        int top=cliptop[x],bottom=clipbottom[x];
+        if(top>=bottom || rw.iz<=0) continue;
+        uint8_t cy=wire_screen_y(rw.cyq),fy=wire_screen_y(rw.fyq);
+        if(cy>=top && cy<bottom) wire_plot(x,cy,color);
+        if(fy>top && fy<=bottom) wire_plot(x,fy-1,color);
+        if(rw.solid) {
+            if(x==rw.start || x+(int)rw.stride>=rw.end) {
+                int y1=MAX(top,cy),y2=MIN(bottom-1,fy-1);
+                for(int y=y1;y<=y2;++y) wire_plot(x,y,color);
+            }
+            cliptop[x]=clipbottom[x];
+        } else {
+            uint8_t upper=wire_screen_y(rw.upperq),lower=wire_screen_y(rw.lowerq);
+            if(rw.draw_upper && upper>=top && upper<bottom) wire_plot(x,upper,color);
+            if(rw.draw_lower && lower>=top && lower<bottom) wire_plot(x,lower,color);
+            if(x==rw.start || x+(int)rw.stride>=rw.end) {
+                if(rw.draw_upper) {
+                    int y1=MAX(top,cy),y2=MIN(bottom-1,upper-1);
+                    for(int y=y1;y<=y2;y+=2) wire_plot(x,y,color);
+                }
+                if(rw.draw_lower) {
+                    int y1=MAX(top,lower),y2=MIN(bottom-1,fy-1);
+                    for(int y=y1;y<=y2;y+=2) wire_plot(x,y,color);
+                }
+            }
+            cliptop[x]=(uint8_t)CLAMP(MAX(top,MAX(cy,upper)),top,bottom);
+            clipbottom[x]=(uint8_t)CLAMP(MIN(bottom,MIN(fy,lower)),cliptop[x],bottom);
+        }
+        for(unsigned k=1;k<rw.stride;++k) {
+            cliptop[x+(int)k]=cliptop[x];
+            clipbottom[x+(int)k]=clipbottom[x];
+        }
+    }
+}
+
 #ifdef __TICE__
 #include "render_abi.h"
 #define CHECK_RW(field,offset) _Static_assert(offsetof(RenderWall,field)==offset,"assembly packet: " #field)
@@ -602,9 +651,13 @@ CHECK_RW(draw_upper,RW_DRAWUPPER);CHECK_RW(draw_lower,RW_DRAWLOWER);CHECK_RW(fil
 CHECK_RW(ceil_color,RW_CEILCOLOR);CHECK_RW(floor_color,RW_FLOORCOLOR);CHECK_RW(stride,RW_STRIDE);
 _Static_assert(sizeof(RenderWall)==RW_SIZE,"assembly packet size");
 void d84_render_columns(void);
-#define render_columns d84_render_columns
+static void render_columns(void) {
+    if(player.wireframe) render_wire_columns();
+    else d84_render_columns();
+}
 #else
 __attribute__((noinline)) static void render_columns(void) {
+    if(player.wireframe) {render_wire_columns();return;}
     for (int x=rw.start;x<rw.end;x+=(int)render_detail,rw.iz+=rw.diz,rw.uz+=rw.duz,rw.cyq+=rw.cy_step,rw.fyq+=rw.fy_step,rw.upperq+=rw.upper_step,rw.lowerq+=rw.lower_step) {
         int top=cliptop[x],bottom=clipbottom[x];
         if (top>=bottom || rw.iz<=0) continue;
@@ -649,29 +702,37 @@ __attribute__((noinline)) void d84_draw_seg(const Seg *seg,const Material *side)
     if ((int)((unsigned)r1*z2-(unsigned)r2*z1)>=0 || (z1<NEAR_Z && z2<NEAR_Z)) return;
     /* All E1M1 wall texture widths divide 1024. Remove whole repeats to
      * bound U/Z accumulators to 24 bits without changing texture phase. */
-    int u1=(side->x+seg->offset)&1023,u2=u1+seg->length;
+    int u1=0,u2=0;
+    if(!player.wireframe) {u1=(side->x+seg->offset)&1023;u2=u1+seg->length;}
     if (z1<NEAR_Z) {
         r1+=(int)((int32_t)(r2-r1)*(NEAR_Z-z1)/(z2-z1));
-        u1+=(int)((int32_t)(u2-u1)*(NEAR_Z-z1)/(z2-z1));z1=NEAR_Z;
+        if(!player.wireframe) u1+=(int)((int32_t)(u2-u1)*(NEAR_Z-z1)/(z2-z1));
+        z1=NEAR_Z;
     }
     if (z2<NEAR_Z) {
         r2+=(int)((int32_t)(r1-r2)*(NEAR_Z-z2)/(z1-z2));
-        u2+=(int)((int32_t)(u1-u2)*(NEAR_Z-z2)/(z1-z2));z2=NEAR_Z;
+        if(!player.wireframe) u2+=(int)((int32_t)(u1-u2)*(NEAR_Z-z2)/(z1-z2));
+        z2=NEAR_Z;
     }
     int sx1=vertex_projection(seg->v1,r1,z1),sx2=vertex_projection(seg->v2,r2,z2);
     if (sx1>=sx2 || sx2<=0 || sx1>=VIEW_W) return;
     int start=MAX(0,sx1),end=MIN(VIEW_W,sx2);
-    if(render_detail>1) start=(start+(int)render_detail-1)&~((int)render_detail-1);
-    while(start<end && cliptop[start]>=clipbottom[start]) start+=(int)render_detail;
+    /* Wireframe always samples every column so edges stay continuous. */
+    unsigned step=player.wireframe?1:render_detail;
+    if(step>1) start=(start+(int)step-1)&~((int)step-1);
+    while(start<end && cliptop[start]>=clipbottom[start]) start+=(int)step;
     while(end>start && cliptop[end-1]>=clipbottom[end-1]) --end;
     if(start>=end) return;
     int iz1=(int)(reciprocal((unsigned)z1)>>2),iz2=(int)(reciprocal((unsigned)z2)>>2);
-    int uz1=(int)(((int32_t)u1*iz1)>>4),uz2=(int)(((int32_t)u2*iz2)>>4);
     int span=sx2-sx1;
     int diz=(iz2-iz1)/span;
-    int duz=(uz2-uz1)/span;
     int iz=iz1+diz*(start-sx1);
-    int uz=uz1+duz*(start-sx1);
+    int uz=0,duz=0;
+    if(!player.wireframe) {
+        int uz1=(int)(((int32_t)u1*iz1)>>4),uz2=(int)(((int32_t)u2*iz2)>>4);
+        duz=(uz2-uz1)/span;
+        uz=uz1+duz*(start-sx1);
+    }
     int fceil=sector_ceiling[fs],ffloor=sector_floor[fs];
     bool skyportal=bs>=0 && (*sector_at(fs)).ceiltex==255 && (*sector_at(bs)).ceiltex==255;
     if (skyportal) fceil=sector_ceiling[bs];
@@ -687,10 +748,14 @@ __attribute__((noinline)) void d84_draw_seg(const Seg *seg,const Material *side)
     int lowerq=bfloor==ffloor?fyq:40*256-height_product(bfloor-player.eye,iz);
     int upper_step=bceil==fceil?cy_step:-height_product(bceil-player.eye,diz);
     int lower_step=bfloor==ffloor?fy_step:-height_product(bfloor-player.eye,diz);
-    diz*=(int)render_detail;duz*=(int)render_detail;cy_step*=(int)render_detail;fy_step*=(int)render_detail;upper_step*=(int)render_detail;lower_step*=(int)render_detail;
+    diz*=(int)step;duz*=(int)step;cy_step*=(int)step;fy_step*=(int)step;upper_step*=(int)step;lower_step*=(int)step;
     const uint8_t *light=colormaps;
     ++render_stats.segs;
     rw=(RenderWall){start,end,iz,diz,uz,duz,cyq,cy_step,fyq,fy_step,upperq,upper_step,lowerq,lower_step,fceil,ffloor,bceil,bfloor,fs,sector_shades[fs],solid,skyportal,side,light,{0},{0},{0},0,0,0,0,0,0,0,NULL,NULL,0,0,NULL,0,0,0,0,0,0,0,0,0,0};
+    rw.top_ptr=cliptop+start;rw.bottom_ptr=clipbottom+start;
+    rw.draw_upper=(uint8_t)(bceil<fceil && !skyportal);rw.draw_lower=(uint8_t)(bfloor>ffloor);
+    rw.stride=(uint8_t)step;
+    if(player.wireframe) {render_wire_columns();return;}
     if(solid) {
         unsigned tex=side->middle;
         if(tex==255 && bs>=0) tex=side->upper;
@@ -700,12 +765,9 @@ __attribute__((noinline)) void d84_draw_seg(const Seg *seg,const Material *side)
         if(bceil<fceil && !skyportal) rw.upper=wall_style(side->upper,(side->flags&8)?fceil:bceil+(side->upper==255?128:(1<<tile_info[side->upper][2])),side->y);
         if(bfloor>ffloor) rw.lower=wall_style(side->lower,(side->flags&16)?fceil:bfloor,side->y);
     }
-    rw.top_ptr=cliptop+start;rw.bottom_ptr=clipbottom+start;
-    rw.draw_upper=(uint8_t)(bceil<fceil && !skyportal);rw.draw_lower=(uint8_t)(bfloor>ffloor);
     rw.fill_base=player.texture_planes?planes:framebuffer;
     rw.ceil_color=player.texture_planes?(uint8_t)(fs|128):plane_colors[fs+NUM_SECTORS];
     rw.floor_color=player.texture_planes?(uint8_t)fs:plane_colors[fs];
-    rw.stride=(uint8_t)render_detail;
     render_columns();
 }
 
@@ -848,8 +910,8 @@ __attribute__((noinline)) static void draw_sprites(void) {
 void engine_render(void) {
     memset(&render_stats,0,sizeof(render_stats));
     memset(framebuffer,0,sizeof(framebuffer));
-    memset(depthbuffer,255,sizeof(depthbuffer));
-    if(player.texture_planes) memset(planes,255,sizeof(planes));
+    if(!player.wireframe) memset(depthbuffer,255,sizeof(depthbuffer));
+    if(player.texture_planes && !player.wireframe) memset(planes,255,sizeof(planes));
     memset(cliptop,0,sizeof(cliptop));
     memset(clipbottom,VIEW_H,sizeof(clipbottom));
     frame_stamp+=2;
@@ -860,6 +922,13 @@ void engine_render(void) {
     d84_set_camera();
 #endif
     bsp(NUM_NODES-1,0);
+    if(player.wireframe) {
+        framebuffer[39*VIEW_W+64]=4;
+        framebuffer[41*VIEW_W+64]=4;
+        framebuffer[40*VIEW_W+63]=4;
+        framebuffer[40*VIEW_W+65]=4;
+        return;
+    }
     if(player.texture_planes) {
         if(render_detail==4) d84_quad_columns(planes,VIEW_W*VIEW_H/4);
         else if(render_detail==2) d84_double_columns(planes,VIEW_W*VIEW_H/2);
