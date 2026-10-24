@@ -317,3 +317,44 @@ _d84_quad_columns:
     jr nz,.Lquad_loop
     pop ix
     ret
+
+.section .text._d84_blit_viewport,"ax",@progbits
+.global _d84_blit_viewport
+_d84_blit_viewport:
+    push ix
+    push iy
+    ld iy,0
+    add iy,sp
+    ld hl,(iy+9)
+    ld ix,(iy+12)
+    push ix
+    pop iy
+    ld de,320
+    add iy,de
+    ld a,80
+.Lrow_loop:
+    ex af,af'
+    ld b,16
+.Lgroup_loop:
+    .rept 8
+    ld a,(hl)
+    inc hl
+    ld (ix+0),a
+    ld (ix+1),a
+    ld (iy+0),a
+    ld (iy+1),a
+    lea ix,ix+2
+    lea iy,iy+2
+    .endr
+    dec b
+    jp nz,.Lgroup_loop
+    ld de,384
+    add ix,de
+    add iy,de
+    ex af,af'
+    dec a
+    jp nz,.Lrow_loop
+    pop iy
+    pop ix
+    ret
+

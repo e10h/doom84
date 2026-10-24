@@ -124,7 +124,7 @@ int main(void) {
         gfx_FillRectangle_NoClip(0,184,320,32);
         if(showmap) automap();
         else {
-            gfx_ScaledSprite_NoClip((const gfx_sprite_t *)&engine_view,32,24,2,2);
+            d84_blit_viewport(engine_view.pixels, (uint8_t*)gfx_vbuffer + 24*320 + 32);
         }
         char line[64];
         snprintf(line,sizeof(line),"E1M1  %u FPS  render %u ms",fps,render_ms);text(line,8,7);

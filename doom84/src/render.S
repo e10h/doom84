@@ -172,6 +172,12 @@ _d84_render_columns:
 .Lbottom_clipped:
     ld (ix+RW_BOTTOM),a
 .Lcolumn_write:
+    ld a,(ix+RW_BOTTOM)
+    cp a,(ix+RW_TOP)
+    jr nz,.Lskip_close
+    ld hl,_d84_open_columns
+    dec (hl)
+.Lskip_close:
     ld hl,(ix+RW_TOPPTR)
     ld a,(ix+RW_TOP)
     ld (hl),a

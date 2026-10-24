@@ -137,6 +137,7 @@ static uint8_t floor_wait[NUM_SECTORS];
 uint8_t depthbuffer[VIEW_W*VIEW_H];
 static uint8_t planes[VIEW_W*VIEW_H];
 static uint8_t cliptop[VIEW_W],clipbottom[VIEW_W];
+uint8_t d84_open_columns;
 static int16_t vertex_side[NUM_RENDER_POINTS],vertex_depth[NUM_RENDER_POINTS],vertex_screen[NUM_RENDER_POINTS];
 static uint8_t vertex_stamp[NUM_RENDER_POINTS],frame_stamp;
 int camx,camy;
@@ -611,6 +612,7 @@ __attribute__((noinline)) static void render_columns(void) {
             cliptop[x]=(uint8_t)CLAMP(MAX(top,MAX(cy,upper)),top,bottom);
             clipbottom[x]=(uint8_t)CLAMP(MIN(bottom,MIN(fy,lower)),cliptop[x],bottom);
         }
+        if (cliptop[x]>=clipbottom[x]) --d84_open_columns;
         for(unsigned k=1;k<render_detail;++k) {cliptop[x+(int)k]=cliptop[x];clipbottom[x+(int)k]=clipbottom[x];}
     }
 }
@@ -623,6 +625,7 @@ static int height_product(int height,int inverse) {
 }
 
 __attribute__((noinline)) void d84_draw_seg(const Seg *seg,const Material *side) {
+    if(!d84_open_columns) return;
     unsigned fs=side->sector;
     int bs=side->back==255?-1:side->back;
     if(bs>=0 && (side->flags&128) && sector_floor[fs]==sector_floor[bs] && sector_ceiling[fs]==sector_ceiling[bs] && side->middle==255) return;
@@ -728,6 +731,7 @@ void d84_bsp(unsigned index,unsigned depth);
 #define bsp d84_bsp
 #else
 static void bsp(unsigned index,unsigned depth) {
+    if (!d84_open_columns) return;
     if (depth>render_stats.bsp_depth) render_stats.bsp_depth=(uint8_t)depth;
     if (index&0x8000u) {
         const Subsector *sub=&subsectors[index&0x7fffu];
@@ -838,6 +842,7 @@ void engine_render(void) {
     if(player.texture_planes) memset(planes,255,sizeof(planes));
     memset(cliptop,0,sizeof(cliptop));
     memset(clipbottom,VIEW_H,sizeof(clipbottom));
+    d84_open_columns=(uint8_t)(VIEW_W/render_detail);
     frame_stamp+=2;
     if (!frame_stamp) {memset(vertex_stamp,0,sizeof(vertex_stamp));frame_stamp=2;}
     camx=(int)(player.x/256);camy=(int)(player.y/256);

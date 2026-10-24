@@ -54,4 +54,5 @@ void engine_tick(uint8_t input);
 void engine_render(void);
 uint8_t engine_sector(int x,int y);
 bool engine_can_move(int x,int y,int floor);
+void d84_blit_viewport(const uint8_t *src, uint8_t *dest);
 #endif

@@ -6,6 +6,9 @@
 .section .text._d84_bsp,"ax",@progbits
 .global _d84_bsp
 _d84_bsp:
+    ld a,(_d84_open_columns)
+    or a,a
+    ret z
     push ix
     ld ix,0
     add ix,sp
@@ -46,6 +49,10 @@ _d84_bsp:
     ld hl,6
     add hl,sp
     ld sp,hl
+
+    ld a,(_d84_open_columns)
+    or a,a
+    jr z,.Lbsp_return
 
     ld a,(ix-6)
     xor a,1
@@ -148,6 +155,9 @@ _d84_bsp:
     add hl,de
     ld (ix-6),hl
 .Lbsp_seg:
+    ld a,(_d84_open_columns)
+    or a,a
+    jr z,.Lbsp_return
     ld hl,(ix-9)
     ld de,0
     or a,a
