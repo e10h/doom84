@@ -1,0 +1,10 @@
+obj/
+*.o
+*.obj
+*.map
+*.bc
+*.s
+.DS_Store
+
+# Keep the compiled calculator executable
+!bin/CUBE.8xp
