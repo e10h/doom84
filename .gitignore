@@ -3,12 +3,10 @@ obj/
 *.obj
 *.map
 *.bc
-*.s
 .DS_Store
 
 # Keep the compiled calculator executable
 !bin/CUBE.8xp
 
 84VID/
-doom84/
 
