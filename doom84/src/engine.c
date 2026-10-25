@@ -68,9 +68,11 @@ static uint8_t sky_flat;
 void d84_wall(uint8_t *,uint8_t *,const uint8_t *,const uint8_t *,unsigned,int,int,unsigned);
 void d84_span(uint8_t *,uint8_t *,const uint8_t *,const uint8_t *,unsigned,int,int,int,int,unsigned);
 void d84_span2(uint8_t *,uint8_t *,const uint8_t *,const uint8_t *,unsigned,int,int,int,int,unsigned);
+void d84_span3(uint8_t *,uint8_t *,const uint8_t *,const uint8_t *,unsigned,int,int,int,int,unsigned);
 void d84_span4(uint8_t *,uint8_t *,const uint8_t *,const uint8_t *,unsigned,int,int,int,int,unsigned);
 void d84_fill_column(uint8_t *,unsigned,unsigned);
 void d84_double_columns(uint8_t *,unsigned);
+void d84_triple_columns(uint8_t *,unsigned);
 void d84_quad_columns(uint8_t *,unsigned);
 void d84_sprite(uint8_t *,uint8_t *,const uint8_t *,const uint8_t *,unsigned,unsigned,unsigned,unsigned,unsigned);
 #else
@@ -83,10 +85,24 @@ static void d84_span(uint8_t *dst,uint8_t *depth,const uint8_t *image,const uint
 static void d84_span2(uint8_t *dst,uint8_t *depth,const uint8_t *image,const uint8_t *light,unsigned count,int wx,int wy,int sx,int sy,unsigned z) {
     while(count--) {*dst=light[image[(((unsigned)wy>>9)&31)*32+(((unsigned)wx>>9)&31)]];*depth=(uint8_t)z;dst+=2;depth+=2;wx+=sx;wy+=sy;}
 }
+static void d84_span3(uint8_t *dst,uint8_t *depth,const uint8_t *image,const uint8_t *light,unsigned count,int wx,int wy,int sx,int sy,unsigned z) {
+    while(count--) {*dst=light[image[(((unsigned)wy>>9)&31)*32+(((unsigned)wx>>9)&31)]];*depth=(uint8_t)z;dst+=3;depth+=3;wx+=sx;wy+=sy;}
+}
 static void d84_span4(uint8_t *dst,uint8_t *depth,const uint8_t *image,const uint8_t *light,unsigned count,int wx,int wy,int sx,int sy,unsigned z) {
     while(count--) {*dst=light[image[(((unsigned)wy>>9)&31)*32+(((unsigned)wx>>9)&31)]];*depth=(uint8_t)z;dst+=4;depth+=4;wx+=sx;wy+=sy;}
 }
 static void d84_quad_columns(uint8_t *dst,unsigned count) {while(count--) {dst[1]=dst[2]=dst[3]=dst[0];dst+=4;}}
+/* rows = VIEW_H; 128 is not divisible by 3, so expand per row. */
+static void d84_triple_columns(uint8_t *dst,unsigned rows) {
+    for(unsigned y=0;y<rows;++y) {
+        uint8_t *row=dst+y*VIEW_W;
+        for(unsigned x=0;x<VIEW_W;x+=3) {
+            uint8_t v=row[x];
+            if(x+1<VIEW_W) row[x+1]=v;
+            if(x+2<VIEW_W) row[x+2]=v;
+        }
+    }
+}
 static void d84_fill_column(uint8_t *dst,unsigned count,unsigned color) {while(count--) {*dst=(uint8_t)color;dst+=VIEW_W;}}
 static void d84_double_columns(uint8_t *dst,unsigned count) {while(count--) {dst[1]=dst[0];dst+=2;}}
 static void d84_sprite(uint8_t *dst,uint8_t *depth,const uint8_t *image,const uint8_t *light,unsigned count,unsigned u,unsigned step,unsigned z,unsigned stride) {
@@ -692,7 +708,7 @@ __attribute__((noinline)) static void render_wire_columns(void) {
             cliptop[x]=(uint8_t)CLAMP(MAX(top,MAX(cy,upper)),top,bottom);
             clipbottom[x]=(uint8_t)CLAMP(MIN(bottom,MIN(fy,lower)),cliptop[x],bottom);
         }
-        for(unsigned k=1;k<rw.stride;++k) {
+        for(unsigned k=1;k<rw.stride && x+(int)k<VIEW_W;++k) {
             cliptop[x+(int)k]=cliptop[x];
             clipbottom[x+(int)k]=clipbottom[x];
         }
@@ -742,7 +758,9 @@ __attribute__((noinline)) static void render_columns(void) {
             cliptop[x]=(uint8_t)CLAMP(MAX(top,MAX(cy,upper)),top,bottom);
             clipbottom[x]=(uint8_t)CLAMP(MIN(bottom,MIN(fy,lower)),cliptop[x],bottom);
         }
-        for(unsigned k=1;k<render_detail;++k) {cliptop[x+(int)k]=cliptop[x];clipbottom[x+(int)k]=clipbottom[x];}
+        for(unsigned k=1;k<render_detail && x+(int)k<VIEW_W;++k) {
+            cliptop[x+(int)k]=cliptop[x];clipbottom[x+(int)k]=clipbottom[x];
+        }
     }
 }
 
@@ -801,7 +819,8 @@ __attribute__((noinline)) void d84_draw_seg(const Seg *seg,const Material *side)
     int start=MAX(0,sx1),end=MIN(VIEW_W,sx2);
     /* Wireframe always samples every column so edges stay continuous. */
     unsigned step=player.wireframe?1:render_detail;
-    if(step>1) start=(start+(int)step-1)&~((int)step-1);
+    /* Align to step (not just power-of-two masks — detail 3 needs this). */
+    if(step>1) start=((start+(int)step-1)/(int)step)*(int)step;
     while(start<end && cliptop[start]>=clipbottom[start]) start+=(int)step;
     while(end>start && cliptop[end-1]>=clipbottom[end-1]) --end;
     if(start>=end) return;
@@ -942,9 +961,13 @@ __attribute__((noinline)) static void draw_planes(void) {
             int wx=(int)player.x+z*camcos+stepx*(x-64);
             int wy=(int)player.y+z*camsin+stepy*(x-64);
             uint8_t depth=(uint8_t)CLAMP(z/16,1,254);
-            if(render_detail==4) d84_span4(pixels,depths,image,light,length/4,wx,wy,stepx*4,stepy*4,depth);
-            else if(render_detail==2) d84_span2(pixels,depths,image,light,length/2,wx,wy,stepx*2,stepy*2,depth);
-            else d84_span(pixels,depths,image,light,length,wx,wy,stepx,stepy,depth);
+            if(render_detail==4) {
+                if(length>=4) d84_span4(pixels,depths,image,light,length/4,wx,wy,stepx*4,stepy*4,depth);
+            } else if(render_detail==3) {
+                if(length>=3) d84_span3(pixels,depths,image,light,length/3,wx,wy,stepx*3,stepy*3,depth);
+            } else if(render_detail==2) {
+                if(length>=2) d84_span2(pixels,depths,image,light,length/2,wx,wy,stepx*2,stepy*2,depth);
+            } else d84_span(pixels,depths,image,light,length,wx,wy,stepx,stepy,depth);
             pixels+=length;depths+=length;
         }
     }
@@ -1002,9 +1025,10 @@ __attribute__((noinline)) static void draw_sprites(void) {
         uint8_t depth=(uint8_t)CLAMP(z/16,1,254);
         int x1=MAX(0,left),x2=MIN(VIEW_W,left+width),y1=MAX(0,top),y2=MIN(VIEW_H,bottom);
         unsigned sxstep=(64u*256)/width,systep=(64u*256)/height;
-        if(render_detail>1) x1=(x1+(int)render_detail-1)&~((int)render_detail-1);
+        if(render_detail>1) x1=((x1+(int)render_detail-1)/(int)render_detail)*(int)render_detail;
         if(x1>=x2 || y1>=y2) continue;
         unsigned count=(unsigned)(x2-x1+(int)render_detail-1)/render_detail;
+        if(!count) continue;
         unsigned sxpos=(unsigned)(x1-left)*sxstep;
         unsigned sypos=(unsigned)(y1-top)*systep;
         unsigned offset=(unsigned)(y1*VIEW_W+x1);
@@ -1039,11 +1063,13 @@ void engine_render(void) {
     }
     if(player.texture_planes) {
         if(render_detail==4) d84_quad_columns(planes,VIEW_W*VIEW_H/4);
+        else if(render_detail==3) d84_triple_columns(planes,VIEW_H);
         else if(render_detail==2) d84_double_columns(planes,VIEW_W*VIEW_H/2);
         draw_planes();
     }
     draw_sprites();
     if(render_detail==4) d84_quad_columns(framebuffer,VIEW_W*VIEW_H/4);
+    else if(render_detail==3) d84_triple_columns(framebuffer,VIEW_H);
     else if(render_detail==2) d84_double_columns(framebuffer,VIEW_W*VIEW_H/2);
     /* Pistol frame from remaining fire tics: A / B / C / B, plus muzzle flash. */
     unsigned frame=0;

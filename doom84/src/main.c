@@ -181,7 +181,9 @@ int main(void) {
         }
         flatheld=flatkey;
         bool detailkey=(kb_Data[1]&kb_Trace)!=0;
-        if(detailkey && !detailheld) render_detail=render_detail==2?4:render_detail==4?1:2;
+        /* 64 → ~43 (every 3rd) → 32 → 128 → 64 */
+        if(detailkey && !detailheld)
+            render_detail=render_detail==2?3:render_detail==3?4:render_detail==4?1:2;
         detailheld=detailkey;
         bool resetkey=(kb_Data[1]&kb_Zoom)!=0;
         if(resetkey && !resetheld) {

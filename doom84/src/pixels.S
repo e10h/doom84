@@ -51,23 +51,13 @@ _d84_double_columns:
 .section .text._d84_span,"ax",@progbits
 .global _d84_span
 .global _d84_span2
+.global _d84_span3
 .global _d84_span4
 _d84_span:
-    xor a,a
-    ld (.Lspan_stride),a
-    ld (.Lspan_stride+1),a
-    ld (.Lspan_stride+2),a
-    ld (.Lspan_stride+3),a
-    ld hl,0
-    ld (.Lspan_stride+4),hl
-    ld (.Lspan_stride+7),hl
-    ld (.Lspan_stride+9),hl
+    call .Lspan_clear_stride
     jr .Lspan_start
 _d84_span2:
-    ld hl,0
-    ld (.Lspan_stride+4),hl
-    ld (.Lspan_stride+7),hl
-    ld (.Lspan_stride+9),hl
+    call .Lspan_clear_stride
     ld a,0xdd
     ld (.Lspan_stride),a
     ld a,0x23
@@ -76,7 +66,23 @@ _d84_span2:
     ld a,0xfd
     ld (.Lspan_stride+2),a
     jr .Lspan_start
+_d84_span3:
+    call .Lspan_clear_stride
+    /* Two extra (inc ix / inc iy) after the base incs → stride 3. */
+    ld a,0xdd
+    ld (.Lspan_stride),a
+    ld (.Lspan_stride+4),a
+    ld a,0x23
+    ld (.Lspan_stride+1),a
+    ld (.Lspan_stride+3),a
+    ld (.Lspan_stride+5),a
+    ld (.Lspan_stride+7),a
+    ld a,0xfd
+    ld (.Lspan_stride+2),a
+    ld (.Lspan_stride+6),a
+    jr .Lspan_start
 _d84_span4:
+    call .Lspan_clear_stride
     ld hl,0xfd23dd
     ld (.Lspan_stride),hl
     ld (.Lspan_stride+4),hl
@@ -101,6 +107,8 @@ _d84_span4:
     ld a,(ix+36)
     ld (.Lspan_depth+3),a
     ld a,(ix+21)
+    or a,a
+    jr z,.Lspan_empty
     ex af,af'
     ld hl,(ix+24)
     ld de,(ix+27)
@@ -153,8 +161,22 @@ _d84_span4:
     ex af,af'
     jr .Lspan_loop
 .Lspan_done:
+.Lspan_empty:
     pop iy
     pop ix
+    ret
+.Lspan_clear_stride:
+    push hl
+    push bc
+    ld hl,.Lspan_stride
+    ld b,12
+    xor a,a
+.Lspan_clear_loop:
+    ld (hl),a
+    inc hl
+    djnz .Lspan_clear_loop
+    pop bc
+    pop hl
     ret
 
 .section .text._d84_wall,"ax",@progbits
@@ -291,6 +313,36 @@ _d84_sprite:
     jr .Lsprite_loop
 .Lsprite_done:
     pop iy
+    pop ix
+    ret
+
+.section .text._d84_triple_columns,"ax",@progbits
+.global _d84_triple_columns
+/* A=rows (VIEW_H). Expand each 128-wide row in place; 128%3==2 at the end. */
+_d84_triple_columns:
+    push ix
+    ld ix,0
+    add ix,sp
+    ld hl,(ix+6)
+    ld b,(ix+9)
+.Ltriple_row:
+    push bc
+    ld b,42
+.Ltriple_group:
+    ld a,(hl)
+    inc hl
+    ld (hl),a
+    inc hl
+    ld (hl),a
+    inc hl
+    djnz .Ltriple_group
+    /* Columns 126..127 */
+    ld a,(hl)
+    inc hl
+    ld (hl),a
+    inc hl
+    pop bc
+    djnz .Ltriple_row
     pop ix
     ret
 

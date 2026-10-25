@@ -181,7 +181,14 @@ _d84_render_columns:
     ld b,(ix+RW_STRIDE)
     dec b
     jr z,.Lcolumn_next
+    /* Stop at VIEW_W so detail 3 near x=126 cannot write past cliptop[]. */
+    ld a,(ix+RW_X)
+    ld c,a
 .Lduplicate_clip:
+    inc c
+    ld a,c
+    cp a,128
+    jr nc,.Lcolumn_next
     inc hl
     inc de
     ld a,(ix+RW_TOP)

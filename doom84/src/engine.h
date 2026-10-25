@@ -38,7 +38,7 @@ typedef struct {
 
 extern Player player;
 extern RenderStats render_stats;
-extern unsigned render_detail; /* 1:128x80; 2:64x80; 4:32x80; framebuffer remains 128x80 */
+extern unsigned render_detail; /* 1:128×80; 2:64×80; 3:~43×80; 4:32×80; fb stays 128×80 */
 typedef struct {uint8_t width,height,pixels[VIEW_W*VIEW_H];} View;
 extern View engine_view;
 #define framebuffer (engine_view.pixels)
