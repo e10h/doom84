@@ -318,7 +318,8 @@ _d84_quad_columns:
     pop ix
     ret
 
-/* 2× replicate 128×80 src into dest (points at view top-left in a 320-wide buffer). */
+/* 2.5× nearest: 128×80 → 320×200 in a 320-wide buffer (full CE width).
+ * Even src pixels/rows → 2 dest; odd → 3. 64×(2+3)=320, 40×(2+3)=200. */
 .section .text._d84_blit_viewport,"ax",@progbits
 .global _d84_blit_viewport
 _d84_blit_viewport:
@@ -328,33 +329,58 @@ _d84_blit_viewport:
     add iy,sp
     ld hl,(iy+9)
     ld ix,(iy+12)
-    push ix
+    xor a
+.Lblit_rows:
+    push af
+    call .Lblit_src_row
+    /* IX points one past the row just written. Duplicate it. */
+    call .Lblit_dup_row
+    pop af
+    bit 0,a
+    jr z,.Lblit_row_next
+    /* Odd source rows get a third dest row. */
+    push af
+    call .Lblit_dup_row
+    pop af
+.Lblit_row_next:
+    inc a
+    cp a,80
+    jp nz,.Lblit_rows
     pop iy
-    ld de,320
-    add iy,de
-    ld a,80
-.Lrow_loop:
-    ex af,af'
-    ld b,16
-.Lgroup_loop:
-    .rept 8
+    pop ix
+    ret
+
+/* HL=src, IX=dest. One 320-wide scaled row; HL+=128, IX+=320. */
+.Lblit_src_row:
+    ld b,64
+.Lblit_pair_px:
     ld a,(hl)
     inc hl
     ld (ix+0),a
     ld (ix+1),a
-    ld (iy+0),a
-    ld (iy+1),a
-    lea ix,ix+2
-    lea iy,iy+2
-    .endr
-    dec b
-    jp nz,.Lgroup_loop
-    ld de,384
+    ld a,(hl)
+    inc hl
+    ld (ix+2),a
+    ld (ix+3),a
+    ld (ix+4),a
+    lea ix,ix+5
+    djnz .Lblit_pair_px
+    ret
+
+/* Copy the previous dest row (IX-320) onto IX; IX+=320. Preserves HL. */
+.Lblit_dup_row:
+    push hl
+    ld de,-320
     add ix,de
-    add iy,de
-    ex af,af'
-    dec a
-    jp nz,.Lrow_loop
-    pop iy
+    push ix
+    pop hl
+    ld de,320
+    add ix,de
+    push ix
+    pop de
+    ld bc,320
+    ldir
+    push de
     pop ix
+    pop hl
     ret

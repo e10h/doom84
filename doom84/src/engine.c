@@ -62,6 +62,7 @@ static const Sector *sector_at(unsigned index) {return (const Sector *)((const u
 static uint8_t sector_shades[NUM_SECTORS];
 static const uint8_t *shade_rows[32];
 static uint8_t plane_colors[NUM_SECTORS*2];
+static uint8_t sky_flat;
 
 #ifdef __TICE__
 void d84_wall(uint8_t *,uint8_t *,const uint8_t *,const uint8_t *,unsigned,int,int,unsigned);
@@ -151,10 +152,14 @@ static void d84_rotate(int dx,int dy) {d84_rotated[0]=shr8(dx*camsin-dy*camcos);
 static uint8_t use_held;
 static uint16_t random_state;
 
-typedef struct { int16_t x,y; uint8_t sector,hp,removed,cooldown; } Actor;
+/* pain: remaining hurt-flash tics. die: 0 alive, 1..DEATH_TICS animating, 255 corpse. */
+#define DEATH_TICS 14
+typedef struct { int16_t x,y; uint8_t sector,hp,removed,cooldown,explode,pain,die; } Actor;
 static Actor actors[NUM_ACTORS];
 static uint8_t sprite_order[NUM_ACTORS];
 static int16_t sprite_z[NUM_ACTORS],sprite_x[NUM_ACTORS];
+#define EXPLODE_TIC 3
+#define EXPLODE_TOTAL (NUM_BARREL_EXP*EXPLODE_TIC)
 
 static int isin(unsigned a) { return sine_table[a&1023]; }
 static int icos(unsigned a) { return sine_table[(a+256)&1023]; }
@@ -209,10 +214,29 @@ bool engine_init(const uint8_t *map,unsigned size,const uint8_t *const *banks,co
             if(a->flat==b->flat && a->ceiltex==b->ceiltex && a->light==b->light) m->flags|=128;
         }
     }
+    /* FAST-mode sky fill: mean RGB of the upper SKY1 band (textured mode only
+     * samples ~top 24/32 rows; averaging the dark horizon dragged the fill down). */
+    {
+        const uint8_t *sky=images[SKY_TILE];
+        unsigned long sr=0,sg=0,sb=0,n=0;
+        for(unsigned y=0;y<6;++y) for(unsigned x=0;x<32;++x,++n) {
+            const uint8_t *c=map_palette+sky[y*32+x]*3;
+            sr+=c[0];sg+=c[1];sb+=c[2];
+        }
+        sr/=n;sg/=n;sb/=n;
+        unsigned best=sky[0],bestd=~0u;
+        for(unsigned i=0;i<256;++i) {
+            const uint8_t *c=map_palette+i*3;
+            int dr=(int)c[0]-(int)sr,dg=(int)c[1]-(int)sg,db=(int)c[2]-(int)sb;
+            unsigned d=(unsigned)(dr*dr+dg*dg+db*db);
+            if(d<bestd) {bestd=d;best=i;}
+        }
+        sky_flat=best;
+    }
     for(unsigned i=0;i<NUM_SECTORS;++i) {
         const Sector *s=&(*sector_at(i));sector_shades[i]=(uint8_t)((255-s->light)/8);const uint8_t *light=colormaps+((255-s->light)/8)*256;
         plane_colors[i]=light[images[s->flat][528]];
-        plane_colors[i+NUM_SECTORS]=s->ceiltex==255?images[SKY_TILE][12*32+16]:light[images[s->ceiltex][528]];
+        plane_colors[i+NUM_SECTORS]=s->ceiltex==255?sky_flat:light[images[s->ceiltex][528]];
     }
     engine_view.width=VIEW_W;engine_view.height=VIEW_H;
     engine_reset();
@@ -239,7 +263,7 @@ void engine_reset(void) {
     }
     for (unsigned i=0;i<NUM_ACTORS;++i) {
         const MapActor *m=&map_actors[i];
-        actors[i]=(Actor){m->x,m->y,engine_sector(m->x,m->y),m->hp,0,0};
+        actors[i]=(Actor){m->x,m->y,engine_sector(m->x,m->y),m->hp,0,0,0,0,0};
         if (m->kind==1) ++player.total;
     }
 }
@@ -386,6 +410,42 @@ static void hurt(int damage) {
 #define PISTOL_TOTAL 19
 #define PISTOL_FIRE_AT 15
 
+static void explode_barrel(unsigned index);
+
+static void damage_actor(unsigned index,int damage) {
+    Actor *a=&actors[index];
+    const MapActor *m=&map_actors[index];
+    if (!a->hp || a->removed || a->explode || a->die) return;
+    if (damage<a->hp) {
+        a->hp=(uint8_t)(a->hp-damage);
+        if (m->kind==1) a->pain=12;
+        return;
+    }
+    a->hp=0;
+    a->pain=0;
+    if (m->kind==1) {a->die=1;++player.kills;player.ammo+=5;}
+    if (m->kind==3) explode_barrel(index);
+}
+
+static void explode_barrel(unsigned index) {
+    Actor *a=&actors[index];
+    if (a->removed || a->explode) return;
+    a->hp=0;
+    a->explode=1;
+    int bx=a->x,by=a->y;
+    int px=(int)(player.x/256),py=(int)(player.y/256);
+    int pdist=MAX(ABS(px-bx),ABS(py-by));
+    if (pdist<128) hurt((128-pdist)/4+1+(int)(rnd()%5));
+    for (unsigned i=0;i<NUM_ACTORS;++i) {
+        if (i==index) continue;
+        Actor *o=&actors[i];
+        if (!o->hp || o->removed || o->explode) continue;
+        int dist=MAX(ABS(o->x-bx),ABS(o->y-by));
+        if (dist>=128) continue;
+        damage_actor(i,(128-dist)/2+1+(int)(rnd()%5));
+    }
+}
+
 static void fire_shot(void) {
     if (!player.ammo) return;
     --player.ammo;
@@ -393,7 +453,7 @@ static void fire_shot(void) {
     int x=(int)(player.x/256),y=(int)(player.y/256);
     for (unsigned i=0;i<NUM_ACTORS;++i) {
         Actor *a=&actors[i];
-        if (!a->hp || a->removed) continue;
+        if (!a->hp || a->removed || a->explode) continue;
         int dx=a->x-x,dy=a->y-y;
         int z=(int)(((int32_t)dx*c+(int32_t)dy*s)/256);
         int r=(int)(((int32_t)dx*s-(int32_t)dy*c)/256);
@@ -401,14 +461,7 @@ static void fire_shot(void) {
         if (!sight(x,y,a->x,a->y,player.eye)) continue;
         best=z;index=(int)i;
     }
-    if (index>=0) {
-        Actor *a=&actors[index];
-        int damage=5*(1+(rnd()%3));
-        if (damage>=a->hp) {
-            a->hp=0;
-            if (map_actors[index].kind==1) {++player.kills;player.ammo+=5;}
-        } else a->hp-=damage;
-    }
+    if (index>=0) damage_actor((unsigned)index,5*(1+(rnd()%3)));
 }
 
 static void shoot(void) {
@@ -427,7 +480,8 @@ void engine_tick(uint8_t input) {
     }
     if (player.damage) --player.damage;
     if (!(input&INPUT_STRAFE)) {
-        int turn=(input&INPUT_RUN)?12:8;
+        /* Keyboard turn in 1024-circle units (slower than Doom BAM 640/1280). */
+        int turn=(input&INPUT_RUN)?6:3;
         if (input&INPUT_LEFT) player.angle=(player.angle+turn)&1023;
         if (input&INPUT_RIGHT) player.angle=(player.angle-turn)&1023;
     }
@@ -460,7 +514,17 @@ void engine_tick(uint8_t input) {
     if (!(player.ticks&31) && ((*sector_at(player.sector)).special==5 || (*sector_at(player.sector)).special==7 || (*sector_at(player.sector)).special==16)) hurt(5);
     Actor *a=actors;const MapActor *m=map_actors;
     for (unsigned i=0;i<NUM_ACTORS;++i,++a,++m) {
-        if (a->removed || (m->kind!=1 && m->kind!=2) || (m->kind==1 && !a->hp)) continue;
+        if (a->removed) continue;
+        if (a->pain) --a->pain;
+        if (a->die && a->die!=255) {
+            if (++a->die>=DEATH_TICS) a->die=255;
+            continue;
+        }
+        if (a->explode) {
+            if (++a->explode>EXPLODE_TOTAL) a->removed=1;
+            continue;
+        }
+        if ((m->kind!=1 && m->kind!=2) || (m->kind==1 && !a->hp)) continue;
         int dx=x-a->x,dy=y-a->y,dist=MAX(ABS(dx),ABS(dy));
         if (m->kind==2 && dist<28) {
             bool take=true;
@@ -689,6 +753,26 @@ static int height_product(int height,int inverse) {
     return (int)(((int32_t)height*inverse)>>4);
 }
 
+/* Clip (r,z[,u]) against half-space a>=0. Plane distances are a1/a2 at the ends. */
+static bool clip_seg_plane(int *r1,int *z1,int *u1,int *r2,int *z2,int *u2,int a1,int a2,bool do_u) {
+    if(a1<0 && a2<0) return false;
+    if(a1>=0 && a2>=0) return true;
+    if(a1<0) {
+        int den=a1-a2;
+        if(!den) return false;
+        *r1+=(int)((int32_t)(*r2-*r1)*a1/den);
+        *z1+=(int)((int32_t)(*z2-*z1)*a1/den);
+        if(do_u) *u1+=(int)((int32_t)(*u2-*u1)*a1/den);
+    } else {
+        int den=a2-a1;
+        if(!den) return false;
+        *r2+=(int)((int32_t)(*r1-*r2)*a2/den);
+        *z2+=(int)((int32_t)(*z1-*z2)*a2/den);
+        if(do_u) *u2+=(int)((int32_t)(*u1-*u2)*a2/den);
+    }
+    return true;
+}
+
 __attribute__((noinline)) void d84_draw_seg(const Seg *seg,const Material *side) {
     unsigned fs=side->sector;
     int bs=side->back==255?-1:side->back;
@@ -703,18 +787,16 @@ __attribute__((noinline)) void d84_draw_seg(const Seg *seg,const Material *side)
     /* All E1M1 wall texture widths divide 1024. Remove whole repeats to
      * bound U/Z accumulators to 24 bits without changing texture phase. */
     int u1=0,u2=0;
-    if(!player.wireframe) {u1=(side->x+seg->offset)&1023;u2=u1+seg->length;}
-    if (z1<NEAR_Z) {
-        r1+=(int)((int32_t)(r2-r1)*(NEAR_Z-z1)/(z2-z1));
-        if(!player.wireframe) u1+=(int)((int32_t)(u2-u1)*(NEAR_Z-z1)/(z2-z1));
-        z1=NEAR_Z;
-    }
-    if (z2<NEAR_Z) {
-        r2+=(int)((int32_t)(r1-r2)*(NEAR_Z-z2)/(z1-z2));
-        if(!player.wireframe) u2+=(int)((int32_t)(u1-u2)*(NEAR_Z-z2)/(z1-z2));
-        z2=NEAR_Z;
-    }
-    int sx1=vertex_projection(seg->v1,r1,z1),sx2=vertex_projection(seg->v2,r2,z2);
+    bool do_u=!player.wireframe;
+    if(do_u) {u1=(side->x+seg->offset)&1023;u2=u1+seg->length;}
+    /* Near + side frustum (screen x = 64+64*r/z ∈ [0,VIEW_W] ⇔ |r|≤z).
+     * Near-only clip left glancing walls with |r|≫z, so projected X ran to
+     * tens of thousands and the 1/z DDA "popped" wall heights/U. */
+    if(!clip_seg_plane(&r1,&z1,&u1,&r2,&z2,&u2,z1-NEAR_Z,z2-NEAR_Z,do_u)) return;
+    if(!clip_seg_plane(&r1,&z1,&u1,&r2,&z2,&u2,r1+z1,r2+z2,do_u)) return;
+    if(!clip_seg_plane(&r1,&z1,&u1,&r2,&z2,&u2,z1-r1,z2-r2,do_u)) return;
+    /* Clipped endpoints are not map vertices — never use vertex_screen[]. */
+    int sx1=screen_x(r1,z1),sx2=screen_x(r2,z2);
     if (sx1>=sx2 || sx2<=0 || sx1>=VIEW_W) return;
     int start=MAX(0,sx1),end=MIN(VIEW_W,sx2);
     /* Wireframe always samples every column so edges stay continuous. */
@@ -726,12 +808,13 @@ __attribute__((noinline)) void d84_draw_seg(const Seg *seg,const Material *side)
     int iz1=(int)(reciprocal((unsigned)z1)>>2),iz2=(int)(reciprocal((unsigned)z2)>>2);
     int span=sx2-sx1;
     int diz=(iz2-iz1)/span;
-    int iz=iz1+diz*(start-sx1);
+    /* Multiply-before-divide so a clipped start column keeps accurate 1/z. */
+    int iz=iz1+(int)((int32_t)(iz2-iz1)*(start-sx1)/span);
     int uz=0,duz=0;
-    if(!player.wireframe) {
+    if(do_u) {
         int uz1=(int)(((int32_t)u1*iz1)>>4),uz2=(int)(((int32_t)u2*iz2)>>4);
         duz=(uz2-uz1)/span;
-        uz=uz1+duz*(start-sx1);
+        uz=uz1+(int)((int32_t)(uz2-uz1)*(start-sx1)/span);
     }
     int fceil=sector_ceiling[fs],ffloor=sector_floor[fs];
     bool skyportal=bs>=0 && (*sector_at(fs)).ceiltex==255 && (*sector_at(bs)).ceiltex==255;
@@ -885,12 +968,37 @@ __attribute__((noinline)) static void draw_sprites(void) {
         const MapActor *m=&map_actors[i];Actor *a=&actors[i];
         int z=sprite_z[i],center=64+(int)sprite_x[i]*FOCAL/z;
         int width=MAX(1,(int)m->width*FOCAL/z);
-        int height=MAX(1,(int)m->height*FOCAL/z);
-        bool corpse=m->hp && !a->hp;
-        if (corpse) height=MAX(1,height/4);
+        int hworld=(int)m->height;
+        bool exploding=a->explode!=0;
+        unsigned image;
+        const uint8_t *light;
+        if (exploding) {
+            unsigned frame=MIN(NUM_BARREL_EXP-1,(unsigned)(a->explode-1)/EXPLODE_TIC);
+            image=barrel_explode[frame];
+            width=MAX(width,width*5/4);
+            hworld=MAX(hworld,hworld*5/4);
+            light=shade_rows[0];
+        } else if (m->hp && a->die && a->die!=255) {
+            /* Stand → walk → corpse while shrinking to gib height. */
+            uint8_t d=a->die;
+            image=d<5?m->image:d<9?m->walk:m->death;
+            int hcorp=MAX(1,hworld/4);
+            hworld=hworld-(hworld-hcorp)*(int)(d-1)/(DEATH_TICS-1);
+            light=shade_rows[0];
+        } else if (m->hp && !a->hp) {
+            image=m->death;
+            hworld=MAX(1,hworld/4);
+            light=lighting(a->sector,z);
+        } else if (a->pain) {
+            image=m->walk;
+            light=shade_rows[0];
+        } else {
+            image=(player.ticks&8)?m->walk:m->image;
+            light=lighting(a->sector,z);
+        }
+        int height=MAX(1,hworld*FOCAL/z);
         int left=center-width/2,bottom=project(sector_floor[a->sector],z),top=bottom-height;
-        unsigned image=corpse?m->death:((player.ticks&8)?m->walk:m->image);
-        const uint8_t *pixels=images[image],*light=lighting(a->sector,z);
+        const uint8_t *pixels=images[image];
         uint8_t depth=(uint8_t)CLAMP(z/16,1,254);
         int x1=MAX(0,left),x2=MIN(VIEW_W,left+width),y1=MAX(0,top),y2=MIN(VIEW_H,bottom);
         unsigned sxstep=(64u*256)/width,systep=(64u*256)/height;

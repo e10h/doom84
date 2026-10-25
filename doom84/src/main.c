@@ -29,10 +29,9 @@ static uint8_t input(void) {
     if(kb_Data[7]&kb_Down) result|=INPUT_BACK;
     if(kb_Data[7]&kb_Left) result|=INPUT_LEFT;
     if(kb_Data[7]&kb_Right) result|=INPUT_RIGHT;
-    if(kb_Data[2]&kb_Alpha) result|=INPUT_STRAFE;
     if(kb_Data[1]&kb_2nd) result|=INPUT_FIRE;
-    if(kb_Data[6]&kb_Enter) result|=INPUT_USE;
-    if(kb_Data[1]&kb_Mode) result|=INPUT_RUN;
+    if(kb_Data[2]&kb_Math) result|=INPUT_USE;
+    if(kb_Data[2]&kb_Alpha) result|=INPUT_RUN;
     return result;
 }
 
@@ -112,19 +111,25 @@ static void draw_status(int y) {
     draw_sty(300,ST_MAXAMMO0_X,y+ST_AMMO3_Y);
 }
 
+/* Doom-like on 320×240: full-width 320×200 view + STBAR (8px top for FPS). */
+#define VIEW_Y 8
+#define VIEW_H_DST 200
+#define STBAR_Y 208
+
 static void automap(void) {
-    gfx_SetClipRegion(32,24,288,184);
-    gfx_SetColor(0);gfx_FillRectangle_NoClip(32,24,256,160);
+    gfx_SetClipRegion(0,VIEW_Y,320,VIEW_Y+VIEW_H_DST);
+    gfx_SetColor(0);gfx_FillRectangle_NoClip(0,VIEW_Y,320,VIEW_H_DST);
     int px=(int)(player.x/256),py=(int)(player.y/256);
+    int cx=160,cy=VIEW_Y+VIEW_H_DST/2;
     for(unsigned i=0;i<NUM_LINES;++i) {
         const Line *l=&map_lines[i];
         const Vertex *a=&map_vertices[l->v1],*b=&map_vertices[l->v2];
         gfx_SetColor(l->side[1]==65535u?176:96);
-        gfx_Line(160+(a->x-px)/16,104-(a->y-py)/16,160+(b->x-px)/16,104-(b->y-py)/16);
+        gfx_Line(cx+(a->x-px)/16,cy-(a->y-py)/16,cx+(b->x-px)/16,cy-(b->y-py)/16);
     }
-    gfx_SetColor(4);gfx_FillCircle(160,104,2);
+    gfx_SetColor(4);gfx_FillCircle(cx,cy,2);
     int c=sine_table[(player.angle+256)&1023],s=sine_table[player.angle&1023];
-    gfx_Line(160,104,160+c/32,104-s/32);
+    gfx_Line(cx,cy,cx+c/32,cy-s/32);
     gfx_SetClipRegion(0,0,320,240);
 }
 
@@ -154,7 +159,7 @@ int main(void) {
     gfx_SetTextFGColor(4);gfx_SetTextBGColor(0);gfx_SetTextTransparentColor(0);
     for(unsigned i=0;i<2;++i) {
         gfx_FillScreen(0);
-        draw_status(184);
+        draw_status(STBAR_Y);
         gfx_SwapDraw();
     }
     bool showmap=false,flatheld=false,mapheld=false,resetheld=false,paused=false,pauseheld=false,detailheld=false;
@@ -202,14 +207,13 @@ int main(void) {
         if(!showmap) engine_render();
         render_ms=showmap?0:(unsigned)((clock()-begin)*1000/CLOCKS_PER_SEC);
         gfx_SetColor(0);
-        gfx_FillRectangle_NoClip(0,0,320,24);
+        gfx_FillRectangle_NoClip(0,0,320,VIEW_Y);
         if(showmap) automap();
         else {
 #ifdef __TICE__
-            /* Same addressing as the previously working blit path. */
-            d84_blit_viewport(engine_view.pixels,(uint8_t *)gfx_vbuffer+24*320+32);
+            d84_blit_viewport(engine_view.pixels,(uint8_t *)gfx_vbuffer+VIEW_Y*320);
 #else
-            gfx_ScaledSprite_NoClip((const gfx_sprite_t *)&engine_view,32,24,2,2);
+            gfx_ScaledSprite_NoClip((const gfx_sprite_t *)&engine_view,32,VIEW_Y,2,2);
 #endif
         }
         /* STBAR only when stats change; dirty=2 covers both LCD buffers. */
@@ -217,15 +221,15 @@ int main(void) {
         if(player.health!=hud_health || player.armor!=hud_armor || player.ammo!=hud_ammo || face!=hud_face) {
             hud_health=player.health;hud_armor=player.armor;hud_ammo=player.ammo;hud_face=face;hud_dirty=2;
         }
-        if(hud_dirty) {draw_status(184);--hud_dirty;}
+        if(hud_dirty) {draw_status(STBAR_Y);--hud_dirty;}
         char line[40];
         snprintf(line,sizeof(line),"E1M1 %uFPS %ums %s",fps,render_ms,
                  player.wireframe?"WIRE":player.texture_planes?"TEX":"FAST");
-        text(line,8,7);
-        if(paused) text("PAUSED",136,96);
-        if(player.dead) text("YOU DIED - ZOOM RESTART",64,96);
-        if(player.exited) text("E1M1 EXIT - ZOOM RESTART",64,96);
-        if(player.damage) {gfx_SetColor(176);gfx_Rectangle_NoClip(32,24,256,160);}
+        text(line,4,0);
+        if(paused) text("PAUSED",136,VIEW_Y+90);
+        if(player.dead) text("YOU DIED - ZOOM RESTART",64,VIEW_Y+90);
+        if(player.exited) text("E1M1 EXIT - ZOOM RESTART",64,VIEW_Y+90);
+        if(player.damage) {gfx_SetColor(176);gfx_Rectangle_NoClip(0,VIEW_Y,320,VIEW_H_DST);}
         gfx_SwapDraw();
         ++frames;
         if(clock()-fps_start>=CLOCKS_PER_SEC) {clock_t duration=clock()-fps_start;fps=(unsigned)((uint32_t)frames*CLOCKS_PER_SEC/duration);frames=0;fps_start=clock();}

@@ -36,10 +36,9 @@ before entering graphics mode. Archive all four again if that happens.
 | --- | --- |
 | Up / Down | Walk forward / backward |
 | Left / Right | Turn |
-| Alpha + Left / Right | Strafe |
-| Mode, held | Run / turn faster |
+| Alpha, held | Sprint (move + turn faster) |
 | 2nd, held | Fire pistol |
-| Enter | Use a door or the exit switch |
+| Math | Use a door or the exit switch |
 | Graph | Toggle automap; pauses simulation |
 | Window | Cycle solid planes → textured → wireframe |
 | Trace | Cycle 64×80 → 32×80 → 128×80 sampling |
