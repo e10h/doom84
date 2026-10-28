@@ -67,3 +67,36 @@ TARGET: DOOM84S.8xp
    - Host test harness: 825 integrity checks passed; 3,792 stress frames passed.
    - Calculator binary: Successfully built bin/DOOM84S.8xp (50,651 bytes).
 ===============================================================================
+
+-------------------------------------------------------------------------------
+COMMIT: Stage 2 - In-Place Optimization of _bsp in engine.s
+BRANCH: doom84s
+TARGET: DOOM84S.8xp
+-------------------------------------------------------------------------------
+
+1. WHAT IS CHANGING:
+   In `src/engine.s`, replaced the compiler-generated `_bsp` function with a
+   hand-optimized recursive near-first BSP tree traversal featuring a 9-byte stack
+   frame, tail-call recursion on the far child, and direct leaf seg pointer stepping.
+
+2. WHERE:
+   - File modified: doom84s/src/engine.s (lines ~19315-19700)
+     - Replaced 386 lines of bloated compiler code in `_bsp`.
+     - Separated `_d84_node_side_camera` helper function to cleanly handle node
+       plane classification without corrupting BSP traversal registers.
+     - Implemented `.Lbsp_child` and `.Lbsp_leaf` with immediate 16-bit pointer adds.
+
+3. WHY:
+   - In the compiler's output, each recursive level of `_bsp` allocated 33 bytes of
+     stack frame, performed redundant 24-bit arithmetic, and used general `__imulu`
+     calls to step seg and material pointers in leaf nodes.
+   - Hand-optimizing directly in `src/engine.s`:
+     * Reduces the stack frame to 9 bytes (`ix-9` to `ix-1`).
+     * Reuses the stack frame via `jp _bsp` tail-call for the far child visit.
+     * Leaf loops step seg pointers with `ld de, 14; add hl, de` and material
+       pointers with `ld de, 10; add hl, de`, completely avoiding multiplier calls.
+
+4. VERIFICATION & TESTS:
+   - Host test harness: 825 integrity checks passed; 3,792 stress frames passed.
+   - Calculator binary: Successfully built bin/DOOM84S.8xp (50,606 bytes).
+===============================================================================

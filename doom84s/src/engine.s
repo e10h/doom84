@@ -19315,182 +19315,137 @@ _engine_render:                         ; @engine_render
 	.size	_engine_render, .Lfunc_end11-_engine_render
                                         ; -- End function
 	.section	.text._bsp,"ax",@progbits
-	.type	_bsp,@function                  ; -- Begin function bsp
-_bsp:                                   ; @bsp
-; %bb.0:
+	.type	_d84_node_side_camera,@function
+_d84_node_side_camera:
 	push	ix
 	ld	ix, 0
 	add	ix, sp
-	lea	hl, ix - 33
+	lea	hl, ix - 17
 	ld	sp, hl
-	ld	hl, (ix + 6)
-	ld	(ix - 9), hl
-	ld	iy, (ix + 9)
-	ld	bc, 32768
-	sbc	hl, hl
-	ld	a, h
-	ld	(ix - 15), a
-	lea	de, iy + 0
-	.local	.LBB12_1
-.LBB12_1:                               ; =>This Inner Loop Header: Depth=1
-	ld	a, (_render_stats+8)
-	ld	l, a
-	ld	(ix - 12), de
-	or	a, a
-	sbc	hl, de
-	jr	nc, .LBB12_3
-; %bb.2:                                ;   in Loop: Header=BB12_1 Depth=1
-	ld	a, iyl
-	ld	(_render_stats+8), a
-	.local	.LBB12_3
-.LBB12_3:                               ;   in Loop: Header=BB12_1 Depth=1
-	ld	de, (ix - 9)
-	push	de
-	pop	hl
-	call	__iand
-	ld	a, h
-	ld	l, (ix - 15)
-	cp	a, l
-	jp	nz, .LBB12_17
-; %bb.4:                                ;   in Loop: Header=BB12_1 Depth=1
-	ld	(ix - 24), iy
-	ld	iy, (_nodes)
-	ex	de, hl
-	ld	bc, 255
-	call	__iand
-	add	hl, hl
-	ex	de, hl
-	ld	hl, _node_offsets
-	add	hl, de
-	ld	hl, (hl)
-	ld	de, 0
-	ld	e, l
-	ld	d, h
-	add	iy, de
+	ld	iy, (ix + 6)
 	ld	bc, (_camx)
 	ld	de, (iy + 4)
-	ld	(ix - 21), de
+	ld	(ix - 9), de
 	sbc.sis	hl, hl
 	adc.sis	hl, de
-	ld	(ix - 18), iy
-	jp	nz, .LBB12_7
-; %bb.5:                                ;   in Loop: Header=BB12_1 Depth=1
-	ld	de, (iy)
+	jp	nz, .Lnode_side_y
+	lea	hl, iy + 0
+	ld	de, (hl)
 	ld	a, d
 	rlc	a
 	sbc	hl, hl
 	ld	l, e
 	ld	h, d
-	ld	de, (iy + 6)
-	ld	(ix - 21), de
-	ld	de, -8388608
 	push	bc
+	pop	de
+	ld	bc, (iy + 6)
+	ld	(ix - 9), bc
+	ld	bc, -8388608
+	push	de
 	pop	iy
-	add	iy, de
-	add	hl, de
+	add	iy, bc
+	add	hl, bc
 	lea	de, iy + 0
 	or	a, a
 	sbc	hl, de
-	jp	nc, .LBB12_10
-; %bb.6:                                ;   in Loop: Header=BB12_1 Depth=1
-	ld	hl, (ix - 21)
-                                        ; kill: def $hl killed $hl killed $uhl
-	ld	c, 15
+	jp	nc, .Lnode_side_ge
+	ld	a, 15
+	ld	hl, (ix - 9)
+	ld	c, a
 	call	__sshru
 	ex.sis	de, hl
 	or	a, a
 	sbc	hl, hl
 	ld	l, e
 	ld	h, d
-	jp	.LBB12_15
-	.local	.LBB12_7
-.LBB12_7:                               ;   in Loop: Header=BB12_1 Depth=1
-	ld	(ix - 30), bc
+	ld	sp, ix
+	pop	ix
+	ret
+.Lnode_side_y:
+	ld	(ix - 15), bc
 	ld	hl, (_camy)
-	ld	(ix - 27), hl
+	ld	(ix - 12), hl
 	ld	de, (iy + 6)
 	sbc.sis	hl, hl
 	adc.sis	hl, de
-	jp	nz, .LBB12_11
-; %bb.8:                                ;   in Loop: Header=BB12_1 Depth=1
-	ld	bc, (iy + 2)
-	ld	a, b
+	jp	nz, .Lnode_side_cross
+	ld	de, (iy + 2)
+	ld	a, d
 	rlc	a
 	sbc	hl, hl
-	ex	de, hl
-	ld	e, c
-	ld	d, b
-	ld	iy, (ix - 21)
+	ld	l, e
+	ld	h, d
+	ld	(ix - 15), hl
+	ld	c, 15
+	ld	iy, (ix - 9)
 	ex	de, hl
 	ld	e, iyl
 	ld	d, iyh
 	ex	de, hl
-	ld	c, 15
 	call	__sshru
-	ld	(ix - 30), l
-	ld	(ix - 29), h
+	ld	(ix - 17), l
+	ld	(ix - 16), h
+	ld	de, 0
 	ld.sis	bc, -32768
 	add.sis	iy, bc
+	inc.sis	bc
 	ex	de, hl
 	ld	e, iyl
 	ld	d, iyh
 	ex	de, hl
-	inc.sis	bc
 	or	a, a
 	sbc.sis	hl, bc
 	sbc	hl, hl
-	ld	(ix - 21), hl
-	ld	hl, -8388608
-	push	hl
-	pop	bc
-	ld	iy, (ix - 27)
+	ld	(ix - 9), hl
+	ld	bc, -8388608
+	ld	iy, (ix - 12)
 	add	iy, bc
-	ex	de, hl
+	ld	hl, (ix - 15)
 	add	hl, bc
 	lea	bc, iy + 0
 	or	a, a
 	sbc	hl, bc
-	jp	c, .LBB12_13
-; %bb.9:                                ;   in Loop: Header=BB12_1 Depth=1
-	or	a, a
-	sbc	hl, hl
-	ld	e, (ix - 30)
-	ld	d, (ix - 29)
-	ld	l, e
-	ld	h, d
-	jp	.LBB12_15
-	.local	.LBB12_10
-.LBB12_10:                              ;   in Loop: Header=BB12_1 Depth=1
+	jp	c, .Lnode_side_inc
+	ld	l, (ix - 17)
+	ld	h, (ix - 16)
+	ld	e, l
+	ld	d, h
+	ex	de, hl
+	ld	sp, ix
+	pop	ix
+	ret
+.Lnode_side_ge:
 	ld.sis	de, -32768
-	ld	hl, (ix - 21)
+	ld	hl, (ix - 9)
 	add.sis	hl, de
-                                        ; kill: def $hl killed $hl killed $uhl
 	inc.sis	de
 	or	a, a
 	sbc.sis	hl, de
 	sbc	hl, hl
-	jp	.LBB12_14
-	.local	.LBB12_11
-.LBB12_11:                              ;   in Loop: Header=BB12_1 Depth=1
-	ld	hl, (iy)
-	ld	(ix - 33), hl
-	ld	a, h
+	inc	hl
+	ld	sp, ix
+	pop	ix
+	ret
+.Lnode_side_cross:
+	ld	hl, (ix + 6)
+	ld	iy, (hl)
+	ld	a, iyh
 	rlc	a
 	sbc	hl, hl
 	push	hl
 	pop	bc
-	ld	hl, (ix - 33)
-	ld	c, l
-	ld	b, h
-	ld	hl, (ix - 30)
+	ld	c, iyl
+	ld	b, iyh
+	ld	hl, (ix - 15)
 	or	a, a
 	sbc	hl, bc
-	ld	(ix - 30), hl
-	ld	(ix - 6), hl
+	push	hl
+	pop	iy
+	ld	(ix - 6), iy
 	ld	a, (ix - 4)
 	rlc	a
 	sbc	a, a
-	ld	(ix - 33), a                    ; 1-byte Folded Spill
+	ld	(ix - 15), a
 	ld	a, d
 	rlc	a
 	sbc	hl, hl
@@ -19500,11 +19455,12 @@ _bsp:                                   ; @bsp
 	ld	b, d
 	rlc	d
 	sbc	a, a
-	ld	hl, (ix - 30)
-	ld	e, (ix - 33)                    ; 1-byte Folded Reload
+	lea	hl, iy + 0
+	ld	e, (ix - 15)
 	call	__lmulu
-	ld	(ix - 30), hl
-	ld	(ix - 33), e                    ; 1-byte Folded Spill
+	ld	(ix - 15), hl
+	ld	(ix - 17), e
+	ld	iy, (ix + 6)
 	ld	bc, (iy + 2)
 	ld	a, b
 	rlc	a
@@ -19512,7 +19468,7 @@ _bsp:                                   ; @bsp
 	ex	de, hl
 	ld	e, c
 	ld	d, b
-	ld	hl, (ix - 27)
+	ld	hl, (ix - 12)
 	or	a, a
 	sbc	hl, de
 	push	hl
@@ -19521,8 +19477,8 @@ _bsp:                                   ; @bsp
 	ld	a, (ix - 1)
 	rlc	a
 	sbc	a, a
-	ld	(ix - 27), a                    ; 1-byte Folded Spill
-	ld	de, (ix - 21)
+	ld	(ix - 12), a
+	ld	de, (ix - 9)
 	ld	a, d
 	rlc	a
 	sbc	hl, hl
@@ -19533,175 +19489,199 @@ _bsp:                                   ; @bsp
 	rlc	d
 	sbc	a, a
 	lea	hl, iy + 0
-	ld	e, (ix - 27)                    ; 1-byte Folded Reload
+	ld	e, (ix - 12)
 	call	__lmulu
-	ld	bc, (ix - 30)
-	ld	a, (ix - 33)                    ; 1-byte Folded Reload
+	ld	bc, (ix - 15)
+	ld	a, (ix - 17)
 	call	__lcmps
 	call	pe, __setflag
-	ld	hl, 1
-	jp	p, .LBB12_15
-; %bb.12:                               ;   in Loop: Header=BB12_1 Depth=1
+	jp	p, .Lnode_side_one
 	ld	hl, 0
-	jr	.LBB12_15
-	.local	.LBB12_13
-.LBB12_13:                              ;   in Loop: Header=BB12_1 Depth=1
-	ld	hl, (ix - 21)
-	.local	.LBB12_14
-.LBB12_14:                              ;   in Loop: Header=BB12_1 Depth=1
+	ld	sp, ix
+	pop	ix
+	ret
+.Lnode_side_inc:
+	ld	hl, (ix - 9)
 	inc	hl
-	.local	.LBB12_15
-.LBB12_15:                              ;   in Loop: Header=BB12_1 Depth=1
-	ld	bc, (ix - 12)
-	ld	iy, (ix - 18)
-	ld	(ix - 21), hl
-	lea	de, iy + 24
+	ld	sp, ix
+	pop	ix
+	ret
+.Lnode_side_one:
+	ld	hl, 1
+	ld	sp, ix
+	pop	ix
+	ret
+
+	.type	_bsp,@function                  ; -- Begin function bsp
+_bsp:                                   ; @bsp
+	push	ix
+	ld	ix, 0
+	add	ix, sp
+	ld	hl, -9
+	add	hl, sp
+	ld	sp, hl
+	ld	a, (_render_stats+8)
+	ld	b, a
+	ld	a, (ix + 9)
+	cp	a, b
+	jr	c, .Lbsp_depth_done
+	ld	(_render_stats+8), a
+.Lbsp_depth_done:
+	ld	hl, (ix + 6)
+	bit	7, h
+	jp	nz, .Lbsp_leaf
 	add	hl, hl
-	push	hl
-	pop	iy
-	ld	(ix - 27), de
-	ex	de, hl
-	lea	de, iy + 0
+	ld	de, _node_offsets
 	add	hl, de
-	ld	hl, (hl)
 	ld	de, 0
-	ld	e, l
-	ld	d, h
-	inc	bc
-	ld	(ix - 12), bc
-	push	bc
+	ld	e, (hl)
+	inc	hl
+	ld	d, (hl)
+	ld	hl, (_nodes)
+	add	hl, de
+	ld	(ix - 3), hl
+	push	hl
+	call	_d84_node_side_camera
+	pop	de
+	ld	(ix - 6), hl
+	ld	a, l
+	call	.Lbsp_child
+	ld	hl, (ix + 9)
+	inc	hl
+	push	hl
 	push	de
 	call	_bsp
 	ld	hl, 6
 	add	hl, sp
 	ld	sp, hl
-	ld	hl, (ix - 21)
-	ld	bc, 1
-	call	__ixor
+
+	ld	a, (ix - 6)
+	xor	a, 1
+	ld	e, a
+	ld	d, 0
+	ld	hl, (ix + 6)
+	add	hl, hl
+	ld	bc, 0
+	ld	c, a
+	add	hl, bc
 	push	hl
-	pop	bc
+	ld	hl, 0
+	ld	l, a
 	add	hl, hl
 	add	hl, hl
 	add	hl, hl
-	ex	de, hl
-	ld	iy, (ix - 18)
-	add	iy, de
-	ld	hl, (ix - 9)
-	add	hl, hl
-	ex	de, hl
-	ld	(ix - 9), bc
-	push	bc
-	pop	hl
+	ld	de, 8
+	add	hl, de
+	ld	de, (ix - 3)
 	add	hl, de
 	push	hl
-	pea	iy + 8
 	call	_d84_bbox_visible
 	ld	hl, 6
 	add	hl, sp
 	ld	sp, hl
-	bit	0, a
-	jp	z, .LBB12_20
-; %bb.16:                               ;   in Loop: Header=BB12_1 Depth=1
-	ld	hl, (ix - 9)
-	add	hl, hl
-	ex	de, hl
-	ld	hl, (ix - 27)
-	add	hl, de
-	ld	hl, (hl)
+	or	a, a
+	jr	z, .Lbsp_return
+	ld	a, (ix - 6)
+	xor	a, 1
+	call	.Lbsp_child
+	ld	(ix + 6), de
+	ld	hl, (ix + 9)
+	inc	hl
+	ld	(ix + 9), hl
+	ld	sp, ix
+	pop	ix
+	jp	_bsp
+.Lbsp_return:
+	ld	sp, ix
+	pop	ix
+	ret
+.Lbsp_child:
+	add	a, a
+	add	a, 24
+	ld	hl, (ix - 3)
 	ld	de, 0
-	ld	e, l
-	ld	d, h
-	ld	iy, (ix - 24)
-	inc	iyl
+	ld	e, a
+	add	hl, de
+	ld	de, 0
+	ld	e, (hl)
+	inc	hl
+	ld	d, (hl)
+	ret
+.Lbsp_leaf:
+	res	7, h
+	add	hl, hl
+	add	hl, hl
+	ld	de, (_subsectors)
+	add	hl, de
+	ld	de, 0
+	ld	e, (hl)
+	inc	hl
+	ld	d, (hl)
 	ld	(ix - 9), de
-	or	a, a
-	sbc	hl, hl
-	ld	bc, 32768
-	ld	de, (ix - 12)
-	jp	.LBB12_1
-	.local	.LBB12_17
-.LBB12_17:
-	ld	iy, (_subsectors)
-	ex	de, hl
-	ld	bc, 32767
-	call	__iand
-	add	hl, hl
-	add	hl, hl
-	ex	de, hl
-	add	iy, de
-	lea	bc, iy + 0
-	ld	iy, _render_stats+2
-	lea	hl, iy + 0
-	ld	hl, (hl)
-	inc.sis	hl
-	ld	(iy), l
-	ld	(iy + 1), h
+	inc	hl
+	ld	bc, 0
+	ld	c, (hl)
+	inc	hl
+	ld	b, (hl)
+	ld	hl, _render_stats+2
+	inc	(hl)
+	jr	nz, .Lbsp_leaf_counted
+	inc	hl
+	inc	(hl)
+.Lbsp_leaf_counted:
 	push	bc
-	pop	iy
-	ld	de, (iy)
-	sbc.sis	hl, hl
-	adc.sis	hl, de
-	jr	z, .LBB12_20
-; %bb.18:
-	or	a, a
-	sbc	hl, hl
-	ld	l, e
-	ld	h, d
-	ld	(ix - 12), hl
-	ld	hl, (iy + 2)
-	ld	de, 0
-	ld	e, l
-	ld	d, h
-	ld	bc, 10
-	push	de
 	pop	hl
-	call	__imulu
+	add	hl, hl
 	push	hl
-	pop	bc
-	ld	hl, _materials
-	add	hl, bc
-	push	hl
-	pop	iy
-	ld	hl, (_segs)
-	ld	(ix - 9), hl
-	ld	bc, 14
-	ex	de, hl
-	call	__imulu
-	ex	de, hl
-	ld	hl, (ix - 9)
+	pop	de
+	add	hl, hl
 	add	hl, de
-	push	hl
-	pop	bc
-	.local	.LBB12_19
-.LBB12_19:                              ; =>This Inner Loop Header: Depth=1
-	ld	(ix - 15), iy
-	push	iy
-	ld	(ix - 9), bc
+	add	hl, hl
+	add	hl, de
+	ld	de, (_segs)
+	add	hl, de
+	ld	(ix - 3), hl
 	push	bc
+	pop	hl
+	add	hl, hl
+	push	hl
+	pop	de
+	add	hl, hl
+	add	hl, hl
+	add	hl, de
+	ld	de, _materials
+	add	hl, de
+	ld	(ix - 6), hl
+.Lbsp_seg:
+	ld	hl, (ix - 9)
+	ld	de, 0
+	or	a, a
+	sbc	hl, de
+	jr	z, .Lbsp_return
+	dec	hl
+	ld	(ix - 9), hl
+	ld	hl, (ix - 6)
+	push	hl
+	ld	hl, (ix - 3)
+	push	hl
 	call	_d84_draw_seg
 	ld	hl, 6
 	add	hl, sp
 	ld	sp, hl
-	ld	de, (ix - 12)
-	dec	de
-	ld	iy, (ix - 9)
-	lea	iy, iy + 14
-	lea	bc, iy + 0
-	ld	iy, (ix - 15)
-	lea	iy, iy + 10
-	ld	(ix - 12), de
-	sbc	hl, hl
-	adc	hl, de
-	jr	nz, .LBB12_19
-	.local	.LBB12_20
-.LBB12_20:
-	ld	sp, ix
-	pop	ix
-	ret
+	ld	hl, (ix - 3)
+	ld	de, 14
+	add	hl, de
+	ld	(ix - 3), hl
+	ld	hl, (ix - 6)
+	ld	de, 10
+	add	hl, de
+	ld	(ix - 6), hl
+	jr	.Lbsp_seg
 	.local	.Lfunc_end12
 .Lfunc_end12:
 	.size	_bsp, .Lfunc_end12-_bsp
                                         ; -- End function
+
 	.section	.text._draw_planes,"ax",@progbits
 	.type	_draw_planes,@function          ; -- Begin function draw_planes
 _draw_planes:                           ; @draw_planes
