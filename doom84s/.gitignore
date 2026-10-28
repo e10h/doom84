@@ -1,0 +1,8 @@
+/obj/
+/build/
+/bin/*
+!/bin/*.8xp
+!/bin/*.8xv
+!/bin/*.zip
+/tests/__pycache__/
+/tools/__pycache__/

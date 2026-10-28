@@ -1,0 +1,38 @@
+===============================================================================
+DOOM84S OPTIMIZATION LOG: DIRECTED IN-PLACE ASSEMBLY EDITS
+===============================================================================
+This branch (doom84s) starts from the pure C engine (doom84c) compiled directly
+to eZ80 assembly (src/engine.s) via ez80-clang -S -O3.
+Every commit on this branch applies a single, targeted optimization pass directly
+to the instructions inside `src/engine.s`, profiling and optimizing the codebase
+until it matches the performance of original Doom84.
+
+-------------------------------------------------------------------------------
+COMMIT: Stage 0 - Baseline Compiler-Generated Assembly (engine.s)
+BRANCH: doom84s
+TARGET: DOOM84S.8xp
+-------------------------------------------------------------------------------
+
+1. WHAT IS CHANGING:
+   Established the initial baseline assembly file `src/engine.s` by auto-compiling
+   `doom84c/src/engine.c` using the official CEDev toolchain:
+   ez80-clang -S -nostdinc -fno-autolink -fno-addrsig -fno-threadsafe-statics \
+              -fno-aligned-allocation -mllvm -z80-gas-style -ffunction-sections \
+              -fdata-sections -fno-math-errno -D__TICE__=1 -O3 \
+              -fno-omit-frame-pointer -DNDEBUG=1 src/engine.c -o src/engine.s
+
+2. WHERE:
+   - File created: doom84s/src/engine.s (27,219 lines of compiler-generated eZ80 assembly).
+   - File modified: doom84s/makefile (targets DOOM84S.8xp; assembles src/engine.s).
+   - File created: doom84s/tests/engine_host.c (preserves C engine for host test suite).
+
+3. WHY:
+   - Provides a clean, 100% equivalent assembly starting point directly generated
+     by the C compiler.
+   - All subsequent commits will modify `src/engine.s` directly, eliminating C
+     abstraction overhead one kernel at a time.
+
+4. VERIFICATION & TESTS:
+   - Host test harness: 825 integrity checks passed; 3,792 stress frames passed.
+   - Calculator binary: Successfully built bin/DOOM84S.8xp (50,675 bytes).
+===============================================================================
