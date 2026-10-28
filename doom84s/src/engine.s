@@ -15598,844 +15598,640 @@ _wall_style:                            ; @wall_style
 .Lfunc_end8:
 	.size	_wall_style, .Lfunc_end8-_wall_style
                                         ; -- End function
-	.section	.text._render_columns,"ax",@progbits
-	.type	_render_columns,@function       ; -- Begin function render_columns
-_render_columns:                        ; @render_columns
-; %bb.0:
-	push	ix
-	ld	ix, 0
-	add	ix, sp
-	lea	hl, ix - 45
-	ld	sp, hl
+/* GPL-2.0-or-later. Native ADL column clipping and projected-height DDAs.
+ * IX holds the verified RenderWall packet across calls into C. All screen
+ * bounds are bytes, avoiding general 24-bit shifts, masks and comparisons.
+ */
+
+.equ RW_START, 0
+.equ RW_END, 3
+.equ RW_IZ, 6
+.equ RW_DIZ, 9
+.equ RW_UZ, 12
+.equ RW_DUZ, 15
+.equ RW_CYQ, 18
+.equ RW_CYSTEP, 21
+.equ RW_FYQ, 24
+.equ RW_FYSTEP, 27
+.equ RW_UPPERQ, 30
+.equ RW_UPPERSTEP, 33
+.equ RW_LOWERQ, 36
+.equ RW_LOWERSTEP, 39
+.equ RW_FS, 54
+.equ RW_SHADE, 57
+.equ RW_SOLID, 60
+.equ RW_LIGHTBASE, 65
+.equ RW_MIDDLE, 68
+.equ RW_UPPER, 76
+.equ RW_LOWER, 84
+.equ RW_X, 92
+.equ RW_TOP, 93
+.equ RW_BOTTOM, 94
+.equ RW_CY, 95
+.equ RW_FY, 96
+.equ RW_UP, 97
+.equ RW_LOW, 98
+.equ RW_TOPPTR, 99
+.equ RW_BOTTOMPTR, 102
+.equ RW_DRAWUPPER, 105
+.equ RW_DRAWLOWER, 106
+.equ RW_FILLBASE, 107
+.equ RW_CEILCOLOR, 110
+.equ RW_FLOORCOLOR, 111
+.equ RW_STRIDE, 112
+.equ RW_INVERSE, 113
+.equ RW_Z, 116
+.equ RW_V, 119
+.equ RW_STEP, 122
+.equ RW_TX, 125
+.equ RW_COUNT, 126
+.equ RW_Y1, 127
+.equ RW_SIZE, 128
+
+.assume ADL=1
+.section .text._render_columns,"ax",@progbits
+.global _render_columns
+.type _render_columns,@function
+.macro clamp_y value, output
+    ld a,(ix+\value+2)
+    or a,a
+    jr z,.Lymiddle\@
+    jp m,.Lyzero\@
+    ld a,80
+    jr .Lystore\@
+.Lymiddle\@:
+    ld a,(ix+\value+1)
+    cp a,80
+    jr c,.Lystore\@
+    ld a,80
+    jr .Lystore\@
+.Lyzero\@:
+    xor a,a
+.Lystore\@:
+    ld (ix+\output),a
+.endm
+.macro advance value, step
+    ld hl,(ix+\value)
+    ld de,(ix+\step)
+    add hl,de
+    ld (ix+\value),hl
+.endm
+_render_columns:
 	ld	a, (_player+32)
 	bit	0, a
-	jr	z, .LBB9_2
-; %bb.1:
+	jr	z, .Lrender_cols_start
 	call	_render_wire_columns
-	jp	.LBB9_87
-	.local	.LBB9_2
-.LBB9_2:
-	ld	hl, (_d84_rw)
-	ld	iy, (_d84_rw+3)
-	ld	de, -8388608
-	add	iy, de
-	push	hl
-	pop	bc
-	add	hl, de
-	lea	de, iy + 0
-	or	a, a
-	sbc	hl, de
-	jp	nc, .LBB9_87
-; %bb.3:
-	ld	hl, (_d84_rw+6)
-	ld	(ix - 6), hl
-	push	bc
-	pop	de
-	.local	.LBB9_4
-.LBB9_4:                                ; =>This Loop Header: Depth=1
-                                        ;     Child Loop BB9_21 Depth 2
-                                        ;     Child Loop BB9_18 Depth 2
-                                        ;     Child Loop BB9_32 Depth 2
-                                        ;     Child Loop BB9_27 Depth 2
-                                        ;     Child Loop BB9_77 Depth 2
-	ld	hl, _cliptop
-	push	hl
-	pop	iy
-	add	iy, de
-	ld	a, (iy)
-	ld	hl, _clipbottom
-	add	hl, de
-	ld	(ix - 16), hl
-	ld	l, (hl)
-	ld	(ix - 10), a                    ; 1-byte Folded Spill
-	ld	(ix - 7), l                     ; 1-byte Folded Spill
-	cp	a, l
-	jr	nc, .LBB9_6
-; %bb.5:                                ;   in Loop: Header=BB9_4 Depth=1
-	ld	hl, (ix - 6)
-	ld	bc, -8388608
-	add	hl, bc
-	ld	(ix - 3), de
-	ld	de, -8388607
-	or	a, a
-	sbc	hl, de
-	ld	de, (ix - 3)
-	jr	nc, .LBB9_7
-	.local	.LBB9_6
-.LBB9_6:                                ;   in Loop: Header=BB9_4 Depth=1
-	ld	hl, (_render_detail)
-	jp	.LBB9_82
-	.local	.LBB9_7
-.LBB9_7:                                ;   in Loop: Header=BB9_4 Depth=1
-	ld	hl, (_d84_rw+18)
-	push	hl
-	pop	bc
-	ld	de, -8388608
-	add	hl, de
-	inc	de
-	or	a, a
-	sbc	hl, de
-	ld	a, d
-	ld	(ix - 17), a                    ; 1-byte Folded Spill
-	jr	c, .LBB9_10
-; %bb.8:                                ;   in Loop: Header=BB9_4 Depth=1
-	push	bc
-	pop	hl
-	ld	de, 20480
-	or	a, a
-	sbc	hl, de
-	ld	a, d
-	ld	(ix - 17), a                    ; 1-byte Folded Spill
-	jr	nc, .LBB9_10
-; %bb.9:                                ;   in Loop: Header=BB9_4 Depth=1
-	ld	a, b
-	ld	(ix - 17), a
-	.local	.LBB9_10
-.LBB9_10:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	(ix - 42), iy
-	ld	iy, 0
-	lea	bc, iy + 0
-	push	bc
-	pop	hl
-	ld	l, (ix - 7)                     ; 1-byte Folded Reload
-	ld	(ix - 24), hl
-	ld	iy, (_d84_rw+24)
-	lea	hl, iy + 0
-	ld	de, -8388608
-	add	hl, de
-	inc	de
-	or	a, a
-	sbc	hl, de
-	ld	a, d
-	jr	c, .LBB9_13
-; %bb.11:                               ;   in Loop: Header=BB9_4 Depth=1
-	lea	hl, iy + 0
-	ld	de, 20480
-	or	a, a
-	sbc	hl, de
-	ld	a, d
-	jr	nc, .LBB9_13
-; %bb.12:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	a, iyh
-	.local	.LBB9_13
-.LBB9_13:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	(ix - 18), a
-	ld	iy, (ix - 24)
-	dec	iy
-	push	bc
-	pop	hl
-	ld	l, (ix - 17)                    ; 1-byte Folded Reload
-	ld	(ix - 39), hl
-	dec	hl
-	ld	(ix - 13), hl
-	push	hl
-	pop	bc
-	ld	hl, -8388608
-	ex	de, hl
-	push	bc
-	pop	hl
-	add	hl, de
-	push	hl
-	pop	bc
-	lea	hl, iy + 0
-	add	hl, de
-	ld	(ix - 33), hl
-	or	a, a
-	sbc	hl, bc
-	ld	(ix - 21), iy
-	lea	de, iy + 0
-	jr	c, .LBB9_15
-; %bb.14:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	de, (ix - 13)
-	.local	.LBB9_15
-.LBB9_15:                               ;   in Loop: Header=BB9_4 Depth=1
-	or	a, a
-	sbc	hl, hl
-	push	hl
-	pop	iy
-	push	af
-	ld	a, (ix - 10)                    ; 1-byte Folded Reload
-	ld	iyl, a
-	pop	af
-	ld	hl, (_d84_rw+54)
-	ld	(ix - 27), hl
-	ld	(ix - 30), l                    ; 1-byte Folded Spill
-	ld	(ix - 13), iy
-	ld	hl, -8388608
-	push	hl
-	pop	bc
-	add	iy, bc
-	push	de
-	pop	hl
-	add	hl, bc
-	lea	bc, iy + 0
-	or	a, a
-	sbc	hl, bc
-	jp	c, .LBB9_22
-; %bb.16:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	a, (_player+31)
-	bit	0, a
-	jr	z, .LBB9_19
-; %bb.17:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	l, -128
-	ld	a, (ix - 30)
-	or	a, l
-	ld	l, a
-	ld	hl, (ix - 13)
-	ld	c, 7
-	call	__ishl
-	push	hl
-	pop	bc
-	ld	hl, (ix - 3)
-	add	hl, bc
-	push	hl
-	pop	bc
-	ld	iy, _planes
-	add	iy, bc
-	inc	de
-	ex	de, hl
-	ld	de, (ix - 13)
-	or	a, a
-	sbc	hl, de
-	ex	de, hl
-	.local	.LBB9_18
-.LBB9_18:                               ;   Parent Loop BB9_4 Depth=1
-                                        ; =>  This Inner Loop Header: Depth=2
-	ld	(iy), a
-	ld	bc, 128
-	add	iy, bc
-	dec	de
-	sbc	hl, hl
-	adc	hl, de
-	jr	nz, .LBB9_18
-	jr	.LBB9_22
-	.local	.LBB9_19
-.LBB9_19:                               ;   in Loop: Header=BB9_4 Depth=1
-	push	de
-	pop	hl
-	ld	bc, (ix - 13)
-	or	a, a
-	sbc	hl, bc
-	inc	hl
-	ld	(ix - 36), hl
-	ld	hl, (ix - 27)
-	ld	bc, 127
-	call	__iand
-	push	hl
-	pop	bc
-	ld	iy, _plane_colors
-	add	iy, bc
-	ld	hl, (ix - 36)
-	add	hl, bc
-	or	a, a
-	sbc	hl, bc
-	jr	z, .LBB9_22
-; %bb.20:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	a, (iy + 85)
-	ld	hl, (ix - 13)
-	add	hl, hl
-	push	hl
-	pop	bc
-	ld	hl, _row_offsets
-	add	hl, bc
-	ld	hl, (hl)
-	ld	bc, 0
-	ld	c, l
-	ld	b, h
-	ld	iy, _engine_view+2
-	add	iy, bc
-	ld	bc, (ix - 3)
-	add	iy, bc
-	ld	bc, (ix - 13)
-	dec	bc
-	push	bc
-	pop	hl
-	or	a, a
-	sbc	hl, de
-	.local	.LBB9_21
-.LBB9_21:                               ;   Parent Loop BB9_4 Depth=1
-                                        ; =>  This Inner Loop Header: Depth=2
-	ld	(iy), a
-	ld	de, 128
-	add	iy, de
-	ld	de, 1
-	add	hl, de
-	jr	nc, .LBB9_21
-	.local	.LBB9_22
-.LBB9_22:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	bc, 0
-	ld	c, (ix - 18)                    ; 1-byte Folded Reload
-	push	bc
-	pop	hl
-	ld	de, (ix - 13)
-	or	a, a
-	sbc	hl, de
-	jr	c, .LBB9_24
-; %bb.23:                               ;   in Loop: Header=BB9_4 Depth=1
-	push	bc
-	pop	de
-	.local	.LBB9_24
-.LBB9_24:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	(ix - 36), bc
-	ld	a, e
-	ld	l, (ix - 7)
-	cp	a, l
-	ld	bc, -8388608
-	jp	nc, .LBB9_33
-; %bb.25:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	a, (_player+31)
-	bit	0, a
-	jr	z, .LBB9_28
-; %bb.26:                               ;   in Loop: Header=BB9_4 Depth=1
-	push	de
-	pop	hl
-	ld	c, 7
-	call	__ishl
-	push	hl
-	pop	bc
-	ld	hl, (ix - 3)
-	add	hl, bc
-	push	hl
-	pop	bc
-	ld	iy, _planes
-	add	iy, bc
-	ld	hl, (ix - 24)
-	or	a, a
-	sbc	hl, de
-	ex	de, hl
-	ld	bc, -8388608
-	.local	.LBB9_27
-.LBB9_27:                               ;   Parent Loop BB9_4 Depth=1
-                                        ; =>  This Inner Loop Header: Depth=2
-	ld	a, (ix - 30)
-	ld	(iy), a
-	push	bc
-	pop	hl
-	ld	bc, 128
-	add	iy, bc
-	push	hl
-	pop	bc
-	dec	de
-	sbc	hl, hl
-	adc	hl, de
-	jr	nz, .LBB9_27
-	jr	.LBB9_33
-	.local	.LBB9_28
-.LBB9_28:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	hl, (ix - 21)
-	or	a, a
-	sbc	hl, de
-	inc	hl
-	ld	(ix - 45), hl
-	ld	hl, (ix - 27)
-	ld	bc, 127
-	call	__iand
-	push	hl
-	pop	bc
-	ld	a, (ix - 30)                    ; 1-byte Folded Reload
-	add	a, -128
-	cp	a, -128
-	ld	hl, 0
-	jr	nc, .LBB9_30
-; %bb.29:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	hl, 85
-	.local	.LBB9_30
-.LBB9_30:                               ;   in Loop: Header=BB9_4 Depth=1
-	add	hl, bc
-	push	hl
-	pop	bc
-	ld	iy, _plane_colors
-	add	iy, bc
-	ld	hl, (ix - 45)
-	add	hl, bc
-	or	a, a
-	sbc	hl, bc
-	ld	bc, -8388608
-	jr	z, .LBB9_33
-; %bb.31:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	a, (iy)
-	push	de
-	pop	hl
-	add	hl, hl
-	push	hl
-	pop	bc
-	ld	hl, _row_offsets
-	add	hl, bc
-	ld	hl, (hl)
-	ld	bc, 0
-	ld	c, l
-	ld	b, h
-	ld	iy, _engine_view+2
-	add	iy, bc
-	ld	bc, -8388608
-	push	bc
-	pop	hl
-	ld	bc, (ix - 3)
-	add	iy, bc
-	push	hl
-	pop	bc
-	ex	de, hl
-	ld	de, (ix - 24)
-	or	a, a
-	sbc	hl, de
-	.local	.LBB9_32
-.LBB9_32:                               ;   Parent Loop BB9_4 Depth=1
-                                        ; =>  This Inner Loop Header: Depth=2
-	ld	(iy), a
-	ld	de, 128
-	add	iy, de
-	ld	de, 1
-	add	hl, de
-	jr	nc, .LBB9_32
-	.local	.LBB9_33
-.LBB9_33:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	a, (_d84_rw+60)
-	bit	0, a
-	jr	z, .LBB9_39
-; %bb.34:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	bc, (ix - 39)
-	push	bc
-	pop	hl
-	ld	de, (ix - 13)
-	or	a, a
-	sbc	hl, de
-	jr	c, .LBB9_36
-; %bb.35:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	(ix - 13), bc
-	.local	.LBB9_36
-.LBB9_36:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	bc, (ix - 36)
-	dec	bc
-	push	bc
-	pop	iy
-	ld	de, -8388608
-	add	iy, de
-	ld	hl, (ix - 33)
-	lea	de, iy + 0
-	or	a, a
-	sbc	hl, de
-	jr	c, .LBB9_38
-; %bb.37:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	(ix - 21), bc
-	.local	.LBB9_38
-.LBB9_38:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	hl, (_d84_rw+12)
-	ld	de, (ix - 27)
-	push	de
-	push	hl
-	ld	hl, (ix - 6)
-	push	hl
-	ld	hl, _d84_rw+68
-	push	hl
-	ld	hl, (ix - 21)
-	push	hl
-	ld	hl, (ix - 13)
-	push	hl
-	ld	hl, (ix - 3)
-	push	hl
-	call	_d84_wall_column
-	ld	hl, 21
-	add	hl, sp
-	ld	sp, hl
-	ld	hl, (ix - 16)
-	ld	b, (hl)
-	ld	hl, _cliptop
-	ld	de, (ix - 3)
-	add	hl, de
-	ld	(hl), b
-	ld	(ix - 7), b                     ; 1-byte Folded Spill
-	ld	(ix - 6), b                     ; 1-byte Folded Spill
-	jp	.LBB9_74
-	.local	.LBB9_39
-.LBB9_39:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	iy, (_d84_rw+30)
-	lea	hl, iy + 0
-	add	hl, bc
-	ld	de, -8388607
-	or	a, a
-	sbc	hl, de
-	ld	a, d
-	ld	(ix - 16), a                    ; 1-byte Folded Spill
-	jr	c, .LBB9_42
-; %bb.40:                               ;   in Loop: Header=BB9_4 Depth=1
-	lea	hl, iy + 0
-	ld	de, 20480
-	or	a, a
-	sbc	hl, de
-	ld	a, d
-	ld	(ix - 16), a                    ; 1-byte Folded Spill
-	jr	nc, .LBB9_42
-; %bb.41:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	a, iyh
-	ld	(ix - 16), a
-	.local	.LBB9_42
-.LBB9_42:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	iy, (_d84_rw+36)
-	lea	hl, iy + 0
-	add	hl, bc
-	ld	de, -8388607
-	or	a, a
-	sbc	hl, de
-	ld	a, d
-	jr	c, .LBB9_45
-; %bb.43:                               ;   in Loop: Header=BB9_4 Depth=1
-	lea	hl, iy + 0
-	ld	de, 20480
-	or	a, a
-	sbc	hl, de
-	ld	a, d
-	jr	nc, .LBB9_45
-; %bb.44:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	a, iyh
-	.local	.LBB9_45
-.LBB9_45:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	(ix - 24), a
-	ld	hl, (_d84_rw+48)
-	ld	iy, (_d84_rw+42)
-	ld	bc, -8388608
-	add	iy, bc
-	add	hl, bc
-	lea	de, iy + 0
-	or	a, a
-	sbc	hl, de
-	jr	nc, .LBB9_52
-; %bb.46:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	a, (_d84_rw+61)
-	bit	0, a
-	jr	nz, .LBB9_52
-; %bb.47:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	bc, (ix - 39)
-	push	bc
-	pop	hl
-	ld	de, (ix - 13)
-	or	a, a
-	sbc	hl, de
-	jr	c, .LBB9_49
-; %bb.48:                               ;   in Loop: Header=BB9_4 Depth=1
-	push	bc
-	pop	de
-	.local	.LBB9_49
-.LBB9_49:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	(ix - 30), de
-	ld	bc, 0
-	ld	c, (ix - 16)                    ; 1-byte Folded Reload
-	dec	bc
-	push	bc
-	pop	iy
-	ld	de, -8388608
-	add	iy, de
-	ld	hl, (ix - 33)
-	lea	de, iy + 0
-	or	a, a
-	sbc	hl, de
-	ld	hl, (ix - 21)
-	jr	c, .LBB9_51
-; %bb.50:                               ;   in Loop: Header=BB9_4 Depth=1
-	push	bc
-	pop	hl
-	.local	.LBB9_51
-.LBB9_51:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	de, (_d84_rw+12)
-	ld	bc, (ix - 27)
-	push	bc
-	push	de
-	ld	de, (ix - 6)
-	push	de
-	ld	de, _d84_rw+76
-	push	de
-	push	hl
-	ld	hl, (ix - 30)
-	push	hl
-	ld	hl, (ix - 3)
-	push	hl
-	call	_d84_wall_column
-	ld	hl, 21
-	add	hl, sp
-	ld	sp, hl
-	ld	bc, -8388608
-	.local	.LBB9_52
-.LBB9_52:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	iy, (_d84_rw+51)
-	ld	hl, (_d84_rw+45)
-	add	iy, bc
-	add	hl, bc
-	lea	de, iy + 0
-	or	a, a
-	sbc	hl, de
-	jr	nc, .LBB9_58
-; %bb.53:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	a, (ix - 24)                    ; 1-byte Folded Reload
-	ld	l, (ix - 10)                    ; 1-byte Folded Reload
-	cp	a, l
-	ld	de, 0
-	jr	c, .LBB9_55
-; %bb.54:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	l, a
-	.local	.LBB9_55
-.LBB9_55:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	e, l
-	ld	iy, (ix - 36)
-	dec	iy
-	lea	hl, iy + 0
-	add	hl, bc
-	push	hl
-	pop	bc
-	ld	hl, (ix - 33)
-	or	a, a
-	sbc	hl, bc
-	jr	c, .LBB9_57
-; %bb.56:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	(ix - 21), iy
-	.local	.LBB9_57
-.LBB9_57:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	iy, (_d84_rw+6)
-	ld	bc, (_d84_rw+12)
-	ld	hl, (_d84_rw+54)
-	push	hl
-	push	bc
+	ret
+.Lrender_cols_start:
+    push ix
+    push iy
+    ld ix,_d84_rw
+    ld a,(ix+RW_START)
+    ld (ix+RW_X),a
+.Lcolumn_loop:
+    ld hl,(ix+RW_TOPPTR)
+    ld a,(hl)
+    ld (ix+RW_TOP),a
+    ld b,a
+    ld hl,(ix+RW_BOTTOMPTR)
+    ld a,(hl)
+    ld (ix+RW_BOTTOM),a
+    cp a,b
+    jp z,.Lcolumn_next
+    jp c,.Lcolumn_next
+    ld a,(ix+RW_IZ+2)
+    bit 7,a
+    jp nz,.Lcolumn_next
+    or a,(ix+RW_IZ+1)
+    or a,(ix+RW_IZ)
+    jp z,.Lcolumn_next
+    clamp_y RW_CYQ,RW_CY
+    clamp_y RW_FYQ,RW_FY
+
+    /* Ceiling [top,min(cy,bottom)), floor [max(fy,top),bottom). */
+    ld a,(ix+RW_CY)
+    cp a,(ix+RW_BOTTOM)
+    jr c,.Lceil_end
+    ld a,(ix+RW_BOTTOM)
+.Lceil_end:
+    sub a,(ix+RW_TOP)
+    jr z,.Lfloor
+    jr c,.Lfloor
+    ld b,a
+    ld c,(ix+RW_TOP)
+    ld a,(ix+RW_CEILCOLOR)
+    call .Lcolumn_fill
+.Lfloor:
+    ld a,(ix+RW_FY)
+    cp a,(ix+RW_TOP)
+    jr nc,.Lfloor_start
+    ld a,(ix+RW_TOP)
+.Lfloor_start:
+    ld c,a
+    ld a,(ix+RW_BOTTOM)
+    sub a,c
+    jr z,.Lwall
+    jr c,.Lwall
+    ld b,a
+    ld a,(ix+RW_FLOORCOLOR)
+    call .Lcolumn_fill
+.Lwall:
+    ld a,(ix+RW_SOLID)
+    or a,a
+    jp z,.Lportal
+    ld a,(ix+RW_CY)
+    cp a,(ix+RW_TOP)
+    jr nc,.Lsolid_start
+    ld a,(ix+RW_TOP)
+.Lsolid_start:
+    ld c,a
+    ld a,(ix+RW_FY)
+    cp a,(ix+RW_BOTTOM)
+    jr c,.Lsolid_end
+    ld a,(ix+RW_BOTTOM)
+.Lsolid_end:
+    ld b,a
+    lea de,ix+RW_MIDDLE
+    call .Lcolumn_wall
+    ld a,(ix+RW_BOTTOM)
+    ld (ix+RW_TOP),a
+    jp .Lcolumn_write
+.Lportal:
+    clamp_y RW_UPPERQ,RW_UP
+    clamp_y RW_LOWERQ,RW_LOW
+    ld a,(ix+RW_DRAWUPPER)
+    or a,a
+    jr z,.Llower_wall
+    ld a,(ix+RW_CY)
+    cp a,(ix+RW_TOP)
+    jr nc,.Lupper_start
+    ld a,(ix+RW_TOP)
+.Lupper_start:
+    ld c,a
+    ld a,(ix+RW_UP)
+    cp a,(ix+RW_BOTTOM)
+    jr c,.Lupper_end
+    ld a,(ix+RW_BOTTOM)
+.Lupper_end:
+    ld b,a
+    lea de,ix+RW_UPPER
+    call .Lcolumn_wall
+.Llower_wall:
+    ld a,(ix+RW_DRAWLOWER)
+    or a,a
+    jr z,.Lportal_clip
+    ld a,(ix+RW_LOW)
+    cp a,(ix+RW_TOP)
+    jr nc,.Llower_start
+    ld a,(ix+RW_TOP)
+.Llower_start:
+    ld c,a
+    ld a,(ix+RW_FY)
+    cp a,(ix+RW_BOTTOM)
+    jr c,.Llower_end
+    ld a,(ix+RW_BOTTOM)
+.Llower_end:
+    ld b,a
+    lea de,ix+RW_LOWER
+    call .Lcolumn_wall
+.Lportal_clip:
+    ld a,(ix+RW_CY)
+    cp a,(ix+RW_UP)
+    jr nc,.Ltop_max_up
+    ld a,(ix+RW_UP)
+.Ltop_max_up:
+    cp a,(ix+RW_TOP)
+    jr nc,.Ltop_max_old
+    ld a,(ix+RW_TOP)
+.Ltop_max_old:
+    cp a,(ix+RW_BOTTOM)
+    jr c,.Ltop_clipped
+    ld a,(ix+RW_BOTTOM)
+.Ltop_clipped:
+    ld (ix+RW_TOP),a
+    ld a,(ix+RW_FY)
+    cp a,(ix+RW_LOW)
+    jr c,.Lbottom_min_low
+    ld a,(ix+RW_LOW)
+.Lbottom_min_low:
+    cp a,(ix+RW_BOTTOM)
+    jr c,.Lbottom_min_old
+    ld a,(ix+RW_BOTTOM)
+.Lbottom_min_old:
+    cp a,(ix+RW_TOP)
+    jr nc,.Lbottom_clipped
+    ld a,(ix+RW_TOP)
+.Lbottom_clipped:
+    ld (ix+RW_BOTTOM),a
+.Lcolumn_write:
+    ld hl,(ix+RW_TOPPTR)
+    ld a,(ix+RW_TOP)
+    ld (hl),a
+    ld de,(ix+RW_BOTTOMPTR)
+    ld a,(ix+RW_BOTTOM)
+    ld (de),a
+    ld b,(ix+RW_STRIDE)
+    dec b
+    jr z,.Lcolumn_next
+    /* Stop at VIEW_W so detail 3 near x=126 cannot write past cliptop[]. */
+    ld a,(ix+RW_X)
+    ld c,a
+.Lduplicate_clip:
+    inc c
+    ld a,c
+    cp a,128
+    jr nc,.Lcolumn_next
+    inc hl
+    inc de
+    ld a,(ix+RW_TOP)
+    ld (hl),a
+    ld a,(ix+RW_BOTTOM)
+    ld (de),a
+    djnz .Lduplicate_clip
+.Lcolumn_next:
+    advance RW_IZ,RW_DIZ
+    advance RW_UZ,RW_DUZ
+    advance RW_CYQ,RW_CYSTEP
+    advance RW_FYQ,RW_FYSTEP
+    advance RW_UPPERQ,RW_UPPERSTEP
+    advance RW_LOWERQ,RW_LOWERSTEP
+    ld bc,0
+    ld c,(ix+RW_STRIDE)
+    ld hl,(ix+RW_TOPPTR)
+    add hl,bc
+    ld (ix+RW_TOPPTR),hl
+    ld hl,(ix+RW_BOTTOMPTR)
+    add hl,bc
+    ld (ix+RW_BOTTOMPTR),hl
+    ld a,(ix+RW_X)
+    add a,c
+    ld (ix+RW_X),a
+    cp a,(ix+RW_END)
+    jp c,.Lcolumn_loop
+    pop iy
+    pop ix
+    ret
+.local .Lfunc_end9
+.Lfunc_end9:
+	.size _render_columns, .Lfunc_end9-_render_columns
+
+/* A=color B=count C=y; the preselected destination is plane IDs or pixels. */
+.Lcolumn_fill:
+    push bc
+    ld hl,0
+    ld h,c
+    ld l,128
+    mlt hl
+    ld de,0
+    ld e,(ix+RW_X)
+    add hl,de
+    ld de,(ix+RW_FILLBASE)
+    add hl,de
+    pop bc
+    ld de,128
+.Lcolumn_fill_loop:
+    ld (hl),a
+    add hl,de
+    djnz .Lcolumn_fill_loop
+    ret
+
+/* C=y1, B=exclusive y2, DE=style. All texture arithmetic is modular:
+ * U needs bits 16..23 of U/Z * inverse, because walls are <=256 wide;
+ * V needs only its low 13 bits for a repeating 32-texel column.
+ */
+.Lcolumn_wall:
+    ld a,b
+    sub a,c
+    ret c
+    ret z
+    ld (ix+RW_COUNT),a
+    ld (ix+RW_Y1),c
+    push de
+    pop iy
+    ld hl,(iy+0)
+    ld de,0
+    or a,a
+    sbc hl,de
+    ret z
+    ld hl,_render_stats+4
+    inc (hl)
+    jr nz,.Lwall_counted
+    inc hl
+    inc (hl)
+.Lwall_counted:
+    ld hl,(ix+RW_IZ)
+    call .Lreciprocal
+    ld (ix+RW_INVERSE),hl
+    /* Reciprocal >> 2. Rare >16-bit values use the ADL shift helper. */
+    ld a,(ix+RW_INVERSE+2)
+    or a,a
+    jr nz,.Lwall_z_wide
+    srl h
+    rr l
+    srl h
+    rr l
+    jr .Lwall_z_ready
+.Lwall_z_wide:
+    call .Lshr24
+    call .Lshr24
+.Lwall_z_ready:
+    ld (ix+RW_Z),hl
+    ld (ix+RW_STEP),hl
+
+    /* Six MLTs produce exactly the texture-relevant product byte. */
+    ld d,(ix+RW_UZ)
+    ld e,(ix+RW_INVERSE)
+    mlt de
+    ld a,d
+    ld h,(ix+RW_UZ+1)
+    ld l,(ix+RW_INVERSE)
+    mlt hl
+    ld bc,0
+    ld c,a
+    add hl,bc
+    ld d,(ix+RW_UZ)
+    ld e,(ix+RW_INVERSE+1)
+    mlt de
+    add hl,de
+    ld a,h
+    ld d,(ix+RW_UZ+2)
+    ld e,(ix+RW_INVERSE)
+    mlt de
+    add a,e
+    ld d,(ix+RW_UZ+1)
+    ld e,(ix+RW_INVERSE+1)
+    mlt de
+    add a,e
+    ld d,(ix+RW_UZ)
+    ld e,(ix+RW_INVERSE+2)
+    mlt de
+    add a,e
+    ld b,(iy+6)
+    bit 7,b
+    jr nz,.Lwall_u_left
+    inc b
+    dec b
+    jr z,.Lwall_u_ready
+.Lwall_u_right_loop:
+    srl a
+    djnz .Lwall_u_right_loop
+    jr .Lwall_u_ready
+.Lwall_u_left:
+    ld c,a
+    xor a,a
+    sub a,b
+    ld b,a
+    ld a,c
+.Lwall_u_left_loop:
+    add a,a
+    djnz .Lwall_u_left_loop
+.Lwall_u_ready:
+    and a,31
+    ld (ix+RW_TX),a
+
+    /* (y1-40)*z modulo 65536: signed byte times unsigned word. */
+    ld a,(ix+RW_Y1)
+    sub a,40
+    ld c,a
+    ld d,a
+    ld e,(ix+RW_Z)
+    mlt de
+    ld h,c
+    ld l,(ix+RW_Z+1)
+    mlt hl
+    ld a,l
+    add a,d
+    bit 7,c
+    jr z,.Lwall_v_positive
+    sub a,(ix+RW_Z)
+.Lwall_v_positive:
+    ld hl,0
+    ld h,a
+    ld l,e
+    ld de,(ix+RW_STEP)
+    ld a,2
+    sub a,(iy+7)
+    jr z,.Lwall_v_ready
+    ld b,a
+.Lwall_v_scale:
+    add hl,hl
+    ex de,hl
+    add hl,hl
+    ex de,hl
+    djnz .Lwall_v_scale
+.Lwall_v_ready:
+    ld (ix+RW_STEP),de
+    ld de,(iy+3)
+    add hl,de
+    ld (ix+RW_V),hl
+
+    /* Quantized sprite occlusion depth, saturated to 1..254. */
+    ld a,(ix+RW_Z+2)
+    or a,a
+    jr nz,.Lwall_far_depth
+    ld a,(ix+RW_Z+1)
+    cp a,16
+    jr nc,.Lwall_far_depth
+    rlca
+    rlca
+    rlca
+    rlca
+    and a,240
+    ld c,a
+    ld a,(ix+RW_Z)
+    rrca
+    rrca
+    rrca
+    rrca
+    and a,15
+    or a,c
+    jr nz,.Lwall_depth_nonzero
+    inc a
+.Lwall_depth_nonzero:
+    cp a,254
+    jr c,.Lwall_depth_ready
+.Lwall_far_depth:
+    ld a,254
+.Lwall_depth_ready:
+    ld hl,0
+    ld l,a
+    push hl
+    ld hl,(ix+RW_STEP)
+    push hl
+    ld hl,(ix+RW_V)
+    push hl
+    ld hl,0
+    ld l,(ix+RW_COUNT)
+    push hl
+
+    /* Lighting distance is z/128, then a saturated shade-row lookup. */
+    ld a,(ix+RW_Z+2)
+    or a,a
+    jr nz,.Lwall_dark
+    ld a,(ix+RW_Z+1)
+    cp a,16
+    jr nc,.Lwall_dark
+    add a,a
+    ld c,a
+    ld a,(ix+RW_Z)
+    rlca
+    and a,1
+    add a,c
+    add a,(ix+RW_SHADE)
+    cp a,32
+    jr c,.Lwall_light_ready
+.Lwall_dark:
+    ld a,31
+.Lwall_light_ready:
+    ld hl,0
+    ld h,a
+    ld de,(ix+RW_LIGHTBASE)
+    add hl,de
+    push hl
+    ld hl,(iy+0)
+    ld de,0
+    ld e,(ix+RW_TX)
+    add hl,de
+    push hl
+    ld hl,0
+    ld h,(ix+RW_Y1)
+    ld l,128
+    mlt hl
+    ld de,0
+    ld e,(ix+RW_X)
+    add hl,de
+    push hl
+    pop bc
+    ld de,_depthbuffer
+    add hl,de
+    push hl
+    push bc
+    pop hl
+    ld de,_engine_view+2
+    add hl,de
+    push hl
+    call _d84_wall
+    ld hl,24
+    add hl,sp
+    ld sp,hl
+    ret
+
+/* Register-only unsigned Q20 reciprocal, bit-for-bit with the C reference.
+ * Above 2048, normalize the input; table results then fit in 16 bits.
+ * Small inputs have zero normalization shifts and use the wide table.
+ */
+.global _d84_reciprocal
+_d84_reciprocal:
+.Lreciprocal:
+    ld c,0
+.Lrecip_normalize:
+    ld de,2049
+    or a,a
+    sbc hl,de
+    add hl,de
+    jr c,.Lrecip_lookup
+    call .Lshr24
+    inc c
+    jr .Lrecip_normalize
+.Lrecip_lookup:
+    ld de,17
+    or a,a
+    sbc hl,de
+    add hl,de
+    jr c,.Lrecip_small
+    add hl,hl
+    ld de,_reciprocal_table
+    add hl,de
+    ld de,0
+    ld e,(hl)
+    inc hl
+    ld d,(hl)
+    ex de,hl
+    ld b,c
+    inc b
+    dec b
+    ret z
+.Lrecip_shift:
+    srl h
+    rr l
+    djnz .Lrecip_shift
+    ret
+.Lrecip_small:
+    push hl
+    pop de
+    add hl,hl
+    add hl,de
+    ld de,_small_reciprocals
+    add hl,de
+    ld hl,(hl)
+    ret
+
+/* Preserve BC, DE, IX and IY while shifting unsigned HL by one. */
+.Lshr24:
+    push hl
+    ld hl,2
+    add hl,sp
+    srl (hl)
+    pop hl
+    rr h
+    rr l
+    ret
+
+.section .text._d84_wall,"ax",@progbits
+.global _d84_wall
+_d84_wall:
+	push	ix
 	push	iy
-	ld	hl, _d84_rw+84
+	ld	ix, 0
+	add	ix, sp
+	ld	hl, (ix+15)
+	ld	(.Lwall_im+1), hl
+	ld	hl, (ix+18)
+	ld	(.Lwall_lt+1), hl
+	ld	a, (ix+30)
+	ld	(.Lwall_dp+3), a
+	ld	a, (ix+21)
+	ex	af, af'
+	ld	hl, (ix+24)
+	ld	de, (ix+27)
+	ld	iy, (ix+12)
+	ld	ix, (ix+9)
+.Lwall_lp:
 	push	hl
-	ld	hl, (ix - 21)
-	push	hl
-	push	de
-	ld	hl, (ix - 3)
-	push	hl
-	call	_d84_wall_column
-	ld	hl, 21
-	add	hl, sp
-	ld	sp, hl
-	.local	.LBB9_58
-.LBB9_58:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	a, (ix - 16)                    ; 1-byte Folded Reload
-	ld	l, (ix - 17)                    ; 1-byte Folded Reload
-	cp	a, l
-	ld	c, (ix - 7)                     ; 1-byte Folded Reload
-	ld	de, 0
-	push	af
-	ld	a, (ix - 24)                    ; 1-byte Folded Reload
-	ld	iyh, a
-	pop	af
-	jr	c, .LBB9_60
-; %bb.59:                               ;   in Loop: Header=BB9_4 Depth=1
+	ld	a, h
+	and	31
 	ld	l, a
-	.local	.LBB9_60
-.LBB9_60:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	a, l
-	ld	b, (ix - 10)                    ; 1-byte Folded Reload
-	cp	a, b
-	ld	(ix - 6), b                     ; 1-byte Folded Spill
-	jr	c, .LBB9_62
-; %bb.61:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	(ix - 6), l                     ; 1-byte Folded Spill
-	.local	.LBB9_62
-.LBB9_62:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	a, (ix - 10)                    ; 1-byte Folded Reload
-	cp	a, l
-	jr	c, .LBB9_64
-; %bb.63:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	de, (ix - 13)
-	jr	.LBB9_65
-	.local	.LBB9_64
-.LBB9_64:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	e, (ix - 6)                     ; 1-byte Folded Reload
-	.local	.LBB9_65
-.LBB9_65:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	a, e
-	cp	a, c
-	jr	c, .LBB9_67
-; %bb.66:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	(ix - 6), c                     ; 1-byte Folded Spill
-	.local	.LBB9_67
-.LBB9_67:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	hl, (ix - 42)
-	ld	a, (ix - 6)
-	ld	(hl), a
-	ld	l, (ix - 18)                    ; 1-byte Folded Reload
-	ld	a, l
-	cp	a, iyh
-	jp	nc, .LBB9_83
-; %bb.68:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	a, c
-	cp	a, l
-	ld	e, c
-	jp	nc, .LBB9_84
-	.local	.LBB9_69
-.LBB9_69:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	a, (ix - 6)                     ; 1-byte Folded Reload
-	cp	a, e
-	ld	l, e
-	jp	nc, .LBB9_85
-	.local	.LBB9_70
-.LBB9_70:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	a, (ix - 6)                     ; 1-byte Folded Reload
-	cp	a, e
-	jp	nc, .LBB9_86
-	.local	.LBB9_71
-.LBB9_71:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	a, l
-	cp	a, c
-	jr	c, .LBB9_73
-	.local	.LBB9_72
-.LBB9_72:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	e, c
-	.local	.LBB9_73
-.LBB9_73:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	hl, _clipbottom
-	ld	bc, (ix - 3)
+	ld	h, 32
+	mlt	hl
+.Lwall_im:
+	ld	bc, 0
 	add	hl, bc
-	ld	(ix - 7), e                     ; 1-byte Folded Spill
-	ld	(hl), e
-	.local	.LBB9_74
-.LBB9_74:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	bc, (_render_detail)
-	push	bc
-	pop	hl
-	ld	de, 2
-	or	a, a
-	sbc	hl, de
-	jr	c, .LBB9_80
-; %bb.75:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	hl, (ix - 3)
-	ld	de, -8388608
-	add	hl, de
-	ld	de, -8388481
-	or	a, a
-	sbc	hl, de
-	jr	nc, .LBB9_80
-; %bb.76:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	(ix - 10), bc
-	ld	iy, _clipbottom+1
-	ld	de, (ix - 3)
-	add	iy, de
-	ld	hl, _cliptop+1
-	add	hl, de
-	ld	de, 0
-	ld	(ix - 13), iy
-	ld	(ix - 16), hl
-	.local	.LBB9_77
-.LBB9_77:                               ;   Parent Loop BB9_4 Depth=1
-                                        ; =>  This Inner Loop Header: Depth=2
-	add	hl, de
-	ld	a, (ix - 6)                     ; 1-byte Folded Reload
-	ld	(hl), a
-	add	iy, de
-	ld	c, (ix - 7)
-	ld	(iy), c
-	push	de
-	pop	hl
-	ld	bc, 2
-	add	hl, bc
-	ld	iy, (ix - 3)
-	add	iy, de
+	ld	a, (hl)
+.Lwall_lt:
+	ld	hl, 0
+	ld	l, a
+	ld	a, (hl)
+	ld	(ix+0), a
+.Lwall_dp:
+	ld	(iy+0), 0
+	ld	bc, 128
+	add	ix, bc
 	add	iy, bc
-	ld	bc, (ix - 10)
-	or	a, a
-	sbc	hl, bc
-	jr	nc, .LBB9_80
-; %bb.78:                               ;   in Loop: Header=BB9_77 Depth=2
-	inc	de
-	ld	bc, -8388608
-	add	iy, bc
-	lea	hl, iy + 0
-	ld	bc, -8388480
-	or	a, a
-	sbc	hl, bc
-	ld	iy, (ix - 13)
-	ld	hl, (ix - 16)
-	jr	c, .LBB9_77
-; %bb.79:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	hl, (ix - 10)
-	jr	.LBB9_81
-	.local	.LBB9_80
-.LBB9_80:                               ;   in Loop: Header=BB9_4 Depth=1
-	push	bc
-	pop	hl
-	.local	.LBB9_81
-.LBB9_81:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	de, (ix - 3)
-	.local	.LBB9_82
-.LBB9_82:                               ;   in Loop: Header=BB9_4 Depth=1
-	add	hl, de
-	ld	de, (_d84_rw+9)
-	push	hl
-	pop	bc
-	ld	hl, (_d84_rw+6)
-	add	hl, de
-	ld	(ix - 6), hl
-	ld	(_d84_rw+6), hl
-	ld	de, (_d84_rw+15)
-	ld	hl, (_d84_rw+12)
-	add	hl, de
-	ld	(_d84_rw+12), hl
-	ld	de, (_d84_rw+21)
-	ld	hl, (_d84_rw+18)
-	add	hl, de
-	ld	(_d84_rw+18), hl
-	ld	de, (_d84_rw+27)
-	ld	hl, (_d84_rw+24)
-	add	hl, de
-	ld	(_d84_rw+24), hl
-	ld	de, (_d84_rw+33)
-	ld	hl, (_d84_rw+30)
-	add	hl, de
-	ld	(_d84_rw+30), hl
-	ld	de, (_d84_rw+39)
-	ld	hl, (_d84_rw+36)
-	add	hl, de
-	ld	(_d84_rw+36), hl
-	ld	iy, (_d84_rw+3)
-	ld	hl, -8388608
-	ex	de, hl
-	add	iy, de
-	push	bc
 	pop	hl
 	add	hl, de
-	lea	de, iy + 0
-	or	a, a
-	sbc	hl, de
-	push	bc
-	pop	de
-	jp	c, .LBB9_4
-	jr	.LBB9_87
-	.local	.LBB9_83
-.LBB9_83:                               ;   in Loop: Header=BB9_4 Depth=1
-	ex	de, hl
-	ld	e, iyh
-	ex	de, hl
-	ld	a, c
-	cp	a, l
-	ld	e, c
-	jp	c, .LBB9_69
-	.local	.LBB9_84
-.LBB9_84:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	e, l
-	ld	a, (ix - 6)                     ; 1-byte Folded Reload
-	cp	a, e
-	ld	l, e
-	jp	c, .LBB9_70
-	.local	.LBB9_85
-.LBB9_85:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	l, (ix - 6)                     ; 1-byte Folded Reload
-	ld	a, (ix - 6)                     ; 1-byte Folded Reload
-	cp	a, e
-	jp	c, .LBB9_71
-	.local	.LBB9_86
-.LBB9_86:                               ;   in Loop: Header=BB9_4 Depth=1
-	ld	e, (ix - 6)                     ; 1-byte Folded Reload
-	ld	a, l
-	cp	a, c
-	jp	nc, .LBB9_72
-	jp	.LBB9_73
-	.local	.LBB9_87
-.LBB9_87:
-	ld	sp, ix
+	ex	af, af'
+	dec	a
+	jr	z, .Lwall_dn
+	ex	af, af'
+	jr	.Lwall_lp
+.Lwall_dn:
+	pop	iy
 	pop	ix
 	ret
-	.local	.Lfunc_end9
-.Lfunc_end9:
-	.size	_render_columns, .Lfunc_end9-_render_columns
-                                        ; -- End function
+.local .Lfunc_end_wall
+.Lfunc_end_wall:
+	.size _d84_wall, .Lfunc_end_wall-_d84_wall
+
 	.section	.text._d84_bbox_visible,"ax",@progbits
 	.globl	_d84_bbox_visible               ; -- Begin function d84_bbox_visible
 	.type	_d84_bbox_visible,@function

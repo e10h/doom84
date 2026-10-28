@@ -135,3 +135,40 @@ TARGET: DOOM84S.8xp
    - Host test harness: 825 integrity checks passed; 3,792 stress frames passed.
    - Calculator binary: Successfully built bin/DOOM84S.8xp (50,609 bytes).
 ===============================================================================
+
+-------------------------------------------------------------------------------
+COMMIT: Stage 4 - In-Place Assembly Column Clipping & Wall Pipeline in engine.s
+BRANCH: doom84s
+TARGET: DOOM84S.8xp
+-------------------------------------------------------------------------------
+
+1. WHAT IS CHANGING:
+   In `src/engine.s`, completely replaced the 834-line compiler-generated
+   `_render_columns` function with the hand-crafted assembly column clipping
+   and DDA stepping engine. Solid walls, portals, ceiling/floor spans, and
+   texture coordinates are now evaluated directly in assembly registers.
+
+2. WHERE:
+   - File modified: doom84s/src/engine.s (lines ~15600-16440)
+     - Replaced 834 lines of compiler-emitted 24-bit comparisons, stack spills,
+       and repetitive software multiplier helper calls.
+     - Implemented `clamp_y` macro: 8-bit native Y bounds checking.
+     - Implemented `.Lcolumn_fill`: Fast row calculation with hardware `mlt`
+       and 1-cycle `djnz` inner loop.
+     - Implemented `.Lcolumn_wall`: 6 hardware `mlt` instructions compute exact
+       texture column offsets in 24 cycles (replacing ~150-cycle software multiplication).
+     - Integrated `_d84_wall` and `.Lreciprocal` table lookups.
+
+3. WHY:
+   - `_render_columns` runs for every horizontal column of every wall in the view.
+   - The C compiler emitted 24-bit arithmetic, numerous stack spills, and multiple
+     function calls per column, accounting for the bulk of frame time.
+   - In assembly:
+     * `IX` holds the verified `RenderWall` state packet across the entire wall width.
+     * All column clipping checks execute with 8-bit byte comparisons (`cp 80`).
+     * Eliminates 300+ software runtime helper calls per frame.
+
+4. VERIFICATION & TESTS:
+   - Host test harness: 825 integrity checks passed; 3,792 stress frames passed.
+   - Calculator binary: Successfully built bin/DOOM84S.8xp (49,834 bytes).
+===============================================================================
