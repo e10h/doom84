@@ -1,6 +1,6 @@
 	.section	.text,"ax",@progbits
 	.assume	ADL = 1
-	.file	"engine.c"
+	.file	"engine_host.c"
 	.section	.text._engine_sector,"ax",@progbits
 	.globl	_engine_sector                  ; -- Begin function engine_sector
 	.type	_engine_sector,@function
@@ -9879,28 +9879,27 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	push	ix
 	ld	ix, 0
 	add	ix, sp
-	ld	hl, -268
+	ld	hl, -259
 	add	hl, sp
 	ld	sp, hl
 	ld	iy, (ix + 9)
 	ld	a, (iy)
-	ld	bc, 0
-	push	bc
+	ld	de, 0
+	push	de
 	pop	hl
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 71), a                    ; 1-byte Folded Spill
+	ld	(ix - 65), a                    ; 1-byte Folded Spill
 	pop	ix
 	ld	l, a
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 66), hl
+	ld	(ix - 57), hl
 	pop	ix
 	ld	a, (iy + 1)
-	push	bc
-	pop	hl
+	ex	de, hl
 	ld	l, a
-	ld	de, -197
+	ld	de, -191
 	lea	iy, ix + 0
 	add	iy, de
 	ld	(iy + 0), hl
@@ -9917,42 +9916,38 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	cp	a, -128
 	jp	nc, .LBB6_5
 ; %bb.2:
-	ld	de, -194
+	ld	de, -185
 	lea	iy, ix + 0
 	add	iy, de
 	ld	hl, (iy + 0)
 	add	hl, hl
 	ex	de, hl
 	ld	iy, _sector_floor
-	lea	hl, iy + 0
+	lea	bc, iy + 0
+	push	bc
+	pop	hl
 	add	hl, de
 	ld	hl, (hl)
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 48), hl
+	ld	iy, (ix - 63)
 	pop	ix
+	add	iy, iy
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 69)
+	ld	(ix - 42), iy
 	pop	ix
-	add	hl, hl
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 51), hl
-	pop	ix
-	ex	de, hl
+	lea	de, iy + 0
+	push	bc
+	pop	iy
 	add	iy, de
 	ld	de, (iy)
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 48
-	ld	hl, (iy + 0)
                                         ; kill: def $hl killed $hl killed $uhl
 	or	a, a
 	sbc.sis	hl, de
 	jp	nz, .LBB6_5
 ; %bb.3:
-	ld	de, -194
+	ld	de, -185
 	lea	iy, ix + 0
 	add	iy, de
 	ld	hl, (iy + 0)
@@ -9964,7 +9959,7 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	hl, (hl)
 	push	ix
 	lea	ix, ix - 128
-	ld	de, (ix - 51)
+	ld	de, (ix - 42)
 	pop	ix
 	add	iy, de
 	ld	de, (iy)
@@ -9976,94 +9971,92 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	iy, (ix + 9)
 	ld	a, (iy + 2)
 	cp	a, -1
-	jp	z, .LBB6_77
+	jp	z, .LBB6_60
 	.local	.LBB6_5
 .LBB6_5:
 	ld	hl, (ix + 6)
-	ld	de, (hl)
-	push	bc
-	pop	iy
-	ld	iyl, e
-	ld	iyh, d
-	lea	bc, iy + 0
+	ld	bc, (hl)
+	ld	iy, 0
+	ld	iyl, c
+	ld	iyh, b
+	lea	de, iy + 0
 	ld	hl, _vertex_stamp
-	add	hl, bc
+	add	hl, de
 	ld	a, (hl)
 	ld	l, -2
 	and	a, l
-	ld	l, a
+	ld	e, a
 	ld	a, (_frame_stamp)
-	ld	c, a
-	ld	a, l
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 48), c                    ; 1-byte Folded Spill
-	pop	ix
-	cp	a, c
+	ld	l, a
+	ld	a, e
+	cp	a, l
 	jr	nz, .LBB6_7
 ; %bb.6:
 	add	iy, iy
-	lea	de, iy + 0
+	lea	bc, iy + 0
 	ld	hl, _vertex_side
-	add	hl, de
-	ld	bc, (hl)
-	ld	a, b
+	add	hl, bc
+	lea	iy, ix + 0
+	lea	iy, iy - 128
+	lea	iy, iy - 48
+	ld	(iy + 0), e                     ; 1-byte Folded Spill
+	ld	de, (hl)
+	ld	a, d
 	rlc	a
 	sbc	hl, hl
-	ld	l, c
-	ld	h, b
-	ld	bc, -185
+	ld	l, e
+	ld	h, d
+	ld	de, -173
 	lea	iy, ix + 0
-	add	iy, bc
+	add	iy, de
 	ld	(iy + 0), hl
 	ld	hl, _vertex_depth
-	add	hl, de
-	ld	bc, (hl)
-	ld	de, _vertex_stamp
+	add	hl, bc
+	ld	de, (hl)
+	ld	bc, _vertex_stamp
 	jp	.LBB6_10
 	.local	.LBB6_7
 .LBB6_7:
 	ld	hl, (_map_vertices)
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 51), hl
+	ld	(ix - 42), hl
 	pop	ix
-	ld	bc, -188
+	ld	de, -176
 	lea	hl, ix + 0
-	add	hl, bc
+	add	hl, de
 	ld	(hl), iy
 	lea	hl, iy + 0
 	add	hl, hl
 	add	hl, hl
-	push	hl
-	pop	bc
+	ex	de, hl
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 51
+	lea	iy, iy - 42
 	ld	hl, (iy + 0)
-	add	hl, bc
+	add	hl, de
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 51
+	lea	iy, iy - 42
 	ld	(iy + 0), hl
 	ld	iy, _extra_points
-	add	iy, bc
-	ld	bc, -1868
-	add	iy, bc
-	ld	l, e
-	ld	h, d
+	add	iy, de
+	ld	de, -1868
+	add	iy, de
+	ld	l, c
+	ld	h, b
 	ld.sis	de, 467
 	or	a, a
 	sbc.sis	hl, de
 	jr	c, .LBB6_9
 ; %bb.8:
-	ld	de, -179
+	ld	de, -170
 	lea	hl, ix + 0
 	add	hl, de
 	ld	(hl), iy
 	.local	.LBB6_9
 .LBB6_9:
-	ld	de, -179
+	ld	de, -170
 	lea	hl, ix + 0
 	add	hl, de
 	ld	iy, (hl)
@@ -10076,161 +10069,94 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	de, (_camx)
 	or	a, a
 	sbc	hl, de
-	push	hl
-	pop	bc
-	ld	de, -182
-	lea	hl, ix + 0
-	add	hl, de
-	ld	(hl), bc
-	ld	de, (iy + 2)
-	ld	a, d
-	rlc	a
-	sbc	hl, hl
-	ld	l, e
-	ld	h, d
-	ld	de, (_camy)
-	or	a, a
-	sbc	hl, de
 	ex	de, hl
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 63
-	ld	(iy + 0), de
-	ld	hl, (_camsin)
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 51
-	ld	(iy + 0), hl
-	call	__imulu
-	push	hl
-	pop	iy
-	ld	hl, (_camcos)
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 74), hl
-	pop	ix
-	push	de
-	pop	bc
-	call	__imulu
-	push	hl
-	pop	bc
-	lea	hl, iy + 0
-	or	a, a
-	sbc	hl, bc
-	ld	a, 8
-	ld	c, a
-	call	__ishru
-	push	hl
-	pop	de
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 77
-	ld	(iy + 0), de
-	call	__ishl
-	call	__ishrs
-	ld	bc, -185
-	lea	iy, ix + 0
-	add	iy, bc
-	ld	(iy + 0), hl
-	ld	hl, _d84_rotated
-	ld	(hl), e
-	inc	hl
-	ld	(hl), d
-	ld	de, -202
-	lea	iy, ix + 0
-	add	iy, de
-	ld	hl, (iy + 0)
-	ld	de, -182
-	lea	iy, ix + 0
-	add	iy, de
-	ld	bc, (iy + 0)
-	call	__imulu
-	push	hl
-	pop	iy
-	push	ix
-	lea	ix, ix - 128
-	ld	hl, (ix - 51)
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	bc, (ix - 63)
-	pop	ix
-	call	__imulu
-	push	hl
-	pop	bc
-	add	iy, bc
-	lea	hl, iy + 0
-	ld	c, a
-	call	__ishru
-	lea	iy, ix + 0
-	add	iy, de
-	ld	(iy + 0), hl
-	ld	iy, _d84_rotated+2
-	ld	(iy), l
-	ld	(iy + 1), h
-	ld	de, -188
-	lea	iy, ix + 0
-	add	iy, de
-	ld	hl, (iy + 0)
-	push	hl
-	pop	iy
-	add	iy, iy
-	lea	bc, iy + 0
-	ld	iy, _vertex_side
-	add	iy, bc
-	push	ix
-	lea	ix, ix - 128
-	ld	de, (ix - 77)
-	pop	ix
-	ld	(iy), e
-	ld	(iy + 1), d
-	ld	iy, _vertex_depth
-	add	iy, bc
-	push	ix
-	lea	ix, ix - 128
-	ld	bc, (ix - 54)
-	pop	ix
-	ld	(iy), c
-	ld	(iy + 1), b
-	push	hl
-	pop	iy
-	ld	de, _vertex_stamp
-	ex	de, hl
-	lea	de, iy + 0
-	add	hl, de
-	ld	de, _vertex_stamp
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 48
-	ld	a, (iy + 0)
-	ld	(hl), a
-	.local	.LBB6_10
-.LBB6_10:
+	ld	bc, (iy + 2)
 	ld	a, b
 	rlc	a
 	sbc	hl, hl
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 54
-	ld	(iy + 0), bc
 	ld	l, c
 	ld	h, b
-	ld	bc, -179
+	ld	bc, (_camy)
+	or	a, a
+	sbc	hl, bc
+	push	hl
+	push	de
+	call	_d84_rotate
+	ld	hl, 6
+	add	hl, sp
+	ld	sp, hl
+	ld	hl, _d84_rotated
+	ld	bc, (hl)
+	ld	a, b
+	rlc	a
+	sbc	hl, hl
+	ld	l, c
+	ld	h, b
+	ld	de, -173
 	lea	iy, ix + 0
-	add	iy, bc
+	add	iy, de
+	ld	(iy + 0), hl
+	ld	de, -176
+	lea	hl, ix + 0
+	add	hl, de
+	ld	iy, (hl)
+	lea	hl, iy + 0
+	add	hl, hl
+	ex	de, hl
+	ld	hl, _vertex_side
+	add	hl, de
+	ld	(hl), c
+	inc	hl
+	ld	(hl), b
+	ld	hl, _d84_rotated+2
+	ld	bc, (hl)
+	ld	hl, _vertex_depth
+	add	hl, de
+	push	bc
+	pop	de
+	ld	(hl), e
+	inc	hl
+	ld	(hl), d
+	ld	a, (_frame_stamp)
+	ld	bc, _vertex_stamp
+	push	bc
+	pop	hl
+	lea	bc, iy + 0
+	add	hl, bc
+	ld	bc, _vertex_stamp
+	lea	iy, ix + 0
+	lea	iy, iy - 128
+	lea	iy, iy - 48
+	ld	(iy + 0), a                     ; 1-byte Folded Spill
+	ld	(hl), a
+	.local	.LBB6_10
+.LBB6_10:
+	ld	a, d
+	rlc	a
+	sbc	hl, hl
+	lea	iy, ix + 0
+	lea	iy, iy - 128
+	lea	iy, iy - 51
+	ld	(iy + 0), de
+	ld	l, e
+	ld	h, d
+	ld	de, -170
+	lea	iy, ix + 0
+	add	iy, de
 	ld	(iy + 0), hl
 	ld	iy, (ix + 6)
-	ld	bc, (iy + 2)
+	ld	de, (iy + 2)
 	ld	iy, 0
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 60), bc
+	ld	(ix - 54), de
 	pop	ix
-	ld	iyl, c
-	ld	iyh, b
-	lea	bc, iy + 0
-	ex	de, hl
-	add	hl, bc
+	ld	iyl, e
+	ld	iyh, d
+	lea	de, iy + 0
+	push	bc
+	pop	hl
+	add	hl, de
 	ld	a, (hl)
 	ld	l, -2
 	and	a, l
@@ -10260,29 +10186,27 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	jp	.LBB6_15
 	.local	.LBB6_12
 .LBB6_12:
-	ld	de, (_map_vertices)
-	ld	bc, -202
+	ld	bc, (_map_vertices)
+	ld	de, -176
 	lea	hl, ix + 0
-	add	hl, bc
+	add	hl, de
 	ld	(hl), iy
 	lea	hl, iy + 0
 	add	hl, hl
 	add	hl, hl
+	ex	de, hl
+	push	bc
+	pop	hl
+	add	hl, de
 	push	hl
 	pop	bc
-	ex	de, hl
-	add	hl, bc
-	ld	de, -191
-	lea	iy, ix + 0
-	add	iy, de
-	ld	(iy + 0), hl
 	ld	iy, _extra_points
-	add	iy, bc
+	add	iy, de
 	ld	de, -1868
 	add	iy, de
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 60)
+	ld	hl, (ix - 54)
 	pop	ix
                                         ; kill: def $hl killed $hl killed $uhl
 	ld.sis	de, 467
@@ -10290,16 +10214,11 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	sbc.sis	hl, de
 	jr	c, .LBB6_14
 ; %bb.13:
-	ld	de, -191
-	lea	hl, ix + 0
-	add	hl, de
-	ld	(hl), iy
+	lea	bc, iy + 0
 	.local	.LBB6_14
 .LBB6_14:
-	ld	de, -191
-	lea	hl, ix + 0
-	add	hl, de
-	ld	iy, (hl)
+	push	bc
+	pop	iy
 	ld	de, (iy)
 	ld	a, d
 	rlc	a
@@ -10309,141 +10228,56 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	de, (_camx)
 	or	a, a
 	sbc	hl, de
-	push	hl
-	pop	bc
-	ld	de, -205
-	lea	hl, ix + 0
-	add	hl, de
-	ld	(hl), bc
-	ld	de, (iy + 2)
-	ld	a, d
+	ex	de, hl
+	ld	bc, (iy + 2)
+	ld	a, b
 	rlc	a
 	sbc	hl, hl
-	ld	l, e
-	ld	h, d
-	ld	de, (_camy)
-	or	a, a
-	sbc	hl, de
-	ex	de, hl
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 80
-	ld	(iy + 0), de
-	ld	hl, (_camsin)
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 63
-	ld	(iy + 0), hl
-	call	__imulu
-	push	hl
-	pop	iy
-	ld	hl, (_camcos)
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 83), hl
-	pop	ix
-	push	de
-	pop	bc
-	call	__imulu
-	push	hl
-	pop	bc
-	lea	hl, iy + 0
+	ld	l, c
+	ld	h, b
+	ld	bc, (_camy)
 	or	a, a
 	sbc	hl, bc
-	ld	a, 8
-	ld	c, a
-	call	__ishru
 	push	hl
-	pop	de
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 86
-	ld	(iy + 0), de
-	call	__ishl
-	call	__ishrs
-	ld	bc, -188
-	lea	iy, ix + 0
-	add	iy, bc
-	ld	(iy + 0), hl
+	push	de
+	call	_d84_rotate
+	ld	hl, 6
+	add	hl, sp
+	ld	sp, hl
 	ld	hl, _d84_rotated
-	ld	(hl), e
-	inc	hl
-	ld	(hl), d
-	ld	de, -211
-	lea	iy, ix + 0
-	add	iy, de
-	ld	hl, (iy + 0)
-	ld	de, -205
-	lea	iy, ix + 0
-	add	iy, de
-	ld	bc, (iy + 0)
-	call	__imulu
+	ld	bc, (hl)
+	ld	a, b
+	rlc	a
+	sbc	hl, hl
 	push	hl
 	pop	iy
+	ld	iyl, c
+	ld	iyh, b
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 63)
+	ld	hl, (ix - 48)
 	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	bc, (ix - 80)
-	pop	ix
-	call	__imulu
-	push	hl
-	pop	bc
-	add	iy, bc
-	lea	hl, iy + 0
-	ld	c, a
-	call	__ishru
-	ex	de, hl
-	ld	bc, -191
-	lea	iy, ix + 0
-	add	iy, bc
-	ld	(iy + 0), de
-	ld	hl, _d84_rotated+2
-	ld	(hl), e
-	inc	hl
-	ld	(hl), d
-	ld	bc, -202
-	lea	iy, ix + 0
-	add	iy, bc
-	ld	de, (iy + 0)
-	push	de
-	pop	hl
 	add	hl, hl
-	push	hl
-	pop	bc
+	ex	de, hl
 	ld	hl, _vertex_side
-	add	hl, bc
-	push	ix
-	lea	ix, ix - 128
-	ld	iy, (ix - 86)
-	pop	ix
-	push	de
-	lea	de, iy + 0
-	ld	(hl), e
-	inc	hl
-	ld	(hl), d
-	pop	de
-	ld	hl, _vertex_depth
-	add	hl, bc
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 63
-	ld	bc, (iy + 0)
-	push	ix
-	lea	ix, ix - 128
-	ld	iy, (ix - 60)
-	pop	ix
+	add	hl, de
 	ld	(hl), c
 	inc	hl
 	ld	(hl), b
-	ld	hl, _vertex_stamp
+	ld	hl, _d84_rotated+2
+	ld	bc, (hl)
+	ld	hl, _vertex_depth
 	add	hl, de
+	ld	(hl), c
+	inc	hl
+	ld	(hl), b
+	ld	a, (_frame_stamp)
 	push	ix
 	lea	ix, ix - 128
-	ld	a, (ix - 48)
+	ld	de, (ix - 48)
 	pop	ix
+	ld	hl, _vertex_stamp
+	add	hl, de
 	ld	(hl), a
 	.local	.LBB6_15
 .LBB6_15:
@@ -10452,7 +10286,7 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	sbc	hl, hl
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 63), bc
+	ld	(ix - 60), bc
 	pop	ix
 	ld	l, c
 	ld	h, b
@@ -10462,18 +10296,18 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	bc, (ix - 57)
+	ld	bc, (ix - 45)
 	pop	ix
 	call	__imulu
 	ex	de, hl
-	ld	bc, -188
+	ld	bc, -182
 	lea	hl, ix + 0
 	add	hl, bc
 	ld	(hl), iy
 	lea	hl, iy + 0
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 51
+	lea	iy, iy - 42
 	ld	bc, (iy + 0)
 	call	__imulu
 	push	hl
@@ -10485,15 +10319,15 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	add	hl, de
 	or	a, a
 	sbc	hl, de
-	jp	nc, .LBB6_77
+	jp	nc, .LBB6_60
 ; %bb.16:
-	ld.sis	bc, -32768
+	ld.sis	de, -32768
+	ld	bc, -179
 	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 54
+	add	iy, bc
 	ld	hl, (iy + 0)
                                         ; kill: def $hl killed $hl killed $uhl
-	add.sis	hl, bc
+	add.sis	hl, de
 	ld.sis	bc, -32764
 	or	a, a
 	sbc.sis	hl, bc
@@ -10501,31 +10335,24 @@ _d84_draw_seg:                          ; @d84_draw_seg
 ; %bb.17:
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 63
+	lea	iy, iy - 60
 	ld	hl, (iy + 0)
                                         ; kill: def $hl killed $hl killed $uhl
-	ld	iyl, c
-	ld	iyh, b
-	ld.sis	bc, -32768
-	add.sis	hl, bc
-	ld	c, iyl
-	ld	b, iyh
+	add.sis	hl, de
 	or	a, a
 	sbc.sis	hl, bc
-	jp	c, .LBB6_77
+	jp	c, .LBB6_60
 	.local	.LBB6_18
 .LBB6_18:
-	ld	bc, 0
-	ld	(ix - 9), bc
-	ld	(ix - 12), bc
+	ld	de, 0
+	ld	bc, -4
+	ld	(ix - 9), de
+	ld	(ix - 12), de
 	ld	a, (_player+32)
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 80
-	ld	(iy + 0), a                     ; 1-byte Folded Spill
 	bit	0, a
-	push	bc
-	pop	hl
+	push	de
+	pop	iy
+	ex	de, hl
 	jr	nz, .LBB6_20
 ; %bb.19:
 	ld	iy, (ix + 9)
@@ -10548,36 +10375,31 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	add	hl, de
 	ld	bc, 1023
 	call	__iand
-	push	hl
-	pop	bc
-	ld	(ix - 9), bc
+	ld	(ix - 9), hl
 	ld	iy, (ix + 6)
-	ld	hl, (iy + 12)
+	ld	bc, (iy + 12)
 	ld	de, 0
-	ld	e, l
-	ld	d, h
-	push	bc
-	pop	hl
-	add	hl, de
-	ld	de, -8388608
-	ld	(ix - 12), hl
+	ld	e, c
+	ld	d, b
+	ld	bc, -4
+	push	hl
+	pop	iy
+	add	iy, de
+	ld	(ix - 12), iy
 	.local	.LBB6_20
 .LBB6_20:
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 86
-	ld	(iy + 0), bc
-	ld	bc, -211
-	lea	iy, ix + 0
-	add	iy, bc
-	ld	(iy + 0), hl
-	ld	bc, -179
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 77), hl
+	pop	ix
+	ld	de, -202
 	lea	hl, ix + 0
-	add	hl, bc
+	add	hl, de
+	ld	(hl), iy
+	ld	de, -170
+	lea	hl, ix + 0
+	add	hl, de
 	ld	iy, (hl)
-	ld	hl, -4
-	push	hl
-	pop	bc
 	add	iy, bc
 	push	ix
 	lea	ix, ix - 128
@@ -10586,61 +10408,63 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	add	hl, bc
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 77), hl
+	ld	(ix - 71), hl
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 74), iy
+	ld	(ix - 68), iy
 	pop	ix
 	lea	bc, iy + 0
 	call	__iand
+	ld	de, -8388608
 	add	hl, de
 	or	a, a
 	sbc	hl, de
-	jp	c, .LBB6_77
+	jp	c, .LBB6_60
 ; %bb.21:
-	ld	bc, -173
+	ld	de, -167
 	lea	hl, ix + 0
-	add	hl, bc
-	ld	bc, -217
+	add	hl, de
+	ld	de, -208
 	lea	iy, ix + 0
-	add	iy, bc
+	add	iy, de
 	ld	(iy + 0), hl
 	lea	hl, ix - 9
-	ld	bc, -220
+	ld	de, -211
 	lea	iy, ix + 0
-	add	iy, bc
+	add	iy, de
 	ld	(iy + 0), hl
 	lea	hl, ix - 12
-	ld	bc, -223
+	ld	de, -214
 	lea	iy, ix + 0
-	add	iy, bc
+	add	iy, de
 	ld	(iy + 0), hl
-	ld	bc, -205
+	ld	de, -199
 	lea	iy, ix + 0
-	add	iy, bc
+	add	iy, de
 	ld	hl, (iy + 0)
+	ld	de, -196
 	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 74
+	add	iy, de
 	ld	bc, (iy + 0)
 	call	__ior
+	ld	de, -8388608
 	add	hl, de
 	or	a, a
 	sbc	hl, de
-	jp	c, .LBB6_39
+	jp	c, .LBB6_43
 ; %bb.22:
-	ld	bc, -176
+	ld	de, -176
 	lea	iy, ix + 0
-	add	iy, bc
-	ld	de, (iy + 0)
-	ld	bc, -179
-	lea	hl, ix + 0
-	add	hl, bc
-	ld	iy, (hl)
+	add	iy, de
+	ld	hl, (iy + 0)
 	push	ix
 	lea	ix, ix - 128
-	ld	bc, (ix - 57)
+	ld	iy, (ix - 42)
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	bc, (ix - 45)
 	.local	.LBB6_23
 .LBB6_23:
 	pop	ix
@@ -10648,60 +10472,60 @@ _d84_draw_seg:                          ; @d84_draw_seg
 .LBB6_24:
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 51), iy
+	ld	(ix - 42), iy
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 57), bc
+	ld	(ix - 45), bc
 	pop	ix
 	add	iy, bc
 	lea	bc, iy + 0
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 48), de
+	ld	(ix - 48), hl
 	pop	ix
-	ex	de, hl
 	push	ix
 	lea	ix, ix - 128
-	ld	de, (ix - 60)
+	ld	de, (ix - 54)
 	pop	ix
 	add	hl, de
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 54), hl
+	ld	(ix - 51), hl
 	pop	ix
 	call	__iand
 	ld	de, -8388608
 	add	hl, de
 	or	a, a
 	sbc	hl, de
-	jp	c, .LBB6_77
+	jp	c, .LBB6_60
 ; %bb.25:
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 54)
+	ld	hl, (ix - 51)
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 63), bc
+	ld	(ix - 68), bc
 	pop	ix
 	call	__ior
+	ld	de, -8388608
 	add	hl, de
 	or	a, a
 	sbc	hl, de
-	jp	c, .LBB6_46
+	jp	c, .LBB6_50
 ; %bb.26:
-	ld	bc, -176
-	lea	iy, ix + 0
-	add	iy, bc
-	ld	de, (iy + 0)
-	ld	bc, -179
+	ld	de, -176
+	lea	hl, ix + 0
+	add	hl, de
+	ld	iy, (hl)
+	ld	bc, -170
 	lea	hl, ix + 0
 	add	hl, bc
-	ld	iy, (hl)
+	ld	de, (hl)
 	push	ix
 	lea	ix, ix - 128
-	ld	bc, (ix - 57)
+	ld	bc, (ix - 45)
 	.local	.LBB6_27
 .LBB6_27:
 	pop	ix
@@ -10709,25 +10533,25 @@ _d84_draw_seg:                          ; @d84_draw_seg
 .LBB6_28:
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 51), iy
+	ld	(ix - 42), de
 	pop	ix
-	lea	hl, iy + 0
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 57
-	ld	(iy + 0), bc
+	ex	de, hl
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 45), bc
+	pop	ix
 	or	a, a
 	sbc	hl, bc
 	push	hl
 	pop	bc
+	ld	de, -176
+	lea	hl, ix + 0
+	add	hl, de
+	ld	(hl), iy
+	lea	hl, iy + 0
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 48
-	ld	(iy + 0), de
-	ex	de, hl
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 60
+	lea	iy, iy - 54
 	ld	de, (iy + 0)
 	or	a, a
 	sbc	hl, de
@@ -10735,100 +10559,204 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	pop	iy
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 54), bc
+	ld	(ix - 51), bc
 	pop	ix
 	call	__iand
 	ld	de, -8388608
 	add	hl, de
 	or	a, a
 	sbc	hl, de
-	jp	c, .LBB6_77
+	jp	c, .LBB6_60
 ; %bb.29:
-	ld	bc, -191
+	ld	de, -196
 	lea	hl, ix + 0
-	add	hl, bc
+	add	hl, de
 	ld	(hl), iy
 	lea	hl, iy + 0
+	ld	de, -179
 	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 54
+	add	iy, de
 	ld	bc, (iy + 0)
 	call	__ior
+	ld	de, -8388608
 	add	hl, de
 	or	a, a
 	sbc	hl, de
-	jp	c, .LBB6_53
+	jp	c, .LBB6_56
 ; %bb.30:
-	ld	de, -179
+	ld	de, -188
+	lea	iy, ix + 0
+	add	iy, de
+	ld	(iy + 0), a                     ; 1-byte Folded Spill
+	ld	de, -170
 	.local	.LBB6_31
 .LBB6_31:
+	lea	iy, ix + 0
+	add	iy, de
+	ld	hl, (iy + 0)
+	.local	.LBB6_32
+.LBB6_32:
+	ld	de, -196
+	lea	iy, ix + 0
+	add	iy, de
+	ld	(iy + 0), hl
+	push	hl
+	ld	de, -173
+	lea	iy, ix + 0
+	add	iy, de
+	ld	hl, (iy + 0)
+	push	hl
+	call	_d84_screen_x
+	ld	de, -170
+	lea	iy, ix + 0
+	add	iy, de
+	ld	(iy + 0), hl
+	ld	hl, 6
+	add	hl, sp
+	ld	sp, hl
+	ld	de, -176
+	lea	iy, ix + 0
+	add	iy, de
+	ld	hl, (iy + 0)
+	push	hl
+	ld	de, -182
+	lea	iy, ix + 0
+	add	iy, de
+	ld	hl, (iy + 0)
+	push	hl
+	call	_d84_screen_x
+	ld	de, -173
+	lea	iy, ix + 0
+	add	iy, de
+	ld	(iy + 0), hl
+	ld	hl, 6
+	add	hl, sp
+	ld	sp, hl
+	ld	de, -170
+	lea	iy, ix + 0
+	add	iy, de
+	ld	hl, (iy + 0)
+	ld	bc, -8388608
+	add	hl, bc
+	ld	de, -8388480
+	or	a, a
+	sbc	hl, de
+	jp	nc, .LBB6_60
+; %bb.33:
+	ld	de, -173
 	lea	hl, ix + 0
 	add	hl, de
 	ld	iy, (hl)
-	.local	.LBB6_32
-.LBB6_32:
-	ld	de, 2049
+	add	iy, bc
+	push	ix
+	lea	ix, ix - 128
+	ld	hl, (ix - 42)
+	pop	ix
+	add	hl, bc
+	lea	de, iy + 0
+	or	a, a
+	sbc	hl, de
+	jp	nc, .LBB6_60
+; %bb.34:
+	ld	de, -8388607
 	lea	hl, iy + 0
 	or	a, a
 	sbc	hl, de
-	ld	de, -191
+	jp	c, .LBB6_60
+; %bb.35:
+	push	de
+	pop	iy
+	push	ix
+	lea	ix, ix - 128
+	ld	de, (ix - 42)
+	pop	ix
+	push	de
+	pop	hl
+	add	hl, bc
+	lea	bc, iy + 0
+	or	a, a
+	sbc	hl, bc
+	jr	nc, .LBB6_37
+; %bb.36:
+	ld	de, 0
+	.local	.LBB6_37
+.LBB6_37:
+	ld	bc, 128
+	push	ix
+	lea	ix, ix - 128
+	ld	iy, (ix - 45)
+	pop	ix
+	lea	hl, iy + 0
+	or	a, a
+	sbc	hl, bc
+	ld	bc, -179
+	lea	hl, ix + 0
+	push	af
+	add	hl, bc
+	pop	af
+	ld	(hl), iy
+	ld	iy, 128
+	jr	c, .LBB6_39
+; %bb.38:
+	lea	hl, ix + 0
+	add	hl, bc
+	ld	(hl), iy
+	.local	.LBB6_39
+.LBB6_39:
+	ld	bc, -182
+	lea	hl, ix + 0
+	add	hl, bc
+	ld	(hl), de
+	ld	bc, 1
+	ld	a, (_player+32)
+	ld	de, -205
+	lea	hl, ix + 0
+	add	hl, de
+	ld	(hl), a                         ; 1-byte Folded Spill
+	bit	0, a
+	jr	nz, .LBB6_41
+; %bb.40:
+	ld	bc, (_render_detail)
+	.local	.LBB6_41
+.LBB6_41:
+	ld	de, 2
+	push	bc
+	pop	hl
+	or	a, a
+	sbc	hl, de
+	ld	de, -202
+	lea	hl, ix + 0
+	push	af
+	add	hl, de
+	pop	af
+	ld	(hl), bc
+	ld	de, -217
 	lea	hl, ix + 0
 	push	af
 	add	hl, de
 	pop	af
 	ld	(hl), iy
-	ld	de, 0
-	jr	c, .LBB6_35
-; %bb.33:
-	ld	de, 0
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 63
-	ld	bc, (iy + 0)
-	.local	.LBB6_34
-.LBB6_34:                               ; =>This Inner Loop Header: Depth=1
+	jp	c, .LBB6_64
+; %bb.42:
 	push	bc
-	pop	hl
-	call	__ishru_1
-	push	hl
 	pop	iy
-	inc	de
-	push	bc
-	pop	hl
-	ld	bc, 4098
-	or	a, a
-	sbc	hl, bc
-	lea	bc, iy + 0
-	jr	nc, .LBB6_34
-	.local	.LBB6_35
-.LBB6_35:
-	ld	bc, 17
+	push	ix
+	lea	ix, ix - 128
+	ld	de, (ix - 54)
+	pop	ix
+	add	iy, de
+	dec	iy
+	lea	hl, iy + 0
+	call	__irems
+	ex	de, hl
 	lea	hl, iy + 0
 	or	a, a
-	sbc	hl, bc
-	jp	nc, .LBB6_56
-; %bb.36:
-	ld	bc, 2
-	lea	hl, iy + 0
-	or	a, a
-	sbc	hl, bc
-	jr	nc, .LBB6_38
-; %bb.37:
-	ld	iy, 1
-	.local	.LBB6_38
-.LBB6_38:
-	ld	bc, 3
-	lea	hl, iy + 0
-	call	__imulu
-	push	hl
-	pop	bc
-	ld	hl, _small_reciprocals
-	add	hl, bc
-	ld	hl, (hl)
-	jp	.LBB6_57
-	.local	.LBB6_39
-.LBB6_39:
-	ld	de, -182
+	sbc	hl, de
+	ex	de, hl
+	jp	.LBB6_65
+	.local	.LBB6_43
+.LBB6_43:
+	ld	de, -179
 	lea	iy, ix + 0
 	add	iy, de
 	ld	bc, (iy + 0)
@@ -10839,25 +10767,25 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld.sis	de, -32764
 	or	a, a
 	sbc.sis	hl, de
-	jp	nc, .LBB6_42
-; %bb.40:
+	jp	nc, .LBB6_46
+; %bb.44:
 	ld	l, c
 	ld	h, b
-	ld	bc, -191
+	ld	bc, -188
 	lea	iy, ix + 0
 	add	iy, bc
 	ld	de, (iy + 0)
 	or	a, a
 	sbc.sis	hl, de
-	ld	de, -202
+	ld	de, -196
 	lea	iy, ix + 0
 	push	af
 	add	iy, de
 	pop	af
 	ld	bc, (iy + 0)
-	jp	z, .LBB6_77
-; %bb.41:
-	ld	de, -179
+	jp	z, .LBB6_60
+; %bb.45:
+	ld	de, -170
 	lea	iy, ix + 0
 	add	iy, de
 	ld	hl, (iy + 0)
@@ -10867,25 +10795,29 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	de, (iy + 0)
 	or	a, a
 	sbc	hl, de
-	ld	de, -182
+	ld	de, -179
 	lea	iy, ix + 0
 	add	iy, de
 	ld	(iy + 0), hl
-	ld	de, -188
+	ld	de, -182
 	lea	iy, ix + 0
 	add	iy, de
 	ld	hl, (iy + 0)
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 57
+	lea	iy, iy - 45
 	ld	de, (iy + 0)
 	or	a, a
 	sbc	hl, de
 	push	ix
 	lea	ix, ix - 128
-	ld	iy, (ix - 89)
+	ld	iy, (ix - 80)
 	pop	ix
 	ld	(iy + 12), hl
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 60), a                    ; 1-byte Folded Spill
+	pop	ix
 	ld	a, (iy + 14)
 	rlc	a
 	sbc	a, a
@@ -10896,16 +10828,16 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	sbc	a, a
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 63), a
+	ld	(ix - 89), a
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	bc, (ix - 74)
+	ld	bc, (ix - 68)
 	pop	ix
 	call	__lmulu
 	push	ix
 	lea	ix, ix - 128
-	ld	bc, (ix - 54)
+	ld	bc, (ix - 51)
 	pop	ix
 	ld	(iy + 18), bc
 	ld	a, (iy + 20)
@@ -10914,17 +10846,17 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	d, a
 	push	ix
 	lea	ix, ix - 128
-	ld	bc, (ix - 54)
+	ld	bc, (ix - 51)
 	pop	ix
 	call	__ldivs
 	push	ix
 	lea	ix, ix - 128
-	ld	bc, (ix - 57)
+	ld	bc, (ix - 45)
 	pop	ix
 	add	hl, bc
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 98), hl
+	ld	(ix - 92), hl
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
@@ -10932,7 +10864,7 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	bc, (ix - 51)
+	ld	bc, (ix - 42)
 	pop	ix
 	or	a, a
 	sbc	hl, bc
@@ -10943,114 +10875,129 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	e, a
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 74
+	lea	iy, iy - 68
 	ld	bc, (iy + 0)
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 63
+	lea	iy, iy - 89
 	ld	a, (iy + 0)                     ; 1-byte Folded Reload
 	call	__lmulu
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 54
+	lea	iy, iy - 51
 	ld	bc, (iy + 0)
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 104
+	lea	iy, iy - 98
 	ld	(iy + 0), d                     ; 1-byte Folded Spill
 	ld	a, d
 	call	__ldivs
-	ld	bc, -176
+	ld	de, -188
 	lea	iy, ix + 0
-	add	iy, bc
-	ld	de, (iy + 0)
+	add	iy, de
+	ld	a, (iy + 0)                     ; 1-byte Folded Reload
 	push	hl
 	pop	iy
-	push	ix
-	lea	ix, ix - 128
-	ld	bc, (ix - 51)
-	pop	ix
-	add	iy, bc
-	ld	bc, -208
+	ld	bc, -170
+	lea	hl, ix + 0
+	add	hl, bc
+	ld	de, (hl)
+	add	iy, de
+	bit	0, a
+	ld	bc, -205
 	lea	hl, ix + 0
 	push	af
 	add	hl, bc
 	pop	af
-	bit	0, (hl)                         ; 1-byte Folded Reload
+	ld	de, (hl)
+	ld	bc, -223
+	lea	hl, ix + 0
+	push	af
+	add	hl, bc
+	pop	af
+	ld	(hl), de
+	ld	bc, -211
+	lea	hl, ix + 0
+	push	af
+	add	hl, bc
+	pop	af
+	ld	de, (hl)
+	ld	bc, -229
+	lea	hl, ix + 0
+	push	af
+	add	hl, bc
+	pop	af
+	ld	(hl), de
+	ld	de, -220
+	lea	hl, ix + 0
+	push	af
+	add	hl, de
+	pop	af
+	ld	bc, (hl)
+	ld	de, -205
+	lea	hl, ix + 0
+	push	af
+	add	hl, de
+	pop	af
+	ld	(hl), iy
 	push	ix
 	lea	ix, ix - 128
-	ld	bc, (ix - 86)
+	ld	hl, (ix - 48)
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 101), bc
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	bc, (ix - 92)
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 107), bc
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	bc, (ix - 98)
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 86), iy
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	hl, (ix - 74)
-	jp	.LBB6_44
-	.local	.LBB6_42
-.LBB6_42:
-	ld	de, -191
+	ld	de, (ix - 68)
+	jp	.LBB6_48
+	.local	.LBB6_46
+.LBB6_46:
+	ld	de, -188
 	lea	iy, ix + 0
 	add	iy, de
 	ld	hl, (iy + 0)
                                         ; kill: def $hl killed $hl killed $uhl
 	or	a, a
 	sbc.sis	hl, bc
-	ld	de, -205
+	ld	de, -199
 	lea	iy, ix + 0
 	push	af
 	add	iy, de
 	pop	af
 	ld	bc, (iy + 0)
-	jp	z, .LBB6_77
-; %bb.43:
+	jp	z, .LBB6_60
+; %bb.47:
 	ld	de, -176
 	lea	iy, ix + 0
 	add	iy, de
 	ld	hl, (iy + 0)
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 51
+	lea	iy, iy - 42
 	ld	de, (iy + 0)
 	or	a, a
 	sbc	hl, de
-	ld	de, -182
+	ld	de, -179
 	lea	iy, ix + 0
 	add	iy, de
 	ld	(iy + 0), hl
-	ld	de, -185
+	ld	de, -173
 	lea	iy, ix + 0
 	add	iy, de
 	ld	hl, (iy + 0)
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 60
+	lea	iy, iy - 54
 	ld	de, (iy + 0)
 	or	a, a
 	sbc	hl, de
 	push	ix
 	lea	ix, ix - 128
-	ld	iy, (ix - 89)
+	ld	iy, (ix - 80)
 	pop	ix
 	ld	(iy + 0), hl
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 60), a                    ; 1-byte Folded Spill
+	pop	ix
 	ld	a, (iy + 2)
 	rlc	a
 	sbc	a, a
@@ -11061,12 +11008,12 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	sbc	a, a
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 63), a
+	ld	(ix - 89), a
 	pop	ix
 	call	__lmulu
 	push	ix
 	lea	ix, ix - 128
-	ld	bc, (ix - 54)
+	ld	bc, (ix - 51)
 	pop	ix
 	ld	(iy + 6), bc
 	ld	a, (iy + 8)
@@ -11076,16 +11023,16 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	call	__ldivs
 	push	ix
 	lea	ix, ix - 128
-	ld	bc, (ix - 60)
+	ld	bc, (ix - 54)
 	pop	ix
 	add	hl, bc
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 60), hl
+	ld	(ix - 54), hl
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 51)
+	ld	hl, (ix - 42)
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
@@ -11100,1121 +11047,56 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	e, a
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 77
+	lea	iy, iy - 71
 	ld	bc, (iy + 0)
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 63
+	lea	iy, iy - 89
 	ld	a, (iy + 0)                     ; 1-byte Folded Reload
 	call	__lmulu
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 54
-	ld	bc, (iy + 0)
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 104
-	ld	(iy + 0), d                     ; 1-byte Folded Spill
-	ld	a, d
-	call	__ldivs
-	ld	bc, -176
-	lea	iy, ix + 0
-	add	iy, bc
-	ld	de, (iy + 0)
-	add	hl, de
-	ld	de, -208
-	lea	iy, ix + 0
-	push	af
-	add	iy, de
-	pop	af
-	bit	0, (iy + 0)                     ; 1-byte Folded Reload
-	ld	bc, -211
-	lea	iy, ix + 0
-	push	af
-	add	iy, bc
-	pop	af
-	ld	de, (iy + 0)
-	ld	bc, -229
-	lea	iy, ix + 0
-	push	af
-	add	iy, bc
-	pop	af
-	ld	(iy + 0), de
-	ld	de, -214
-	lea	iy, ix + 0
-	push	af
-	add	iy, de
-	pop	af
-	ld	bc, (iy + 0)
-	ld	de, -211
-	lea	iy, ix + 0
-	push	af
-	add	iy, de
-	pop	af
-	ld	(iy + 0), bc
-	ld	de, -185
-	lea	iy, ix + 0
-	push	af
-	add	iy, de
-	pop	af
-	ld	bc, (iy + 0)
-	ld	de, -226
-	lea	iy, ix + 0
-	push	af
-	add	iy, de
-	pop	af
-	ld	(iy + 0), bc
 	lea	iy, ix + 0
 	lea	iy, iy - 128
 	lea	iy, iy - 51
-	ld	de, (iy + 0)
-	push	de
-	pop	iy
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 86), de
-	pop	ix
-	ex	de, hl
-	push	ix
-	lea	ix, ix - 128
-	ld	hl, (ix - 95)
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 107), hl
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	hl, (ix - 77)
-	.local	.LBB6_44
-.LBB6_44:
-	pop	ix
-	jp	nz, .LBB6_24
-; %bb.45:
-	ld	bc, -176
-	lea	iy, ix + 0
-	add	iy, bc
-	ld	(iy + 0), de
-	ex	de, hl
-	ld	bc, -211
-	lea	iy, ix + 0
-	add	iy, bc
-	ld	hl, (iy + 0)
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 101
 	ld	bc, (iy + 0)
-	or	a, a
-	sbc	hl, bc
-	push	hl
-	pop	bc
-	ex	de, hl
-	push	ix
-	lea	ix, ix - 128
-	ld	iy, (ix - 89)
-	pop	ix
-	ld	(iy + 24), bc
-	ld	a, (iy + 26)
-	rlc	a
-	sbc	a, a
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 63
-	ld	e, (iy + 0)                     ; 1-byte Folded Reload
-	call	__lmulu
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 54
-	ld	bc, (iy + 0)
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 104
-	ld	a, (iy + 0)                     ; 1-byte Folded Reload
-	call	__ldivs
-	ld	bc, -176
-	lea	iy, ix + 0
-	add	iy, bc
-	ld	de, (iy + 0)
-	push	hl
-	pop	bc
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 101
-	ld	hl, (iy + 0)
-	add	hl, bc
-	push	ix
-	lea	ix, ix - 128
-	ld	iy, (ix - 107)
-	pop	ix
-	ld	(iy), hl
 	lea	iy, ix + 0
 	lea	iy, iy - 128
 	lea	iy, iy - 98
-	ld	bc, (iy + 0)
-	push	ix
-	lea	ix, ix - 128
-	ld	iy, (ix - 86)
-	jp	.LBB6_23
-	.local	.LBB6_46
-.LBB6_46:
-	add	iy, de
-	lea	hl, iy + 0
-	or	a, a
-	sbc	hl, de
-	jp	nc, .LBB6_49
-; %bb.47:
-	ld	de, -191
-	lea	hl, ix + 0
-	add	hl, de
-	ld	iy, (hl)
-	lea	hl, iy + 0
-	push	ix
-	lea	ix, ix - 128
-	ld	de, (ix - 54)
-	pop	ix
-	or	a, a
-	sbc	hl, de
-	jp	z, .LBB6_77
-; %bb.48:
-	lea	hl, iy + 0
-	or	a, a
-	sbc	hl, de
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 74), hl
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	hl, (ix - 60)
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	de, (ix - 57)
-	pop	ix
-	or	a, a
-	sbc	hl, de
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 6), hl
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	a, (ix - 4)
-	pop	ix
-	rlc	a
-	sbc	a, a
-	ld	e, a
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 3), iy
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	a, (ix - 1)
-	pop	ix
-	rlc	a
-	sbc	a, a
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 77), a
-	pop	ix
-	lea	bc, iy + 0
-	call	__lmulu
-	push	ix
-	lea	ix, ix - 128
-	ld	iy, (ix - 74)
-	pop	ix
-	ld	(ix - 128), iy
-	ld	a, (ix - 126)
-	rlc	a
-	sbc	a, a
-	ld	d, a
-	lea	bc, iy + 0
-	call	__ldivs
-	push	hl
-	pop	bc
-	push	ix
-	lea	ix, ix - 128
-	ld	hl, (ix - 57)
-	pop	ix
-	add	hl, bc
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 86), hl
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	hl, (ix - 48)
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	bc, (ix - 51)
-	pop	ix
-	or	a, a
-	sbc	hl, bc
-	ld	(ix - 125), hl
-	ld	a, (ix - 123)
-	rlc	a
-	sbc	a, a
-	ld	e, a
-	push	ix
-	lea	ix, ix - 128
-	ld	bc, (ix - 63)
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	a, (ix - 77)                    ; 1-byte Folded Reload
-	pop	ix
-	call	__lmulu
-	lea	bc, iy + 0
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 83
 	ld	(iy + 0), d                     ; 1-byte Folded Spill
 	ld	a, d
 	call	__ldivs
-	push	hl
-	pop	bc
-	ld	de, -179
-	lea	hl, ix + 0
-	add	hl, de
-	ld	iy, (hl)
-	add	iy, bc
-	ld	bc, -176
-	lea	hl, ix + 0
-	push	af
-	add	hl, bc
-	pop	af
-	ld	de, (hl)
-	ld	bc, -208
-	lea	hl, ix + 0
-	push	af
-	add	hl, bc
-	pop	af
-	bit	0, (hl)                         ; 1-byte Folded Reload
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 95)
+	ld	iy, (ix - 42)
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	bc, (ix - 92)
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 98), bc
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	bc, (ix - 86)
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 89), iy
-	jp	.LBB6_51
-	.local	.LBB6_49
-.LBB6_49:
-	ld	de, -182
-	lea	iy, ix + 0
-	add	iy, de
-	ld	bc, (iy + 0)
-	push	bc
-	pop	hl
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 63
-	ld	de, (iy + 0)
-	or	a, a
-	sbc	hl, de
-	jp	z, .LBB6_77
-; %bb.50:
-	push	bc
-	pop	hl
-	or	a, a
-	sbc	hl, de
-	ld	de, -202
-	lea	iy, ix + 0
-	add	iy, de
-	ld	(iy + 0), hl
-	ld	de, -185
-	lea	iy, ix + 0
-	add	iy, de
-	ld	hl, (iy + 0)
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 60
-	ld	de, (iy + 0)
-	or	a, a
-	sbc	hl, de
-	push	bc
-	pop	de
-	push	hl
-	pop	bc
-	push	ix
-	lea	ix, ix - 128
-	ld	iy, (ix - 89)
-	pop	ix
-	ld	(iy + 27), bc
-	ld	a, (iy + 29)
-	rlc	a
-	sbc	a, a
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 63), a                    ; 1-byte Folded Spill
-	pop	ix
-	ld	(iy + 30), de
-	ld	a, (iy + 32)
-	rlc	a
-	sbc	a, a
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 77), a
-	pop	ix
-	ex	de, hl
-	ld	e, a
-	push	ix
-	lea	ix, ix - 128
-	ld	a, (ix - 63)                    ; 1-byte Folded Reload
-	pop	ix
-	call	__lmulu
-	push	ix
-	lea	ix, ix - 128
-	ld	bc, (ix - 74)
-	pop	ix
-	ld	(iy + 33), bc
-	ld	a, (iy + 35)
-	rlc	a
-	sbc	a, a
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 83
-	ld	(iy + 0), a
-	call	__ldivs
-	push	hl
-	pop	bc
-	ld	de, -188
-	lea	iy, ix + 0
-	add	iy, de
-	ld	hl, (iy + 0)
-	add	hl, bc
-	lea	iy, ix + 0
-	add	iy, de
-	ld	(iy + 0), hl
-	ld	bc, -179
-	lea	iy, ix + 0
-	add	iy, bc
-	ld	de, (iy + 0)
-	push	de
-	pop	hl
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 48
-	ld	bc, (iy + 0)
-	or	a, a
-	sbc	hl, bc
-	push	ix
-	lea	ix, ix - 128
-	ld	iy, (ix - 89)
-	pop	ix
-	ld	(iy + 36), hl
-	push	ix
-	lea	ix, ix - 128
-	ld	iy, (ix - 89)
-	pop	ix
-	ld	a, (iy + 38)
-	push	de
-	pop	iy
-	rlc	a
-	sbc	a, a
-	ld	e, a
-	push	ix
-	lea	ix, ix - 128
-	ld	bc, (ix - 54)
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	a, (ix - 77)                    ; 1-byte Folded Reload
-	pop	ix
-	call	__lmulu
-	push	ix
-	lea	ix, ix - 128
-	ld	bc, (ix - 74)
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	a, (ix - 83)                    ; 1-byte Folded Reload
-	pop	ix
-	call	__ldivs
-	push	hl
-	pop	bc
-	push	ix
-	lea	ix, ix - 128
-	ld	hl, (ix - 48)
-	pop	ix
-	add	hl, bc
-	push	ix
-	lea	ix, ix - 128
-	ld	bc, (ix - 57)
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	bit	0, (ix - 80)                    ; 1-byte Folded Reload
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 86), bc
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 89), iy
-	pop	ix
-	ex	de, hl
-	push	ix
-	lea	ix, ix - 128
-	ld	hl, (ix - 92)
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 48), hl
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	hl, (ix - 95)
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 98), hl
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	hl, (ix - 54)
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 63), hl
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	hl, (ix - 48)
-	.local	.LBB6_51
-.LBB6_51:
-	pop	ix
-	jp	nz, .LBB6_28
-; %bb.52:
-	ld	bc, -176
-	lea	iy, ix + 0
-	add	iy, bc
-	ld	(iy + 0), de
-	ld	hl, (hl)
-	push	ix
-	lea	ix, ix - 128
-	ld	iy, (ix - 98)
-	pop	ix
-	ld	de, (iy)
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 51), de
-	pop	ix
-	or	a, a
-	sbc	hl, de
-	push	hl
-	pop	bc
-	ld	(ix - 122), bc
-	ld	a, (ix - 120)
-	rlc	a
-	sbc	a, a
-	push	ix
-	lea	ix, ix - 128
-	ld	hl, (ix - 63)
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	e, (ix - 77)                    ; 1-byte Folded Reload
-	pop	ix
-	call	__lmulu
-	push	ix
-	lea	ix, ix - 128
-	ld	bc, (ix - 74)
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	a, (ix - 83)                    ; 1-byte Folded Reload
-	pop	ix
-	call	__ldivs
-	push	ix
-	lea	ix, ix - 128
-	ld	de, (ix - 48)
-	pop	ix
-	push	hl
-	pop	bc
-	push	ix
-	lea	ix, ix - 128
-	ld	hl, (ix - 51)
-	pop	ix
-	add	hl, bc
-	ld	(iy), hl
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 86
-	ld	bc, (iy + 0)
-	push	ix
-	lea	ix, ix - 128
-	ld	iy, (ix - 89)
-	jp	.LBB6_27
-	.local	.LBB6_53
-.LBB6_53:
-	ld	bc, -182
-	lea	iy, ix + 0
-	add	iy, bc
-	ld	hl, (iy + 0)
-	add	hl, de
-	or	a, a
-	sbc	hl, de
-	jp	nc, .LBB6_76
-; %bb.54:
-	ld	de, -182
-	lea	iy, ix + 0
-	add	iy, de
-	ld	hl, (iy + 0)
-	ld	bc, -191
-	lea	iy, ix + 0
-	add	iy, bc
-	ld	de, (iy + 0)
-	or	a, a
-	sbc	hl, de
-	jp	z, .LBB6_77
-; %bb.55:
-	ld	bc, -182
-	lea	iy, ix + 0
-	add	iy, bc
-	ld	hl, (iy + 0)
-	push	hl
-	pop	bc
-	or	a, a
-	sbc	hl, de
-	push	hl
-	pop	iy
-	push	ix
-	lea	ix, ix - 128
-	ld	hl, (ix - 60)
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	de, (ix - 57)
-	pop	ix
-	or	a, a
-	sbc	hl, de
-	ld	(ix - 107), hl
-	ld	a, (ix - 105)
-	rlc	a
-	sbc	a, a
-	ld	e, a
-	ld	(ix - 104), bc
-	ld	a, (ix - 102)
-	rlc	a
-	sbc	a, a
-	ld	d, a
-	call	__lmulu
-	ld	(ix - 101), iy
-	lea	bc, iy + 0
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 74
-	ld	(iy + 0), bc
-	ld	a, (ix - 99)
-	rlc	a
-	sbc	a, a
-	ld	iyl, a
-	call	__ldivs
-	push	hl
-	pop	bc
-	push	ix
-	lea	ix, ix - 128
-	ld	hl, (ix - 57)
-	pop	ix
-	add	hl, bc
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 57), hl
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	hl, (ix - 48)
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	bc, (ix - 51)
-	pop	ix
-	or	a, a
-	sbc	hl, bc
-	ld	(ix - 98), hl
-	ld	a, (ix - 96)
-	rlc	a
-	sbc	a, a
-	ld	e, a
-	push	ix
-	lea	ix, ix - 128
-	ld	bc, (ix - 54)
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 77), d                    ; 1-byte Folded Spill
-	pop	ix
-	ld	a, d
-	ld	d, iyl
-	call	__lmulu
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 74
-	ld	bc, (iy + 0)
-	ld	a, d
-	call	__ldivs
-	push	hl
-	pop	bc
-	push	ix
-	lea	ix, ix - 128
-	ld	iy, (ix - 51)
-	pop	ix
-	add	iy, bc
-	ld	bc, -208
-	lea	hl, ix + 0
-	push	af
-	add	hl, bc
-	pop	af
-	bit	0, (hl)                         ; 1-byte Folded Reload
-	push	ix
-	lea	ix, ix - 128
-	ld	hl, (ix - 95)
-	jp	.LBB6_79
-	.local	.LBB6_56
-.LBB6_56:
-	add	iy, iy
-	lea	bc, iy + 0
-	ld	hl, _reciprocal_table
-	add	hl, bc
-	ld	bc, (hl)
-	or	a, a
-	sbc	hl, hl
-	ld	l, c
-	ld	h, b
-	.local	.LBB6_57
-.LBB6_57:
-	push	ix
-	lea	ix, ix - 128
-	ld	iy, (ix - 57)
-	pop	ix
-	ld	(ix - 92), iy
-	ld	a, (ix - 90)
-	rlc	a
-	sbc	a, a
-	ld	c, e
-	call	__ishru
-	ld	de, 0
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 54), e                    ; 1-byte Folded Spill
-	pop	ix
-	lea	bc, iy + 0
-	call	__lmulu
-	push	hl
-	pop	bc
-	ld	a, e
-	ld	l, 14
-	call	__lshrs
-	ld	de, -185
-	lea	iy, ix + 0
-	add	iy, de
-	ld	(iy + 0), a                     ; 1-byte Folded Spill
-	ld	de, -179
-	lea	iy, ix + 0
-	add	iy, de
-	ld	(iy + 0), bc
-	push	bc
-	pop	hl
-	ld	de, 64
-	add	hl, de
-	ld	de, -202
-	lea	iy, ix + 0
-	add	iy, de
-	ld	(iy + 0), hl
-	ld	de, -176
-	lea	hl, ix + 0
-	add	hl, de
-	ld	iy, (hl)
-	lea	hl, iy + 0
-	ld	de, 2049
-	or	a, a
-	sbc	hl, de
-	ld	de, 0
-	jr	c, .LBB6_60
-; %bb.58:
-	ld	de, 0
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 48
-	ld	bc, (iy + 0)
-	.local	.LBB6_59
-.LBB6_59:                               ; =>This Inner Loop Header: Depth=1
-	push	bc
-	pop	hl
-	call	__ishru_1
-	push	hl
-	pop	iy
-	inc	de
-	push	bc
-	pop	hl
-	ld	bc, 4098
-	or	a, a
-	sbc	hl, bc
-	lea	bc, iy + 0
-	jr	nc, .LBB6_59
-	.local	.LBB6_60
-.LBB6_60:
-	lea	hl, iy + 0
-	ld	bc, 17
-	or	a, a
-	sbc	hl, bc
-	jr	nc, .LBB6_64
-; %bb.61:
-	ld	bc, 2
-	lea	hl, iy + 0
-	or	a, a
-	sbc	hl, bc
-	jr	nc, .LBB6_63
-; %bb.62:
-	ld	iy, 1
-	.local	.LBB6_63
-.LBB6_63:
-	ld	bc, 3
-	lea	hl, iy + 0
-	call	__imulu
-	push	hl
-	pop	bc
-	ld	hl, _small_reciprocals
-	add	hl, bc
-	ld	hl, (hl)
-	jr	.LBB6_65
-	.local	.LBB6_64
-.LBB6_64:
-	add	iy, iy
-	lea	bc, iy + 0
-	ld	hl, _reciprocal_table
-	add	hl, bc
-	ld	bc, (hl)
-	or	a, a
-	sbc	hl, hl
-	ld	l, c
-	ld	h, b
-	.local	.LBB6_65
-.LBB6_65:
-	push	ix
-	lea	ix, ix - 128
-	ld	iy, (ix - 60)
-	pop	ix
-	ld	(ix - 89), iy
-	ld	a, (ix - 87)
-	rlc	a
-	sbc	a, a
-	ld	c, e
-	call	__ishru
-	push	ix
-	lea	ix, ix - 128
-	ld	e, (ix - 54)                    ; 1-byte Folded Reload
-	pop	ix
-	lea	bc, iy + 0
-	call	__lmulu
-	push	hl
-	pop	bc
-	ld	a, e
-	ld	l, 14
-	call	__lshrs
-	ld	de, -179
-	lea	hl, ix + 0
-	add	hl, de
-	ld	iy, (hl)
-	lea	hl, iy + 0
-	ld	de, -8388608
-	add	hl, de
-	ld	de, -8388544
-	or	a, a
-	sbc	hl, de
-	jp	nc, .LBB6_77
-; %bb.66:
-	lea	hl, iy + 0
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 57
-	ld	e, (iy + 0)                     ; 1-byte Folded Reload
-	call	__lcmps
-	ld	de, -8388608
-	call	pe, __setflag
-	jp	p, .LBB6_77
-; %bb.67:
-	push	bc
-	pop	hl
-	add	hl, de
-	ld	de, 8388545
-	or	a, a
-	sbc	hl, de
-	jp	c, .LBB6_77
-; %bb.68:
-	ld	de, -202
-	lea	iy, ix + 0
-	add	iy, de
-	ld	hl, (iy + 0)
-	push	hl
-	pop	de
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 83
-	ld	(iy + 0), bc
-	push	bc
-	pop	iy
-	ld	bc, 64
-	add	iy, bc
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 57), iy
-	pop	ix
-	ld	bc, -8388608
-	add	hl, bc
-	inc	bc
-	or	a, a
-	sbc	hl, bc
-	ld	bc, -214
-	lea	iy, ix + 0
-	push	af
-	add	iy, bc
-	pop	af
-	ld	(iy + 0), de
-	jr	nc, .LBB6_70
-; %bb.69:
-	ld	de, 0
-	.local	.LBB6_70
-.LBB6_70:
-	ld	iy, 128
-	ld	bc, 128
-	push	ix
-	lea	ix, ix - 128
-	ld	hl, (ix - 57)
-	pop	ix
-	or	a, a
-	sbc	hl, bc
-	jr	c, .LBB6_72
-; %bb.71:
-	ld	bc, -185
-	lea	hl, ix + 0
-	add	hl, bc
-	ld	(hl), iy
-	.local	.LBB6_72
-.LBB6_72:
-	ld	bc, -188
-	lea	hl, ix + 0
-	push	af
-	add	hl, bc
-	pop	af
-	ld	(hl), de
-	ld	de, -208
-	lea	hl, ix + 0
-	push	af
-	add	hl, de
-	pop	af
-	bit	0, (hl)                         ; 1-byte Folded Reload
-	ld	bc, 1
-	jr	nz, .LBB6_74
-; %bb.73:
-	ld	bc, (_render_detail)
-	.local	.LBB6_74
-.LBB6_74:
-	ld	de, 2
-	push	bc
-	pop	hl
-	or	a, a
-	sbc	hl, de
-	ld	de, -205
-	lea	hl, ix + 0
-	push	af
-	add	hl, de
-	pop	af
-	ld	(hl), bc
-	ld	de, -223
-	lea	hl, ix + 0
-	push	af
-	add	hl, de
-	pop	af
-	ld	(hl), iy
-	jp	c, .LBB6_81
-; %bb.75:
-	push	bc
-	pop	iy
-	push	ix
-	lea	ix, ix - 128
-	ld	de, (ix - 60)
-	pop	ix
-	add	iy, de
-	dec	iy
-	lea	hl, iy + 0
-	call	__irems
-	ex	de, hl
-	lea	hl, iy + 0
-	or	a, a
-	sbc	hl, de
-	ex	de, hl
-	jp	.LBB6_82
-	.local	.LBB6_76
-.LBB6_76:
-	ld	de, -191
-	lea	iy, ix + 0
-	add	iy, de
-	ld	bc, (iy + 0)
-	push	bc
-	pop	hl
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 54
-	ld	de, (iy + 0)
-	or	a, a
-	sbc	hl, de
-	jr	nz, .LBB6_78
-	.local	.LBB6_77
-.LBB6_77:
-	ld	sp, ix
-	pop	ix
-	ret
-	.local	.LBB6_78
-.LBB6_78:
-	push	bc
-	pop	hl
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 54
-	ld	de, (iy + 0)
-	or	a, a
-	sbc	hl, de
-	push	hl
-	pop	iy
-	ld	de, -202
-	lea	hl, ix + 0
-	add	hl, de
-	ld	(hl), iy
-	push	ix
-	lea	ix, ix - 128
-	ld	hl, (ix - 57)
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	de, (ix - 60)
-	pop	ix
-	or	a, a
-	sbc	hl, de
-	push	bc
-	pop	de
-	push	hl
-	pop	bc
-	ld	(ix - 119), bc
-	ld	a, (ix - 117)
-	rlc	a
-	sbc	a, a
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 54), a                    ; 1-byte Folded Spill
-	pop	ix
-	ld	(ix - 116), de
-	ex	de, hl
-	ld	a, (ix - 114)
-	rlc	a
-	sbc	a, a
-	ld	d, a
-	ld	e, d
-	push	ix
-	lea	ix, ix - 128
-	ld	a, (ix - 54)                    ; 1-byte Folded Reload
-	pop	ix
-	call	__lmulu
-	ld	(ix - 113), iy
-	ld	a, (ix - 111)
-	rlc	a
-	sbc	a, a
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 83), a
-	pop	ix
-	lea	bc, iy + 0
-	call	__ldivs
-	push	hl
-	pop	bc
-	push	ix
-	lea	ix, ix - 128
-	ld	iy, (ix - 60)
-	pop	ix
-	add	iy, bc
-	push	ix
-	lea	ix, ix - 128
-	ld	hl, (ix - 51)
+	ld	a, (ix - 60)                    ; 1-byte Folded Reload
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
 	ld	bc, (ix - 48)
 	pop	ix
-	or	a, a
-	sbc	hl, bc
-	ld	(ix - 110), hl
-	ld	a, (ix - 108)
-	rlc	a
-	sbc	a, a
-	ld	e, a
-	push	ix
-	lea	ix, ix - 128
-	ld	bc, (ix - 63)
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 77), d                    ; 1-byte Folded Spill
-	pop	ix
-	ld	a, d
-	push	ix
-	lea	ix, ix - 128
-	ld	d, (ix - 83)                    ; 1-byte Folded Reload
-	pop	ix
-	call	__lmulu
+	add	hl, bc
+	bit	0, a
 	push	ix
 	lea	ix, ix - 128
 	ld	bc, (ix - 74)
 	pop	ix
-	ld	a, d
-	call	__ldivs
-	push	hl
-	pop	bc
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 48)
-	pop	ix
-	add	hl, bc
-	push	ix
-	lea	ix, ix - 128
-	bit	0, (ix - 80)                    ; 1-byte Folded Reload
+	ld	(ix - 95), bc
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	bc, (ix - 51)
+	ld	bc, (ix - 77)
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 60), iy
-	pop	ix
-	push	bc
-	pop	iy
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 48), hl
+	ld	(ix - 74), bc
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 92)
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	bc, (ix - 95)
+	ld	bc, (ix - 45)
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
@@ -12222,143 +11104,934 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	bc, (ix - 63)
+	ld	(ix - 77), iy
+	pop	ix
+	ex	de, hl
+	push	ix
+	lea	ix, ix - 128
+	ld	hl, (ix - 86)
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 54), bc
-	.local	.LBB6_79
-.LBB6_79:
+	ld	(ix - 101), hl
 	pop	ix
-	jp	nz, .LBB6_32
-; %bb.80:
+	ex	de, hl
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 63), iy
+	ld	de, (ix - 71)
+	.local	.LBB6_48
+.LBB6_48:
 	pop	ix
-	ld	hl, (hl)
-	push	ix
-	lea	ix, ix - 128
-	ld	iy, (ix - 92)
-	pop	ix
-	ld	bc, (iy)
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 51), bc
-	pop	ix
+	jp	nz, .LBB6_24
+; %bb.49:
+	ld	bc, -176
+	lea	iy, ix + 0
+	add	iy, bc
+	ld	(iy + 0), hl
+	ld	bc, -202
+	lea	iy, ix + 0
+	add	iy, bc
+	ld	hl, (iy + 0)
+	lea	iy, ix + 0
+	lea	iy, iy - 128
+	lea	iy, iy - 95
+	ld	bc, (iy + 0)
 	or	a, a
 	sbc	hl, bc
 	push	hl
 	pop	bc
-	ld	(ix - 95), bc
-	ld	a, (ix - 93)
+	ex	de, hl
+	push	ix
+	lea	ix, ix - 128
+	ld	iy, (ix - 80)
+	pop	ix
+	ld	(iy + 24), bc
+	ld	d, a
+	ld	a, (iy + 26)
 	rlc	a
 	sbc	a, a
+	lea	iy, ix + 0
+	lea	iy, iy - 128
+	lea	iy, iy - 89
+	ld	e, (iy + 0)                     ; 1-byte Folded Reload
+	call	__lmulu
+	lea	iy, ix + 0
+	lea	iy, iy - 128
+	lea	iy, iy - 51
+	ld	bc, (iy + 0)
+	lea	iy, ix + 0
+	lea	iy, iy - 128
+	lea	iy, iy - 98
+	ld	a, (iy + 0)                     ; 1-byte Folded Reload
+	call	__ldivs
+	lea	iy, ix + 0
+	lea	iy, iy - 128
+	lea	iy, iy - 48
+	ld	bc, (iy + 0)
+	ld	a, d
+	ex	de, hl
+	lea	iy, ix + 0
+	lea	iy, iy - 128
+	lea	iy, iy - 95
+	ld	hl, (iy + 0)
+	add	hl, de
+	push	ix
+	lea	ix, ix - 128
+	ld	iy, (ix - 101)
+	pop	ix
+	ld	(iy), hl
+	push	bc
+	pop	hl
+	ld	de, -220
+	lea	iy, ix + 0
+	add	iy, de
+	ld	bc, (iy + 0)
+	push	ix
+	lea	ix, ix - 128
+	ld	iy, (ix - 77)
+	jp	.LBB6_23
+	.local	.LBB6_50
+.LBB6_50:
+	add	iy, de
+	lea	hl, iy + 0
+	or	a, a
+	sbc	hl, de
+	jp	nc, .LBB6_53
+; %bb.51:
+	ld	de, -196
+	lea	hl, ix + 0
+	add	hl, de
+	ld	iy, (hl)
+	lea	hl, iy + 0
+	push	ix
+	lea	ix, ix - 128
+	ld	de, (ix - 51)
+	pop	ix
+	or	a, a
+	sbc	hl, de
+	jp	z, .LBB6_60
+; %bb.52:
+	lea	hl, iy + 0
+	or	a, a
+	sbc	hl, de
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 71), hl
+	pop	ix
 	push	ix
 	lea	ix, ix - 128
 	ld	hl, (ix - 54)
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	e, (ix - 77)                    ; 1-byte Folded Reload
+	ld	de, (ix - 45)
+	pop	ix
+	or	a, a
+	sbc	hl, de
+	ld	(ix - 128), hl
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 60), a                    ; 1-byte Folded Spill
+	pop	ix
+	ld	a, (ix - 126)
+	rlc	a
+	sbc	a, a
+	ld	e, a
+	ld	(ix - 125), iy
+	ld	a, (ix - 123)
+	rlc	a
+	sbc	a, a
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 74), a
+	pop	ix
+	lea	bc, iy + 0
+	call	__lmulu
+	push	ix
+	lea	ix, ix - 128
+	ld	bc, (ix - 71)
+	pop	ix
+	ld	(ix - 122), bc
+	ld	a, (ix - 120)
+	rlc	a
+	sbc	a, a
+	ld	d, a
+	call	__ldivs
+	push	hl
+	pop	bc
+	push	ix
+	lea	ix, ix - 128
+	ld	hl, (ix - 45)
+	pop	ix
+	add	hl, bc
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 77), hl
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	hl, (ix - 48)
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	bc, (ix - 42)
+	pop	ix
+	or	a, a
+	sbc	hl, bc
+	ld	(ix - 119), hl
+	ld	a, (ix - 117)
+	rlc	a
+	sbc	a, a
+	ld	e, a
+	lea	bc, iy + 0
+	lea	iy, ix + 0
+	lea	iy, iy - 128
+	lea	iy, iy - 74
+	ld	a, (iy + 0)                     ; 1-byte Folded Reload
+	call	__lmulu
+	lea	iy, ix + 0
+	lea	iy, iy - 128
+	lea	iy, iy - 71
+	ld	bc, (iy + 0)
+	lea	iy, ix + 0
+	lea	iy, iy - 128
+	lea	iy, iy - 89
+	ld	(iy + 0), d                     ; 1-byte Folded Spill
+	ld	a, d
+	call	__ldivs
+	ld	de, -188
+	lea	iy, ix + 0
+	add	iy, de
+	ld	a, (iy + 0)                     ; 1-byte Folded Reload
+	push	hl
+	pop	bc
+	ld	de, -170
+	lea	iy, ix + 0
+	add	iy, de
+	ld	hl, (iy + 0)
+	add	hl, bc
+	push	ix
+	lea	ix, ix - 128
+	ld	iy, (ix - 48)
+	pop	ix
+	bit	0, a
+	push	ix
+	lea	ix, ix - 128
+	ld	de, (ix - 86)
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 95), de
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	de, (ix - 83)
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 80), de
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	bc, (ix - 77)
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 92), hl
+	pop	ix
+	ex	de, hl
+	jp	nz, .LBB6_28
+	jp	.LBB6_55
+	.local	.LBB6_53
+.LBB6_53:
+	ld	de, -179
+	lea	iy, ix + 0
+	add	iy, de
+	ld	bc, (iy + 0)
+	push	bc
+	pop	hl
+	lea	iy, ix + 0
+	lea	iy, iy - 128
+	lea	iy, iy - 68
+	ld	de, (iy + 0)
+	or	a, a
+	sbc	hl, de
+	jp	z, .LBB6_60
+; %bb.54:
+	push	bc
+	pop	hl
+	or	a, a
+	sbc	hl, de
+	ld	de, -199
+	lea	iy, ix + 0
+	add	iy, de
+	ld	(iy + 0), hl
+	ld	de, -173
+	lea	iy, ix + 0
+	add	iy, de
+	ld	hl, (iy + 0)
+	lea	iy, ix + 0
+	lea	iy, iy - 128
+	lea	iy, iy - 54
+	ld	de, (iy + 0)
+	or	a, a
+	sbc	hl, de
+	push	bc
+	pop	de
+	push	hl
+	pop	bc
+	push	ix
+	lea	ix, ix - 128
+	ld	iy, (ix - 80)
+	pop	ix
+	ld	(iy + 27), bc
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 60), a                    ; 1-byte Folded Spill
+	pop	ix
+	ld	a, (iy + 29)
+	rlc	a
+	sbc	a, a
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 68), a                    ; 1-byte Folded Spill
+	pop	ix
+	ld	(iy + 30), de
+	ld	a, (iy + 32)
+	rlc	a
+	sbc	a, a
+	lea	iy, ix + 0
+	lea	iy, iy - 128
+	lea	iy, iy - 74
+	ld	(iy + 0), a
+	ex	de, hl
+	ld	e, a
+	lea	iy, ix + 0
+	lea	iy, iy - 128
+	lea	iy, iy - 68
+	ld	a, (iy + 0)                     ; 1-byte Folded Reload
+	call	__lmulu
+	lea	iy, ix + 0
+	lea	iy, iy - 128
+	lea	iy, iy - 71
+	ld	bc, (iy + 0)
+	lea	iy, ix + 0
+	lea	iy, iy - 128
+	lea	iy, iy - 6
+	ld	(iy + 0), bc
+	lea	iy, ix + 0
+	lea	iy, iy - 128
+	lea	iy, iy - 4
+	ld	a, (iy + 0)
+	rlc	a
+	sbc	a, a
+	ld	d, a
+	call	__ldivs
+	push	hl
+	pop	bc
+	push	ix
+	lea	ix, ix - 128
+	ld	iy, (ix - 54)
+	pop	ix
+	add	iy, bc
+	push	ix
+	lea	ix, ix - 128
+	ld	hl, (ix - 42)
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	bc, (ix - 48)
+	pop	ix
+	or	a, a
+	sbc	hl, bc
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 3), hl
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	a, (ix - 1)
+	pop	ix
+	rlc	a
+	sbc	a, a
+	ld	e, a
+	push	ix
+	lea	ix, ix - 128
+	ld	bc, (ix - 51)
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	a, (ix - 74)                    ; 1-byte Folded Reload
 	pop	ix
 	call	__lmulu
 	push	ix
 	lea	ix, ix - 128
-	ld	bc, (ix - 74)
+	ld	bc, (ix - 71)
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 89), d                    ; 1-byte Folded Spill
+	pop	ix
+	ld	a, d
+	call	__ldivs
+	push	ix
+	lea	ix, ix - 128
+	ld	de, (ix - 42)
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	a, (ix - 60)                    ; 1-byte Folded Reload
+	pop	ix
+	push	hl
+	pop	bc
+	push	ix
+	lea	ix, ix - 128
+	ld	hl, (ix - 48)
+	pop	ix
+	add	hl, bc
+	push	ix
+	lea	ix, ix - 128
+	ld	bc, (ix - 45)
+	pop	ix
+	bit	0, a
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 77), bc
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 92), de
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 54), iy
+	pop	ix
+	push	hl
+	pop	iy
+	push	ix
+	lea	ix, ix - 128
+	ld	hl, (ix - 83)
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 95), hl
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	hl, (ix - 86)
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 80), hl
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	hl, (ix - 51)
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 68), hl
+	pop	ix
+	jp	nz, .LBB6_28
+	.local	.LBB6_55
+.LBB6_55:
+	ld	de, -176
+	lea	hl, ix + 0
+	add	hl, de
+	ld	(hl), iy
+	ld	de, -223
+	lea	iy, ix + 0
+	add	iy, de
+	ld	hl, (iy + 0)
+	ld	hl, (hl)
+	push	ix
+	lea	ix, ix - 128
+	ld	iy, (ix - 80)
+	pop	ix
+	ld	de, (iy)
+	or	a, a
+	sbc	hl, de
+	push	de
+	pop	iy
+	push	hl
+	pop	bc
+	ld	(ix - 116), bc
+	ld	d, a
+	ld	a, (ix - 114)
+	rlc	a
+	sbc	a, a
+	push	ix
+	lea	ix, ix - 128
+	ld	hl, (ix - 68)
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	e, (ix - 74)                    ; 1-byte Folded Reload
+	pop	ix
+	call	__lmulu
+	push	ix
+	lea	ix, ix - 128
+	ld	bc, (ix - 71)
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	a, (ix - 89)                    ; 1-byte Folded Reload
+	pop	ix
+	call	__ldivs
+	push	ix
+	lea	ix, ix - 128
+	ld	bc, (ix - 48)
+	pop	ix
+	ld	a, d
+	ex	de, hl
+	lea	hl, iy + 0
+	add	hl, de
+	push	ix
+	lea	ix, ix - 128
+	ld	iy, (ix - 80)
+	pop	ix
+	ld	(iy), hl
+	push	bc
+	pop	iy
+	ld	de, -205
+	lea	hl, ix + 0
+	add	hl, de
+	ld	bc, (hl)
+	push	ix
+	lea	ix, ix - 128
+	ld	de, (ix - 92)
+	jp	.LBB6_27
+	.local	.LBB6_56
+.LBB6_56:
+	ld	bc, -179
+	lea	iy, ix + 0
+	add	iy, bc
+	ld	hl, (iy + 0)
+	add	hl, de
+	or	a, a
+	sbc	hl, de
+	jp	nc, .LBB6_59
+; %bb.57:
+	ld	de, -179
+	lea	iy, ix + 0
+	add	iy, de
+	ld	hl, (iy + 0)
+	ld	bc, -196
+	lea	iy, ix + 0
+	add	iy, bc
+	ld	de, (iy + 0)
+	or	a, a
+	sbc	hl, de
+	jp	z, .LBB6_60
+; %bb.58:
+	ld	bc, -179
+	lea	iy, ix + 0
+	add	iy, bc
+	ld	hl, (iy + 0)
+	push	hl
+	pop	bc
+	or	a, a
+	sbc	hl, de
+	push	hl
+	pop	iy
+	push	ix
+	lea	ix, ix - 128
+	ld	hl, (ix - 54)
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	de, (ix - 45)
+	pop	ix
+	or	a, a
+	sbc	hl, de
+	ld	(ix - 101), hl
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 60), a                    ; 1-byte Folded Spill
+	pop	ix
+	ld	a, (ix - 99)
+	rlc	a
+	sbc	a, a
+	ld	e, a
+	ld	(ix - 98), bc
+	ld	a, (ix - 96)
+	rlc	a
+	sbc	a, a
+	ld	d, a
+	call	__lmulu
+	ld	(ix - 95), iy
+	lea	bc, iy + 0
+	lea	iy, ix + 0
+	lea	iy, iy - 128
+	lea	iy, iy - 71
+	ld	(iy + 0), bc
+	ld	a, (ix - 93)
+	rlc	a
+	sbc	a, a
+	ld	iyl, a
+	call	__ldivs
+	push	hl
+	pop	bc
+	push	ix
+	lea	ix, ix - 128
+	ld	hl, (ix - 45)
+	pop	ix
+	add	hl, bc
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 45), hl
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	hl, (ix - 48)
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	bc, (ix - 42)
+	pop	ix
+	or	a, a
+	sbc	hl, bc
+	ld	(ix - 92), hl
+	ld	a, (ix - 90)
+	rlc	a
+	sbc	a, a
+	ld	e, a
+	push	ix
+	lea	ix, ix - 128
+	ld	bc, (ix - 51)
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 74), d                    ; 1-byte Folded Spill
+	pop	ix
+	ld	a, d
+	ld	d, iyl
+	call	__lmulu
+	lea	iy, ix + 0
+	lea	iy, iy - 128
+	lea	iy, iy - 71
+	ld	bc, (iy + 0)
+	ld	a, d
+	call	__ldivs
+	push	hl
+	pop	bc
+	lea	iy, ix + 0
+	lea	iy, iy - 128
+	lea	iy, iy - 42
+	ld	hl, (iy + 0)
+	add	hl, bc
+	ld	bc, -188
+	lea	iy, ix + 0
+	push	af
+	add	iy, bc
+	pop	af
+	bit	0, (iy + 0)                     ; 1-byte Folded Reload
+	push	ix
+	lea	ix, ix - 128
+	ld	iy, (ix - 86)
+	jp	.LBB6_62
+	.local	.LBB6_59
+.LBB6_59:
+	ld	de, -196
+	lea	iy, ix + 0
+	add	iy, de
+	ld	bc, (iy + 0)
+	push	bc
+	pop	hl
+	lea	iy, ix + 0
+	lea	iy, iy - 128
+	lea	iy, iy - 51
+	ld	de, (iy + 0)
+	or	a, a
+	sbc	hl, de
+	jr	nz, .LBB6_61
+	.local	.LBB6_60
+.LBB6_60:
+	ld	sp, ix
+	pop	ix
+	ret
+	.local	.LBB6_61
+.LBB6_61:
+	push	bc
+	pop	hl
+	lea	iy, ix + 0
+	lea	iy, iy - 128
+	lea	iy, iy - 51
+	ld	de, (iy + 0)
+	or	a, a
+	sbc	hl, de
+	push	hl
+	pop	iy
+	ld	de, -199
+	lea	hl, ix + 0
+	add	hl, de
+	ld	(hl), iy
+	push	ix
+	lea	ix, ix - 128
+	ld	hl, (ix - 45)
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	de, (ix - 54)
+	pop	ix
+	or	a, a
+	sbc	hl, de
+	push	bc
+	pop	de
+	push	hl
+	pop	bc
+	ld	(ix - 113), bc
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 60), a                    ; 1-byte Folded Spill
+	pop	ix
+	ld	a, (ix - 111)
+	rlc	a
+	sbc	a, a
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 51), a                    ; 1-byte Folded Spill
+	pop	ix
+	ld	(ix - 110), de
+	ex	de, hl
+	ld	a, (ix - 108)
+	rlc	a
+	sbc	a, a
+	ld	d, a
+	ld	e, d
+	push	ix
+	lea	ix, ix - 128
+	ld	a, (ix - 51)                    ; 1-byte Folded Reload
+	pop	ix
+	call	__lmulu
+	ld	(ix - 107), iy
+	ld	a, (ix - 105)
+	rlc	a
+	sbc	a, a
+	lea	bc, iy + 0
+	ld	iyl, a
+	call	__ldivs
+	push	hl
+	pop	bc
+	push	ix
+	lea	ix, ix - 128
+	ld	hl, (ix - 54)
+	pop	ix
+	add	hl, bc
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 51), hl
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	hl, (ix - 42)
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	bc, (ix - 48)
+	pop	ix
+	or	a, a
+	sbc	hl, bc
+	ld	(ix - 104), hl
+	ld	a, (ix - 102)
+	rlc	a
+	sbc	a, a
+	ld	e, a
+	push	ix
+	lea	ix, ix - 128
+	ld	bc, (ix - 68)
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 74), d                    ; 1-byte Folded Spill
+	pop	ix
+	ld	a, d
+	ld	d, iyl
+	call	__lmulu
+	lea	iy, ix + 0
+	lea	iy, iy - 128
+	lea	iy, iy - 71
+	ld	bc, (iy + 0)
+	ld	a, d
+	call	__ldivs
+	push	hl
+	pop	bc
+	push	ix
+	lea	ix, ix - 128
+	ld	iy, (ix - 48)
+	pop	ix
+	add	iy, bc
+	ld	bc, -188
+	lea	hl, ix + 0
+	push	af
+	add	hl, bc
+	pop	af
+	bit	0, (hl)                         ; 1-byte Folded Reload
+	push	ix
+	lea	ix, ix - 128
+	ld	hl, (ix - 42)
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	bc, (ix - 51)
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 54), bc
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 48), iy
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	iy, (ix - 83)
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	bc, (ix - 86)
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 83), bc
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	bc, (ix - 68)
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 51), bc
+	.local	.LBB6_62
+.LBB6_62:
+	pop	ix
+	jp	nz, .LBB6_32
+; %bb.63:
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 68), hl
+	pop	ix
+	ld	hl, (iy)
+	push	ix
+	lea	ix, ix - 128
+	ld	iy, (ix - 83)
+	pop	ix
+	ld	bc, (iy)
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 42), bc
+	pop	ix
+	or	a, a
+	sbc	hl, bc
+	push	hl
+	pop	bc
+	ld	(ix - 89), bc
+	ld	a, (ix - 87)
+	rlc	a
+	sbc	a, a
+	push	ix
+	lea	ix, ix - 128
+	ld	hl, (ix - 51)
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	e, (ix - 74)                    ; 1-byte Folded Reload
+	pop	ix
+	call	__lmulu
+	push	ix
+	lea	ix, ix - 128
+	ld	bc, (ix - 71)
 	pop	ix
 	ld	a, d
 	call	__ldivs
 	ex	de, hl
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 51)
+	ld	hl, (ix - 42)
 	pop	ix
 	add	hl, de
 	ld	(iy), hl
-	ld	de, -191
+	ld	de, -196
 	jp	.LBB6_31
-	.local	.LBB6_81
-.LBB6_81:
-	ld	bc, -188
+	.local	.LBB6_64
+.LBB6_64:
+	ld	bc, -182
 	lea	iy, ix + 0
 	add	iy, bc
 	ld	de, (iy + 0)
-	.local	.LBB6_82
-.LBB6_82:
-	ld	bc, -185
-	lea	hl, ix + 0
-	add	hl, bc
-	ld	iy, (hl)
-	ld	hl, -8388608
-	push	hl
-	pop	bc
+	.local	.LBB6_65
+.LBB6_65:
+	ld	bc, -8388608
+	push	ix
+	lea	ix, ix - 128
+	ld	iy, (ix - 51)
+	pop	ix
 	add	iy, bc
 	push	de
 	pop	hl
 	add	hl, bc
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 54), iy
+	pop	ix
 	lea	bc, iy + 0
 	or	a, a
 	sbc	hl, bc
-	jr	nc, .LBB6_85
-	.local	.LBB6_83
-.LBB6_83:                               ; =>This Inner Loop Header: Depth=1
-	lea	bc, iy + 0
+	jr	nc, .LBB6_68
+	.local	.LBB6_66
+.LBB6_66:                               ; =>This Inner Loop Header: Depth=1
+	ld	bc, -179
+	lea	iy, ix + 0
+	add	iy, bc
+	ld	hl, (iy + 0)
 	ld	hl, _cliptop
 	add	hl, de
 	ld	iy, _clipbottom
 	add	iy, de
-	ld	a, (iy)
-	ld	iyl, a
+	ld	c, (iy)
 	ld	a, (hl)
-	cp	a, iyl
-	jr	c, .LBB6_85
-; %bb.84:                               ;   in Loop: Header=BB6_83 Depth=1
-	ex	de, hl
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 77
-	ld	de, (iy + 0)
-	add	hl, de
-	ld	de, -188
-	lea	iy, ix + 0
+	cp	a, c
+	jr	c, .LBB6_68
+; %bb.67:                               ;   in Loop: Header=BB6_66 Depth=1
+	push	de
+	pop	iy
+	ld	bc, -202
+	lea	hl, ix + 0
+	add	hl, bc
+	ld	de, (hl)
 	add	iy, de
-	ld	(iy + 0), hl
+	lea	hl, iy + 0
 	ld	de, -8388608
 	add	hl, de
-	push	bc
-	pop	iy
-	lea	de, iy + 0
+	push	ix
+	lea	ix, ix - 128
+	ld	de, (ix - 54)
+	pop	ix
 	or	a, a
 	sbc	hl, de
-	ld	bc, -188
-	lea	hl, ix + 0
-	push	af
-	add	hl, bc
-	pop	af
-	ld	de, (hl)
-	jr	c, .LBB6_83
-	.local	.LBB6_85
-.LBB6_85:
+	lea	de, iy + 0
+	jr	c, .LBB6_66
+	.local	.LBB6_68
+.LBB6_68:
 	ld	a, 1
-	ld	bc, -217
+	ld	bc, -208
 	lea	iy, ix + 0
 	add	iy, bc
 	ld	(iy + 0), a
-	ld	bc, -188
+	ld	bc, -182
 	lea	iy, ix + 0
 	add	iy, bc
 	ld	(iy + 0), de
-	ld	bc, -202
+	ld	bc, -199
 	lea	iy, ix + 0
 	add	iy, bc
 	ld	(iy + 0), de
-	ld	bc, -185
+	ld	bc, -179
 	lea	iy, ix + 0
 	add	iy, bc
 	ld	de, (iy + 0)
-	.local	.LBB6_86
-.LBB6_86:                               ; =>This Inner Loop Header: Depth=1
+	.local	.LBB6_69
+.LBB6_69:                               ; =>This Inner Loop Header: Depth=1
 	push	de
 	pop	bc
 	push	bc
@@ -12368,14 +12041,14 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	add	iy, de
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 74)
+	ld	hl, (ix - 71)
 	pop	ix
 	add	hl, de
 	lea	de, iy + 0
 	or	a, a
 	sbc	hl, de
-	jp	nc, .LBB6_77
-; %bb.87:                               ;   in Loop: Header=BB6_86 Depth=1
+	jp	nc, .LBB6_60
+; %bb.70:                               ;   in Loop: Header=BB6_69 Depth=1
 	push	bc
 	pop	de
 	dec	de
@@ -12384,70 +12057,66 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	hl, _clipbottom-1
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 98), bc
+	ld	(ix - 92), bc
 	pop	ix
 	add	hl, bc
 	ld	l, (hl)
 	ld	a, (iy)
 	cp	a, l
-	jr	nc, .LBB6_86
-; %bb.88:
-	ld	de, -191
+	jr	nc, .LBB6_69
+; %bb.71:
+	ld	de, 2049
 	lea	iy, ix + 0
-	add	iy, de
+	lea	iy, iy - 128
+	lea	iy, iy - 68
 	ld	bc, (iy + 0)
 	push	bc
 	pop	hl
-	ld	de, 2049
+	ld	iy, 0
 	or	a, a
 	sbc	hl, de
-	jr	c, .LBB6_91
-; %bb.89:
-	ld	de, 0
-	.local	.LBB6_90
-.LBB6_90:                               ; =>This Inner Loop Header: Depth=1
+	jr	c, .LBB6_74
+; %bb.72:
 	push	bc
+	pop	de
+	.local	.LBB6_73
+.LBB6_73:                               ; =>This Inner Loop Header: Depth=1
+	push	de
 	pop	hl
 	call	__ishru_1
 	push	hl
-	pop	iy
-	inc	de
+	pop	bc
+	inc	iy
+	ex	de, hl
+	ld	de, 4098
+	or	a, a
+	sbc	hl, de
 	push	bc
-	pop	hl
-	ld	bc, 4098
-	or	a, a
-	sbc	hl, bc
-	lea	bc, iy + 0
-	jr	nc, .LBB6_90
-	jr	.LBB6_92
-	.local	.LBB6_91
-.LBB6_91:
+	pop	de
+	jr	nc, .LBB6_73
+	.local	.LBB6_74
+.LBB6_74:
+	ld	de, -179
+	lea	hl, ix + 0
+	add	hl, de
+	ld	(hl), iy
+	ld	de, 17
 	push	bc
 	pop	iy
-	ld	de, 0
-	.local	.LBB6_92
-.LBB6_92:
 	lea	hl, iy + 0
-	ld	bc, 17
 	or	a, a
-	sbc	hl, bc
-	jr	nc, .LBB6_96
-; %bb.93:
-	ld	hl, _planes
-	push	ix
-	ld	bc, -257
-	add	ix, bc
-	ld	(ix + 0), hl
-	pop	ix
+	sbc	hl, de
+	jr	nc, .LBB6_78
+; %bb.75:
 	lea	hl, iy + 0
-	ld	bc, 2
+	ld	de, 2
 	or	a, a
-	sbc	hl, bc
-	jr	nc, .LBB6_95
-; %bb.94:
+	sbc	hl, de
+	jr	nc, .LBB6_77
+; %bb.76:
 	ld	iy, 1
-	.local	.LBB6_95
-.LBB6_95:
+	.local	.LBB6_77
+.LBB6_77:
 	ld	bc, 3
 	lea	hl, iy + 0
 	call	__imulu
@@ -12456,15 +12125,9 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	hl, _small_reciprocals
 	add	hl, bc
 	ld	hl, (hl)
-	jr	.LBB6_97
-	.local	.LBB6_96
-.LBB6_96:
-	ld	hl, _planes
-	push	ix
-	ld	bc, -257
-	add	ix, bc
-	ld	(ix + 0), hl
-	pop	ix
+	jr	.LBB6_79
+	.local	.LBB6_78
+.LBB6_78:
 	add	iy, iy
 	lea	bc, iy + 0
 	ld	hl, _reciprocal_table
@@ -12474,13 +12137,16 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	sbc	hl, hl
 	ld	l, c
 	ld	h, b
-	.local	.LBB6_97
-.LBB6_97:
-	ld	c, e
+	.local	.LBB6_79
+.LBB6_79:
+	ld	de, -179
+	lea	iy, ix + 0
+	add	iy, de
+	ld	bc, (iy + 0)
+                                        ; kill: def $c killed $c killed $ubc
 	call	__ishru
 	ld	c, 2
 	call	__ishru
-	ld	de, -185
 	lea	iy, ix + 0
 	add	iy, de
 	ld	(iy + 0), hl
@@ -12493,11 +12159,11 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	de, 2049
 	or	a, a
 	sbc	hl, de
-	jr	c, .LBB6_100
-; %bb.98:
+	jr	c, .LBB6_82
+; %bb.80:
 	ld	de, 0
-	.local	.LBB6_99
-.LBB6_99:                               ; =>This Inner Loop Header: Depth=1
+	.local	.LBB6_81
+.LBB6_81:                               ; =>This Inner Loop Header: Depth=1
 	push	bc
 	pop	hl
 	call	__ishru_1
@@ -12510,30 +12176,30 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	or	a, a
 	sbc	hl, bc
 	lea	bc, iy + 0
-	jr	nc, .LBB6_99
-	jr	.LBB6_101
-	.local	.LBB6_100
-.LBB6_100:
+	jr	nc, .LBB6_81
+	jr	.LBB6_83
+	.local	.LBB6_82
+.LBB6_82:
 	push	bc
 	pop	iy
 	ld	de, 0
-	.local	.LBB6_101
-.LBB6_101:
+	.local	.LBB6_83
+.LBB6_83:
 	lea	hl, iy + 0
 	ld	bc, 17
 	or	a, a
 	sbc	hl, bc
-	jr	nc, .LBB6_105
-; %bb.102:
+	jr	nc, .LBB6_87
+; %bb.84:
 	lea	hl, iy + 0
 	ld	bc, 2
 	or	a, a
 	sbc	hl, bc
-	jr	nc, .LBB6_104
-; %bb.103:
+	jr	nc, .LBB6_86
+; %bb.85:
 	ld	iy, 1
-	.local	.LBB6_104
-.LBB6_104:
+	.local	.LBB6_86
+.LBB6_86:
 	ld	bc, 3
 	lea	hl, iy + 0
 	call	__imulu
@@ -12542,9 +12208,9 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	hl, _small_reciprocals
 	add	hl, bc
 	ld	hl, (hl)
-	jr	.LBB6_106
-	.local	.LBB6_105
-.LBB6_105:
+	jr	.LBB6_88
+	.local	.LBB6_87
+.LBB6_87:
 	add	iy, iy
 	lea	bc, iy + 0
 	ld	hl, _reciprocal_table
@@ -12554,35 +12220,33 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	sbc	hl, hl
 	ld	l, c
 	ld	h, b
-	.local	.LBB6_106
-.LBB6_106:
+	.local	.LBB6_88
+.LBB6_88:
 	ld	c, e
 	call	__ishru
 	ld	c, 2
 	call	__ishru
-	push	hl
-	pop	bc
-	ld	de, -211
+	ex	de, hl
+	ld	bc, -173
 	lea	iy, ix + 0
-	add	iy, de
+	add	iy, bc
 	ld	hl, (iy + 0)
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 51
-	ld	de, (iy + 0)
+	lea	iy, iy - 42
+	ld	bc, (iy + 0)
 	or	a, a
-	sbc	hl, de
+	sbc	hl, bc
 	push	hl
 	pop	iy
-	ld	de, -191
+	ld	bc, -199
 	lea	hl, ix + 0
-	add	hl, de
-	ld	(hl), bc
-	push	bc
-	pop	hl
+	add	hl, bc
+	ld	(hl), de
+	ex	de, hl
 	push	ix
 	lea	ix, ix - 128
-	ld	de, (ix - 57)
+	ld	de, (ix - 51)
 	pop	ix
 	or	a, a
 	sbc	hl, de
@@ -12592,23 +12256,23 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	call	__idivs
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 74), hl
+	ld	(ix - 68), hl
 	pop	ix
 	ld	(ix - 86), de
 	ld	a, (ix - 84)
 	rlc	a
 	sbc	a, a
-	ld	bc, -176
+	ld	bc, -173
 	lea	hl, ix + 0
 	add	hl, bc
 	ld	(hl), a                         ; 1-byte Folded Spill
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 60)
+	ld	hl, (ix - 54)
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	bc, (ix - 86)
+	ld	bc, (ix - 42)
 	pop	ix
 	or	a, a
 	sbc	hl, bc
@@ -12621,61 +12285,73 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ex	de, hl
 	push	ix
 	lea	ix, ix - 128
-	ld	e, (ix - 48)                    ; 1-byte Folded Reload
+	ld	e, (ix - 45)                    ; 1-byte Folded Reload
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 48), bc
+	ld	(ix - 42), bc
 	pop	ix
 	call	__lmulu
 	ld	(ix - 80), iy
 	ld	a, (ix - 78)
 	rlc	a
 	sbc	a, a
-	lea	bc, iy + 0
-	call	__ldivs
 	push	ix
 	lea	ix, ix - 128
-	ld	bc, (ix - 57)
+	ld	(ix - 48), iy
 	pop	ix
+	lea	bc, iy + 0
+	call	__ldivs
+	ld	de, -179
+	lea	iy, ix + 0
+	add	iy, de
+	ld	bc, (iy + 0)
 	ex	de, hl
 	push	bc
 	pop	hl
 	add	hl, de
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 51), hl
-	pop	ix
-	ld	de, -208
-	lea	hl, ix + 0
+	ld	de, -173
+	lea	iy, ix + 0
 	push	af
-	add	hl, de
+	add	iy, de
 	pop	af
-	bit	0, (hl)                         ; 1-byte Folded Reload
+	ld	(iy + 0), hl
+	ld	de, -188
+	lea	iy, ix + 0
+	push	af
+	add	iy, de
+	pop	af
+	bit	0, (iy + 0)                     ; 1-byte Folded Reload
 	ld	hl, 0
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 107), hl
-	pop	ix
-	jp	nz, .LBB6_108
-; %bb.107:
+	ld	de, -229
+	lea	iy, ix + 0
+	push	af
+	add	iy, de
+	pop	af
+	ld	(iy + 0), hl
+	jp	nz, .LBB6_90
+; %bb.89:
+	ld	de, -176
+	lea	hl, ix + 0
+	add	hl, de
+	ld	iy, (hl)
 	ld	(ix - 77), iy
 	ld	a, (ix - 75)
 	rlc	a
 	sbc	a, a
-	ld	de, -211
+	ld	de, -188
 	lea	hl, ix + 0
 	add	hl, de
 	ld	(hl), a                         ; 1-byte Folded Spill
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 48)
+	ld	hl, (ix - 42)
 	pop	ix
 	ld	(ix - 74), hl
 	ld	a, (ix - 72)
 	rlc	a
 	sbc	a, a
-	ld	de, -214
+	ld	de, -211
 	lea	hl, ix + 0
 	add	hl, de
 	ld	(hl), a                         ; 1-byte Folded Spill
@@ -12684,11 +12360,9 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	a, (ix - 69)
 	rlc	a
 	sbc	a, a
+	ld	de, 0
+	ld	d, e
 	ld	e, a
-	push	ix
-	lea	ix, ix - 128
-	ld	d, (ix - 54)                    ; 1-byte Folded Reload
-	pop	ix
 	ld	a, d
 	call	__lmulu
 	push	hl
@@ -12698,7 +12372,7 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	call	__lshru
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 57), bc
+	ld	(ix - 51), bc
 	pop	ix
 	ld	hl, (ix - 12)
 	ld	(ix - 68), hl
@@ -12708,7 +12382,7 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	e, a
 	push	ix
 	lea	ix, ix - 128
-	ld	bc, (ix - 63)
+	ld	bc, (ix - 71)
 	pop	ix
 	ld	a, d
 	call	__lmulu
@@ -12721,7 +12395,7 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	pop	hl
 	push	ix
 	lea	ix, ix - 128
-	ld	de, (ix - 57)
+	ld	de, (ix - 51)
 	pop	ix
 	or	a, a
 	sbc	hl, de
@@ -12731,7 +12405,7 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	call	__idivs
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 107), hl
+	ld	(ix - 101), hl
 	pop	ix
 	ld	(ix - 65), de
 	ld	a, (ix - 63)
@@ -12741,32 +12415,32 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	e, a
 	push	ix
 	lea	ix, ix - 128
-	ld	bc, (ix - 48)
+	ld	bc, (ix - 42)
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	a, (ix - 86)                    ; 1-byte Folded Reload
+	ld	a, (ix - 83)                    ; 1-byte Folded Reload
 	pop	ix
 	call	__lmulu
 	lea	bc, iy + 0
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 83
+	lea	iy, iy - 60
 	ld	a, (iy + 0)                     ; 1-byte Folded Reload
 	call	__ldivs
 	ex	de, hl
-	ld	bc, -185
+	ld	bc, -179
 	lea	iy, ix + 0
 	add	iy, bc
 	ld	hl, (iy + 0)
 	add	hl, de
-	.local	.LBB6_108
-.LBB6_108:
-	ld	de, -252
+	.local	.LBB6_90
+.LBB6_90:
+	ld	de, -246
 	lea	iy, ix + 0
 	add	iy, de
 	ld	(iy + 0), hl
-	ld	de, -194
+	ld	de, -185
 	lea	hl, ix + 0
 	add	hl, de
 	ld	iy, (hl)
@@ -12778,41 +12452,41 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	hl, (hl)
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 54), hl
+	ld	(ix - 48), hl
 	pop	ix
 	ld	hl, _sector_floor
 	add	hl, de
 	ld	hl, (hl)
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 57), hl
+	ld	(ix - 51), hl
 	pop	ix
                                         ; kill: def $hl killed $hl killed $uhl
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 111), l
-	ld	(ix - 110), h
+	ld	(ix - 105), l
+	ld	(ix - 104), h
 	pop	ix
 	ld	a, h
 	rlc	a
 	sbc	hl, hl
 	push	hl
 	pop	bc
-	ld	de, -198
+	ld	de, -192
 	lea	hl, ix + 0
 	add	hl, de
 	ld	a, (hl)                         ; 1-byte Folded Reload
 	cp	a, d
-	jp	z, .LBB6_112
-; %bb.109:
-	ld	de, -176
+	jp	z, .LBB6_94
+; %bb.91:
+	ld	de, -170
 	lea	hl, ix + 0
 	add	hl, de
 	ld	(hl), bc
 	ld	hl, (_map_sectors)
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 63), hl
+	ld	(ix - 60), hl
 	pop	ix
 	lea	hl, iy + 0
 	add	hl, hl
@@ -12827,19 +12501,19 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	d, h
 	push	ix
 	lea	ix, ix - 128
-	ld	iy, (ix - 63)
+	ld	iy, (ix - 60)
 	pop	ix
 	add	iy, de
 	ld	a, (iy + 5)
 	cp	a, -1
-	jp	nz, .LBB6_113
-; %bb.110:
-	ld	de, -197
+	jp	nz, .LBB6_95
+; %bb.92:
+	ld	de, -191
 	lea	iy, ix + 0
 	add	iy, de
 	ld	hl, (iy + 0)
 	add	hl, hl
-	ld	de, -211
+	ld	de, -199
 	lea	iy, ix + 0
 	add	iy, de
 	ld	(iy + 0), hl
@@ -12849,7 +12523,7 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	de, (hl)
 	ld	c, e
 	ld	b, d
-	ld	de, -191
+	ld	de, -188
 	lea	hl, ix + 0
 	add	hl, de
 	ld	iy, (hl)
@@ -12857,35 +12531,35 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	a, (iy + 5)
 	cp	a, d
 	ld	a, 0
-	ld	de, -249
+	ld	de, -243
 	lea	iy, ix + 0
 	push	af
 	add	iy, de
 	pop	af
 	ld	(iy + 0), a                     ; 1-byte Folded Spill
 	ld	a, 1
-	jr	nz, .LBB6_114
-; %bb.111:
-	ld	bc, -211
+	jr	nz, .LBB6_96
+; %bb.93:
+	ld	bc, -199
 	lea	iy, ix + 0
 	add	iy, bc
 	ld	de, (iy + 0)
 	ld	hl, _sector_ceiling
 	add	hl, de
 	ld	hl, (hl)
-	ld	de, -182
+	ld	de, -176
 	lea	iy, ix + 0
 	add	iy, de
 	ld	(iy + 0), hl
-	ld	de, -249
+	ld	de, -243
 	lea	iy, ix + 0
 	add	iy, de
 	ld	(iy + 0), a                     ; 1-byte Folded Spill
 	xor	a, a
-	jr	.LBB6_114
-	.local	.LBB6_112
-.LBB6_112:
-	ld	de, -182
+	jr	.LBB6_96
+	.local	.LBB6_94
+.LBB6_94:
+	ld	de, -176
 	lea	iy, ix + 0
 	add	iy, de
 	ld	hl, (iy + 0)
@@ -12897,38 +12571,38 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	l, a
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 125), l                   ; 1-byte Folded Spill
+	ld	(ix - 119), l                   ; 1-byte Folded Spill
 	pop	ix
 	dec	a
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 121), a                   ; 1-byte Folded Spill
+	ld	(ix - 115), a                   ; 1-byte Folded Spill
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 108), l                   ; 1-byte Folded Spill
+	ld	(ix - 102), l                   ; 1-byte Folded Spill
 	pop	ix
-	jp	.LBB6_118
-	.local	.LBB6_113
-.LBB6_113:
+	jp	.LBB6_100
+	.local	.LBB6_95
+.LBB6_95:
 	xor	a, a
-	ld	de, -249
+	ld	de, -243
 	lea	iy, ix + 0
 	add	iy, de
 	ld	(iy + 0), a                     ; 1-byte Folded Spill
 	inc	a
-	.local	.LBB6_114
-.LBB6_114:
-	ld	de, -253
+	.local	.LBB6_96
+.LBB6_96:
+	ld	de, -247
 	lea	iy, ix + 0
 	add	iy, de
 	ld	(iy + 0), a
-	ld	de, -197
+	ld	de, -191
 	lea	iy, ix + 0
 	add	iy, de
 	ld	hl, (iy + 0)
 	add	hl, hl
-	ld	de, -191
+	ld	de, -188
 	lea	iy, ix + 0
 	add	iy, de
 	ld	(iy + 0), hl
@@ -12940,30 +12614,30 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	add.sis	iy, bc
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 57)
+	ld	hl, (ix - 51)
 	pop	ix
 	add.sis	hl, bc
                                         ; kill: def $hl killed $hl killed $uhl
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 57), iy
+	ld	(ix - 51), iy
 	pop	ix
 	ld	e, iyl
 	ld	d, iyh
 	or	a, a
 	sbc.sis	hl, de
-	jp	nc, .LBB6_116
-; %bb.115:
+	jp	nc, .LBB6_98
+; %bb.97:
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 63
+	lea	iy, iy - 60
 	ld	de, (iy + 0)
 	ld	hl, _sector_floor
 	add	hl, de
 	ld	de, (hl)
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 54
+	lea	iy, iy - 48
 	ld	hl, (iy + 0)
 	ex	de, hl
 	ld	iyl, e
@@ -12986,7 +12660,7 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	h, b
 	push	ix
 	lea	ix, ix - 128
-	ld	de, (ix - 57)
+	ld	de, (ix - 51)
 	pop	ix
                                         ; kill: def $de killed $de killed $ude
 	or	a, a
@@ -12998,11 +12672,11 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	a, iyl
 	or	a, l
 	ld	l, a
-	ld	de, -236
+	ld	de, -230
 	lea	iy, ix + 0
 	add	iy, de
 	ld	(iy + 0), l
-	ld	de, -182
+	ld	de, -176
 	lea	iy, ix + 0
 	add	iy, de
 	ld	hl, (iy + 0)
@@ -13010,10 +12684,10 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	iyl, e
 	ld	iyh, d
 	ex	de, hl
-	jr	.LBB6_117
-	.local	.LBB6_116
-.LBB6_116:
-	ld	de, -182
+	jr	.LBB6_99
+	.local	.LBB6_98
+.LBB6_98:
+	ld	de, -176
 	lea	iy, ix + 0
 	add	iy, de
 	ld	hl, (iy + 0)
@@ -13022,26 +12696,26 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	iyh, d
 	ex	de, hl
 	ld	a, 1
-	ld	de, -236
+	ld	de, -230
 	lea	hl, ix + 0
 	add	hl, de
 	ld	(hl), a                         ; 1-byte Folded Spill
-	.local	.LBB6_117
-.LBB6_117:
-	ld	de, -176
+	.local	.LBB6_99
+.LBB6_99:
+	ld	de, -170
 	lea	hl, ix + 0
 	add	hl, de
 	ld	bc, (hl)
-	.local	.LBB6_118
-.LBB6_118:
+	.local	.LBB6_100
+.LBB6_100:
 	push	ix
 	lea	ix, ix - 128
-	ld	l, (ix - 111)
-	ld	h, (ix - 110)
+	ld	l, (ix - 105)
+	ld	h, (ix - 104)
 	pop	ix
 	ld	c, l
 	ld	b, h
-	ld	de, -176
+	ld	de, -170
 	lea	hl, ix + 0
 	add	hl, de
 	ld	(hl), bc
@@ -13049,7 +12723,7 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	rlc	a
 	sbc	hl, hl
 	ex	de, hl
-	ld	bc, -259
+	ld	bc, -250
 	lea	hl, ix + 0
 	add	hl, bc
 	push	de
@@ -13072,7 +12746,7 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	b, iyh
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 54
+	lea	iy, iy - 48
 	ld	(iy + 0), de
 	ex	de, hl
 	or	a, a
@@ -13081,37 +12755,35 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	pop	iy
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 51)
+	ld	hl, (ix - 45)
 	pop	ix
 	ld	de, 16384
 	add	hl, de
 	ld	de, 32768
 	push	ix
 	lea	ix, ix - 128
-	lea	ix, ix - 128
-	lea	ix, ix - 9
-	ld	(ix + 0), hl
+	ld	(ix - 128), hl
 	pop	ix
 	or	a, a
 	sbc	hl, de
-	ld	de, -220
+	ld	de, -214
 	lea	hl, ix + 0
 	push	af
 	add	hl, de
 	pop	af
 	ld	(hl), bc
-	ld	de, -185
+	ld	de, -179
 	lea	hl, ix + 0
 	push	af
 	add	hl, de
 	pop	af
 	ld	(hl), iy
-	jr	nc, .LBB6_120
-; %bb.119:
+	jr	nc, .LBB6_102
+; %bb.101:
 	lea	hl, iy + 0
 	push	ix
 	lea	ix, ix - 128
-	ld	iy, (ix - 51)
+	ld	iy, (ix - 45)
 	pop	ix
 	lea	bc, iy + 0
 	call	__imulu
@@ -13120,21 +12792,21 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	call	__ishrs
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 83), hl
+	ld	(ix - 71), hl
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 48)
+	ld	hl, (ix - 42)
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	de, (ix - 92)
+	ld	de, (ix - 86)
 	pop	ix
 	or	a, a
 	sbc	hl, de
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 63), hl
+	ld	(ix - 60), hl
 	pop	ix
 	lea	bc, iy + 0
 	call	__imulu
@@ -13142,9 +12814,9 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	call	__ishrs
 	push	hl
 	pop	bc
-	jr	.LBB6_121
-	.local	.LBB6_120
-.LBB6_120:
+	jr	.LBB6_103
+	.local	.LBB6_102
+.LBB6_102:
 	ld	(ix - 62), iy
 	ld	a, (ix - 60)
 	rlc	a
@@ -13152,7 +12824,7 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	e, a
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 51)
+	ld	hl, (ix - 45)
 	pop	ix
 	ld	(ix - 59), hl
 	push	hl
@@ -13172,15 +12844,15 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	call	__lshru
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 83), bc
+	ld	(ix - 71), bc
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 48)
+	ld	hl, (ix - 42)
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	bc, (ix - 92)
+	ld	bc, (ix - 86)
 	pop	ix
 	or	a, a
 	sbc	hl, bc
@@ -13190,7 +12862,7 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	sbc	a, a
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 63), hl
+	ld	(ix - 60), hl
 	pop	ix
 	ld	e, a
 	lea	bc, iy + 0
@@ -13201,28 +12873,28 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	a, e
 	ld	l, 4
 	call	__lshru
-	.local	.LBB6_121
-.LBB6_121:
+	.local	.LBB6_103
+.LBB6_103:
 	ld	iy, 10240
 	lea	hl, iy + 0
 	push	ix
 	lea	ix, ix - 128
-	ld	de, (ix - 83)
+	ld	de, (ix - 71)
 	pop	ix
 	or	a, a
 	sbc	hl, de
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 83), hl
+	ld	(ix - 71), hl
 	pop	ix
 	lea	hl, iy + 0
 	or	a, a
 	sbc	hl, bc
-	ld	de, -214
+	ld	de, -211
 	lea	iy, ix + 0
 	add	iy, de
 	ld	(iy + 0), hl
-	ld	de, -202
+	ld	de, -196
 	lea	hl, ix + 0
 	add	hl, de
 	ld	iy, (hl)
@@ -13230,18 +12902,17 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	de, 16384
 	add	hl, de
 	push	ix
-	ld	de, -262
-	add	ix, de
-	ld	(ix + 0), hl
+	lea	ix, ix - 128
+	ld	(ix - 125), hl
 	pop	ix
 	ld	de, 32768
 	or	a, a
 	sbc	hl, de
-	jr	nc, .LBB6_123
-; %bb.122:
+	jr	nc, .LBB6_105
+; %bb.104:
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 57)
+	ld	hl, (ix - 51)
 	pop	ix
 	lea	bc, iy + 0
 	call	__imulu
@@ -13250,26 +12921,26 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	call	__ishrs
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 57), hl
+	ld	(ix - 51), hl
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 63)
+	ld	hl, (ix - 60)
 	pop	ix
 	lea	bc, iy + 0
 	call	__imulu
 	ld	c, a
 	call	__ishrs
-	ld	de, -191
+	ld	de, -188
 	lea	iy, ix + 0
 	add	iy, de
 	ld	(iy + 0), hl
-	jr	.LBB6_124
-	.local	.LBB6_123
-.LBB6_123:
+	jr	.LBB6_106
+	.local	.LBB6_105
+.LBB6_105:
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 57)
+	ld	hl, (ix - 51)
 	pop	ix
 	ld	(ix - 53), hl
 	ld	a, (ix - 51)
@@ -13290,11 +12961,11 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	call	__lshru
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 57), bc
+	ld	(ix - 51), bc
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 63)
+	ld	hl, (ix - 60)
 	pop	ix
 	ld	(ix - 47), hl
 	ld	a, (ix - 45)
@@ -13309,20 +12980,20 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	a, e
 	ld	l, 4
 	call	__lshru
-	ld	de, -191
+	ld	de, -188
 	lea	iy, ix + 0
 	add	iy, de
 	ld	(iy + 0), bc
-	.local	.LBB6_124
-.LBB6_124:
+	.local	.LBB6_106
+.LBB6_106:
 	ld	l, 1
-	ld	de, -236
+	ld	de, -230
 	lea	iy, ix + 0
 	add	iy, de
 	ld	a, (iy + 0)
 	and	a, l
 	ld	l, a
-	ld	de, -254
+	ld	de, -248
 	lea	iy, ix + 0
 	add	iy, de
 	ld	(iy + 0), l
@@ -13331,7 +13002,7 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	pop	hl
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 57
+	lea	iy, iy - 51
 	ld	de, (iy + 0)
 	or	a, a
 	sbc	hl, de
@@ -13341,34 +13012,26 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	pop	hl
 	push	ix
 	lea	ix, ix - 128
-	ld	de, (ix - 63)
+	ld	de, (ix - 60)
 	pop	ix
 	or	a, a
 	sbc	hl, de
 	push	ix
 	lea	ix, ix - 128
-	ld	a, (ix - 70)                    ; 1-byte Folded Reload
+	ld	a, (ix - 64)                    ; 1-byte Folded Reload
 	pop	ix
 	cp	a, -1
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 114), iy
+	ld	(ix - 108), iy
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	bc, (ix - 83)
+	ld	bc, (ix - 71)
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 101), bc
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	de, (ix - 54)
-	pop	ix
-	push	ix
-	lea	ix, ix - 128
-	ld	(ix - 63), de
+	ld	(ix - 95), bc
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
@@ -13376,37 +13039,45 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 57), de
+	ld	(ix - 60), de
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	de, (ix - 86)
+	ld	de, (ix - 42)
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 104), de
+	ld	(ix - 51), de
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 120), hl
+	ld	de, (ix - 83)
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 117), hl
+	ld	(ix - 98), de
 	pop	ix
-	ld	bc, -205
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 114), hl
+	pop	ix
+	push	ix
+	lea	ix, ix - 128
+	ld	(ix - 111), hl
+	pop	ix
+	ld	bc, -202
 	lea	hl, ix + 0
 	push	af
 	add	hl, bc
 	pop	af
 	ld	de, (hl)
-	jp	z, .LBB6_146
-; %bb.125:
-	ld	de, -268
+	jp	z, .LBB6_128
+; %bb.107:
+	ld	de, -259
 	lea	hl, ix + 0
 	add	hl, de
 	ld	(hl), iy
-	ld	de, -197
+	ld	de, -191
 	lea	iy, ix + 0
 	add	iy, de
 	ld	hl, (iy + 0)
@@ -13417,7 +13088,7 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	bc, (hl)
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 69
+	lea	iy, iy - 63
 	ld	(iy + 0), bc
 	ld	a, b
 	rlc	a
@@ -13435,60 +13106,58 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ex	de, hl
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 101), bc
+	ld	(ix - 95), bc
 	pop	ix
 	ld	e, c
 	ld	d, b
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 69)
+	ld	hl, (ix - 63)
 	pop	ix
                                         ; kill: def $hl killed $hl killed $uhl
 	push	ix
 	lea	ix, ix - 128
-	lea	ix, ix - 128
-	lea	ix, ix - 3
-	ld	c, (ix + 0)
-	ld	b, (ix + 1)
+	ld	c, (ix - 122)
+	ld	b, (ix - 121)
 	pop	ix
 	or	a, a
 	sbc.sis	hl, bc
 	lea	bc, iy + 0
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 63), iy
+	ld	(ix - 60), iy
 	pop	ix
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 57
+	lea	iy, iy - 51
 	ld	(iy + 0), de
-	ld	de, -229
-	jp	nz, .LBB6_128
-; %bb.126:
+	ld	de, -223
+	jp	nz, .LBB6_110
+; %bb.108:
 	lea	iy, ix + 0
 	add	iy, de
 	ld	hl, (iy + 0)
                                         ; kill: def $hl killed $hl killed $uhl
-	ld	bc, -239
+	ld	bc, -233
 	lea	iy, ix + 0
 	add	iy, bc
 	ld	e, (iy + 0)
 	ld	d, (iy + 1)
 	or	a, a
 	sbc.sis	hl, de
-	ld	de, -211
+	ld	de, -199
 	lea	iy, ix + 0
 	push	af
 	add	iy, de
 	pop	af
 	ld	hl, (iy + 0)
-	ld	de, -229
+	ld	de, -223
 	lea	iy, ix + 0
 	push	af
 	add	iy, de
 	pop	af
 	ld	(iy + 0), hl
-	ld	de, -179
+	ld	de, -173
 	lea	iy, ix + 0
 	push	af
 	add	iy, de
@@ -13496,55 +13165,55 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	hl, (iy + 0)
 	push	ix
 	lea	ix, ix - 128
-	ld	iy, (ix - 74)
+	ld	iy, (ix - 68)
 	pop	ix
 	push	hl
 	pop	bc
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 92
+	lea	iy, iy - 86
 	ld	de, (iy + 0)
-	jp	nz, .LBB6_132
-; %bb.127:
-	ld	de, -268
+	jp	nz, .LBB6_114
+; %bb.109:
+	ld	de, -259
 	lea	hl, ix + 0
 	add	hl, de
 	ld	iy, (hl)
-	ld	de, -242
+	ld	de, -236
 	lea	hl, ix + 0
 	add	hl, de
 	ld	(hl), iy
-	ld	de, -211
+	ld	de, -199
 	lea	hl, ix + 0
 	add	hl, de
 	ld	bc, (hl)
-	ld	de, -229
+	ld	de, -223
 	lea	hl, ix + 0
 	add	hl, de
 	ld	(hl), bc
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 86)
+	ld	hl, (ix - 83)
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 104), hl
+	ld	(ix - 98), hl
 	pop	ix
-	ld	bc, -248
+	ld	bc, -242
 	lea	hl, ix + 0
 	add	hl, bc
 	ld	de, (hl)
-	ld	bc, -245
+	ld	bc, -239
 	lea	hl, ix + 0
 	add	hl, bc
 	ld	(hl), de
-	ld	bc, -205
+	ld	bc, -202
 	lea	hl, ix + 0
 	add	hl, bc
 	ld	de, (hl)
-	jp	.LBB6_146
-	.local	.LBB6_128
-.LBB6_128:
+	jp	.LBB6_128
+	.local	.LBB6_110
+.LBB6_110:
 	lea	hl, ix + 0
 	add	hl, de
 	ld	iy, (hl)
@@ -13552,45 +13221,44 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	pop	hl
 	push	ix
 	lea	ix, ix - 128
-	ld	de, (ix - 92)
+	ld	de, (ix - 86)
 	pop	ix
 	or	a, a
 	sbc	hl, de
 	ex	de, hl
 	push	ix
-	ld	bc, -265
-	add	ix, bc
-	ld	hl, (ix + 0)
+	lea	ix, ix - 128
+	ld	hl, (ix - 128)
 	pop	ix
 	ld	bc, 32768
 	or	a, a
 	sbc	hl, bc
-	jr	nc, .LBB6_130
-; %bb.129:
+	jr	nc, .LBB6_112
+; %bb.111:
 	ex	de, hl
 	push	ix
 	lea	ix, ix - 128
-	ld	bc, (ix - 51)
+	ld	bc, (ix - 45)
 	pop	ix
 	call	__imulu
 	ld	c, 4
 	call	__ishrs
 	push	hl
 	pop	bc
-	jr	.LBB6_131
-	.local	.LBB6_130
-.LBB6_130:
+	jr	.LBB6_113
+	.local	.LBB6_112
+.LBB6_112:
 	ld	(ix - 44), de
 	ld	a, (ix - 42)
 	rlc	a
 	sbc	a, a
-	ld	bc, -232
+	ld	bc, -226
 	lea	hl, ix + 0
 	add	hl, bc
 	ld	(hl), a                         ; 1-byte Folded Spill
 	push	ix
 	lea	ix, ix - 128
-	ld	bc, (ix - 51)
+	ld	bc, (ix - 45)
 	pop	ix
 	ld	(ix - 41), bc
 	ld	a, (ix - 39)
@@ -13599,7 +13267,7 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ex	de, hl
 	push	ix
 	lea	ix, ix - 128
-	ld	e, (ix - 104)                   ; 1-byte Folded Reload
+	ld	e, (ix - 98)                    ; 1-byte Folded Reload
 	pop	ix
 	call	__lmulu
 	push	hl
@@ -13607,44 +13275,44 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	a, e
 	ld	l, 4
 	call	__lshru
-	.local	.LBB6_131
-.LBB6_131:
+	.local	.LBB6_113
+.LBB6_113:
 	lea	de, iy + 0
 	ld	hl, 10240
 	or	a, a
 	sbc	hl, bc
-	ld	bc, -229
+	ld	bc, -223
 	lea	iy, ix + 0
 	add	iy, bc
 	ld	(iy + 0), hl
 	ld	l, e
 	ld	h, d
-	ld	bc, -239
+	ld	bc, -233
 	lea	iy, ix + 0
 	add	iy, bc
 	ld	e, (iy + 0)
 	ld	d, (iy + 1)
 	or	a, a
 	sbc.sis	hl, de
-	ld	de, -214
+	ld	de, -211
 	lea	iy, ix + 0
 	push	af
 	add	iy, de
 	pop	af
 	ld	hl, (iy + 0)
-	ld	de, -232
+	ld	de, -226
 	lea	iy, ix + 0
 	push	af
 	add	iy, de
 	pop	af
 	ld	(iy + 0), hl
-	ld	de, -179
+	ld	de, -173
 	lea	iy, ix + 0
 	push	af
 	add	iy, de
 	pop	af
 	ld	bc, (iy + 0)
-	ld	de, -202
+	ld	de, -196
 	lea	hl, ix + 0
 	push	af
 	add	hl, de
@@ -13652,44 +13320,43 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	iy, (hl)
 	push	ix
 	lea	ix, ix - 128
-	ld	de, (ix - 92)
+	ld	de, (ix - 86)
 	pop	ix
-	jp	z, .LBB6_136
-	.local	.LBB6_132
-.LBB6_132:
+	jp	z, .LBB6_118
+	.local	.LBB6_114
+.LBB6_114:
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 57
+	lea	iy, iy - 51
 	ld	hl, (iy + 0)
 	or	a, a
 	sbc	hl, de
 	push	hl
 	pop	iy
 	push	ix
-	ld	de, -265
-	add	ix, de
-	ld	hl, (ix + 0)
+	lea	ix, ix - 128
+	ld	hl, (ix - 128)
 	pop	ix
 	ld	de, 32768
 	or	a, a
 	sbc	hl, de
-	ld	de, -239
+	ld	de, -233
 	lea	hl, ix + 0
 	push	af
 	add	hl, de
 	pop	af
 	ld	(hl), iy
-	jr	nc, .LBB6_134
-; %bb.133:
+	jr	nc, .LBB6_116
+; %bb.115:
 	lea	hl, iy + 0
 	call	__imulu
 	ld	c, 4
 	call	__ishrs
 	push	hl
 	pop	bc
-	jr	.LBB6_135
-	.local	.LBB6_134
-.LBB6_134:
+	jr	.LBB6_117
+	.local	.LBB6_116
+.LBB6_116:
 	ld	(ix - 38), iy
 	ld	a, (ix - 36)
 	rlc	a
@@ -13706,21 +13373,21 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	a, e
 	ld	l, 4
 	call	__lshru
-	.local	.LBB6_135
-.LBB6_135:
+	.local	.LBB6_117
+.LBB6_117:
 	ld	hl, 10240
 	or	a, a
 	sbc	hl, bc
-	ld	de, -232
+	ld	de, -226
 	lea	iy, ix + 0
 	add	iy, de
 	ld	(iy + 0), hl
-	ld	de, -197
+	ld	de, -191
 	lea	iy, ix + 0
 	add	iy, de
 	ld	hl, (iy + 0)
                                         ; kill: def $hl killed $hl killed $uhl
-	ld	bc, -259
+	ld	bc, -250
 	lea	iy, ix + 0
 	add	iy, bc
 	ld	e, (iy + 0)
@@ -13728,13 +13395,13 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	or	a, a
 	sbc.sis	hl, de
 	ld	a, 0
-	ld	de, -217
+	ld	de, -208
 	lea	iy, ix + 0
 	push	af
 	add	iy, de
 	pop	af
 	ld	(iy + 0), a                     ; 1-byte Folded Spill
-	ld	de, -268
+	ld	de, -259
 	lea	iy, ix + 0
 	push	af
 	add	iy, de
@@ -13742,32 +13409,31 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	bc, (iy + 0)
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 92
+	lea	iy, iy - 86
 	ld	de, (iy + 0)
 	push	ix
 	lea	ix, ix - 128
-	ld	iy, (ix - 74)
+	ld	iy, (ix - 68)
 	pop	ix
-	jp	z, .LBB6_142
-	.local	.LBB6_136
-.LBB6_136:
+	jp	z, .LBB6_124
+	.local	.LBB6_118
+.LBB6_118:
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 63)
+	ld	hl, (ix - 60)
 	pop	ix
 	or	a, a
 	sbc	hl, de
 	ex	de, hl
 	push	ix
-	ld	bc, -262
-	add	ix, bc
-	ld	hl, (ix + 0)
+	lea	ix, ix - 128
+	ld	hl, (ix - 125)
 	pop	ix
 	ld	bc, 32768
 	or	a, a
 	sbc	hl, bc
-	jr	nc, .LBB6_138
-; %bb.137:
+	jr	nc, .LBB6_120
+; %bb.119:
 	ex	de, hl
 	lea	bc, iy + 0
 	call	__imulu
@@ -13775,9 +13441,9 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	call	__ishrs
 	push	hl
 	pop	bc
-	jr	.LBB6_139
-	.local	.LBB6_138
-.LBB6_138:
+	jr	.LBB6_121
+	.local	.LBB6_120
+.LBB6_120:
 	ld	(ix - 32), de
 	ld	a, (ix - 30)
 	rlc	a
@@ -13796,84 +13462,83 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	a, e
 	ld	l, 4
 	call	__lshru
-	.local	.LBB6_139
-.LBB6_139:
+	.local	.LBB6_121
+.LBB6_121:
 	or	a, a
 	sbc	hl, hl
 	sbc	hl, bc
 	push	hl
 	pop	bc
-	ld	de, -217
+	ld	de, -208
 	lea	hl, ix + 0
 	push	af
 	add	hl, de
 	pop	af
 	bit	0, (hl)                         ; 1-byte Folded Reload
-	jr	z, .LBB6_141
-; %bb.140:
-	ld	de, -248
+	jr	z, .LBB6_123
+; %bb.122:
+	ld	de, -242
 	lea	iy, ix + 0
 	add	iy, de
 	ld	hl, (iy + 0)
-	ld	de, -245
+	ld	de, -239
 	lea	iy, ix + 0
 	add	iy, de
 	ld	(iy + 0), hl
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 77
+	lea	iy, iy - 74
 	ld	de, (iy + 0)
 	push	bc
 	pop	hl
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 83
+	lea	iy, iy - 71
 	ld	bc, (iy + 0)
 	push	ix
-	ld	bc, -268
+	ld	bc, -259
 	add	ix, bc
 	ld	iy, (ix + 0)
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 114), hl
+	ld	(ix - 108), hl
 	pop	ix
-	jp	.LBB6_146
-	.local	.LBB6_141
-.LBB6_141:
+	jp	.LBB6_128
+	.local	.LBB6_123
+.LBB6_123:
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 57)
+	ld	hl, (ix - 51)
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	de, (ix - 92)
+	ld	de, (ix - 86)
 	pop	ix
 	or	a, a
 	sbc	hl, de
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 111), hl
+	ld	(ix - 105), hl
 	pop	ix
-	.local	.LBB6_142
-.LBB6_142:
-	ld	de, -242
+	.local	.LBB6_124
+.LBB6_124:
+	ld	de, -236
 	lea	hl, ix + 0
 	add	hl, de
 	ld	(hl), bc
 	push	ix
-	ld	de, -262
-	add	ix, de
-	ld	hl, (ix + 0)
+	lea	ix, ix - 128
+	ld	hl, (ix - 125)
 	pop	ix
 	ld	de, 32768
 	or	a, a
 	sbc	hl, de
-	jr	nc, .LBB6_144
-; %bb.143:
+	jr	nc, .LBB6_126
+; %bb.125:
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 111)
+	ld	hl, (ix - 105)
 	pop	ix
 	lea	bc, iy + 0
 	call	__imulu
@@ -13881,12 +13546,12 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	call	__ishrs
 	push	hl
 	pop	bc
-	jr	.LBB6_145
-	.local	.LBB6_144
-.LBB6_144:
+	jr	.LBB6_127
+	.local	.LBB6_126
+.LBB6_126:
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 111)
+	ld	hl, (ix - 105)
 	pop	ix
 	ld	(ix - 26), hl
 	ld	a, (ix - 24)
@@ -13904,54 +13569,54 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	a, e
 	ld	l, 4
 	call	__lshru
-	.local	.LBB6_145
-.LBB6_145:
+	.local	.LBB6_127
+.LBB6_127:
 	or	a, a
 	sbc	hl, hl
 	sbc	hl, bc
-	ld	de, -245
+	ld	de, -239
 	lea	iy, ix + 0
 	add	iy, de
 	ld	(iy + 0), hl
-	ld	bc, -205
+	ld	bc, -202
 	lea	iy, ix + 0
 	add	iy, bc
 	ld	de, (iy + 0)
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 83
+	lea	iy, iy - 71
 	ld	bc, (iy + 0)
-	ld	bc, -268
+	ld	bc, -259
 	lea	hl, ix + 0
 	add	hl, bc
 	ld	iy, (hl)
-	.local	.LBB6_146
-.LBB6_146:
+	.local	.LBB6_128
+.LBB6_128:
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 74)
+	ld	hl, (ix - 68)
 	pop	ix
 	push	de
 	pop	bc
 	call	__imulu
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 69), hl
+	ld	(ix - 63), hl
 	pop	ix
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 107)
+	ld	hl, (ix - 101)
 	pop	ix
 	call	__imulu
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 74), hl
+	ld	(ix - 68), hl
 	pop	ix
 	push	de
 	pop	hl
 	lea	bc, iy + 0
 	call	__imulu
-	ld	bc, -217
+	ld	bc, -208
 	lea	iy, ix + 0
 	add	iy, bc
 	ld	(iy + 0), hl
@@ -13959,35 +13624,35 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	pop	hl
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 120
+	lea	iy, iy - 114
 	ld	bc, (iy + 0)
 	call	__imulu
-	ld	bc, -235
+	ld	bc, -229
 	lea	iy, ix + 0
 	add	iy, bc
 	ld	(iy + 0), hl
-	ld	bc, -242
+	ld	bc, -236
 	lea	iy, ix + 0
 	add	iy, bc
 	ld	hl, (iy + 0)
 	push	de
 	pop	bc
 	call	__imulu
-	ld	de, -239
+	ld	de, -233
 	lea	iy, ix + 0
 	add	iy, de
 	ld	(iy + 0), hl
-	ld	de, -245
+	ld	de, -239
 	lea	iy, ix + 0
 	add	iy, de
 	ld	hl, (iy + 0)
 	call	__imulu
-	ld	de, -242
+	ld	de, -236
 	lea	iy, ix + 0
 	add	iy, de
 	ld	(iy + 0), hl
 	ld	hl, (_colormaps)
-	ld	de, -220
+	ld	de, -214
 	lea	iy, ix + 0
 	add	iy, de
 	ld	(iy + 0), hl
@@ -13996,7 +13661,7 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	inc.sis	hl
 	ld	(iy), l
 	ld	(iy + 1), h
-	ld	bc, -194
+	ld	bc, -185
 	lea	iy, ix + 0
 	add	iy, bc
 	ld	de, (iy + 0)
@@ -14005,127 +13670,127 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	a, (hl)
 	or	a, a
 	sbc	hl, hl
-	ld	bc, -245
+	ld	bc, -239
 	lea	iy, ix + 0
 	add	iy, bc
 	ld	(iy + 0), hl
 	ld	l, a
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 60
+	lea	iy, iy - 54
 	ld	bc, (iy + 0)
 	ld	(_d84_rw), bc
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 98
+	lea	iy, iy - 92
 	ld	bc, (iy + 0)
 	ld	(_d84_rw+3), bc
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 51
+	lea	iy, iy - 45
 	ld	bc, (iy + 0)
 	ld	(_d84_rw+6), bc
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 69
+	lea	iy, iy - 63
 	ld	bc, (iy + 0)
 	ld	(_d84_rw+9), bc
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 124
+	lea	iy, iy - 118
 	ld	bc, (iy + 0)
 	ld	(_d84_rw+12), bc
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 74
+	lea	iy, iy - 68
 	ld	bc, (iy + 0)
 	ld	(_d84_rw+15), bc
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 83
+	lea	iy, iy - 71
 	ld	bc, (iy + 0)
 	ld	(_d84_rw+18), bc
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 89
+	lea	iy, iy - 80
 	ld	bc, (iy + 0)
 	ld	(_d84_rw+21), bc
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 86
+	lea	iy, iy - 83
 	ld	bc, (iy + 0)
 	ld	(_d84_rw+24), bc
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 107
+	lea	iy, iy - 101
 	ld	bc, (iy + 0)
 	ld	(_d84_rw+27), bc
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 101
+	lea	iy, iy - 95
 	ld	bc, (iy + 0)
 	ld	(_d84_rw+30), bc
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 111
+	lea	iy, iy - 105
 	ld	bc, (iy + 0)
 	ld	(_d84_rw+33), bc
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 104
+	lea	iy, iy - 98
 	ld	bc, (iy + 0)
 	ld	(_d84_rw+36), bc
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 114
+	lea	iy, iy - 108
 	ld	bc, (iy + 0)
 	ld	(_d84_rw+39), bc
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 54
+	lea	iy, iy - 48
 	ld	bc, (iy + 0)
 	ld	(_d84_rw+42), bc
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 48
+	lea	iy, iy - 42
 	ld	bc, (iy + 0)
 	ld	(_d84_rw+45), bc
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 63
+	lea	iy, iy - 60
 	ld	bc, (iy + 0)
 	ld	(_d84_rw+48), bc
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 57
+	lea	iy, iy - 51
 	ld	bc, (iy + 0)
 	ld	(_d84_rw+51), bc
 	ld	(_d84_rw+54), de
 	ld	(_d84_rw+57), hl
-	ld	de, -254
+	ld	de, -248
 	lea	iy, ix + 0
 	add	iy, de
 	ld	a, (iy + 0)                     ; 1-byte Folded Reload
 	ld	(_d84_rw+60), a
-	ld	de, -249
+	ld	de, -243
 	lea	iy, ix + 0
 	add	iy, de
 	ld	a, (iy + 0)                     ; 1-byte Folded Reload
 	ld	(_d84_rw+61), a
 	ld	hl, (ix + 9)
 	ld	(_d84_rw+62), hl
-	ld	de, -220
+	ld	de, -214
 	lea	iy, ix + 0
 	add	iy, de
 	ld	hl, (iy + 0)
 	ld	(_d84_rw+65), hl
 	ld	hl, _cliptop
-	ld	bc, -188
+	ld	bc, -182
 	lea	iy, ix + 0
 	add	iy, bc
 	ld	de, (iy + 0)
 	add	hl, de
-	ld	de, -179
+	ld	de, -173
 	lea	iy, ix + 0
 	add	iy, de
 	ld	(iy + 0), hl
@@ -14138,19 +13803,19 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	bc, 59
 	lea	de, iy + 0
 	ldir
-	ld	de, -179
+	ld	de, -173
 	lea	iy, ix + 0
 	add	iy, de
 	ld	hl, (iy + 0)
 	ld	(_d84_rw+99), hl
 	ld	hl, _clipbottom
-	ld	bc, -188
+	ld	bc, -182
 	lea	iy, ix + 0
 	add	iy, bc
 	ld	de, (iy + 0)
 	add	hl, de
 	ld	(_d84_rw+102), hl
-	ld	de, -182
+	ld	de, -176
 	lea	hl, ix + 0
 	add	hl, de
 	ld	iy, (hl)
@@ -14158,7 +13823,7 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	add	iy, bc
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 63)
+	ld	hl, (ix - 60)
 	pop	ix
 	add	hl, bc
 	lea	de, iy + 0
@@ -14167,7 +13832,7 @@ _d84_draw_seg:                          ; @d84_draw_seg
                                         ; kill: def $a killed $a
 	sbc	a, a
 	ld	l, a
-	ld	de, -253
+	ld	de, -247
 	lea	iy, ix + 0
 	add	iy, de
 	ld	a, (iy + 0)
@@ -14176,12 +13841,12 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	(_d84_rw+105), a
 	push	ix
 	lea	ix, ix - 128
-	ld	iy, (ix - 57)
+	ld	iy, (ix - 51)
 	pop	ix
 	add	iy, bc
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 48)
+	ld	hl, (ix - 42)
 	pop	ix
 	add	hl, bc
 	lea	bc, iy + 0
@@ -14194,73 +13859,73 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	(_d84_rw+106), a
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 77)
+	ld	hl, (ix - 74)
 	pop	ix
 	ld	a, l
 	ld	(_d84_rw+112), a
-	ld	bc, -208
+	ld	bc, -205
 	lea	hl, ix + 0
 	push	af
 	add	hl, bc
 	pop	af
 	bit	0, (hl)                         ; 1-byte Folded Reload
-	jr	z, .LBB6_148
-; %bb.147:
+	jr	z, .LBB6_130
+; %bb.129:
 	call	_render_wire_columns
 	ld	sp, ix
 	pop	ix
 	ret
-	.local	.LBB6_148
-.LBB6_148:
-	ld	bc, -236
+	.local	.LBB6_130
+.LBB6_130:
+	ld	bc, -230
 	lea	hl, ix + 0
 	push	af
 	add	hl, bc
 	pop	af
 	bit	0, (hl)                         ; 1-byte Folded Reload
-	jp	z, .LBB6_159
-; %bb.149:
+	jp	z, .LBB6_141
+; %bb.131:
 	ld	iy, (ix + 9)
 	ld	l, (iy + 2)
-	ld	de, -198
+	ld	de, -192
 	lea	iy, ix + 0
 	add	iy, de
 	ld	a, (iy + 0)                     ; 1-byte Folded Reload
 	cp	a, d
 	ld	bc, 0
-	jr	z, .LBB6_152
-; %bb.150:
+	jr	z, .LBB6_134
+; %bb.132:
 	ld	a, l
 	cp	a, -1
-	jr	nz, .LBB6_152
-; %bb.151:
+	jr	nz, .LBB6_134
+; %bb.133:
 	ld	iy, (ix + 9)
 	ld	l, (iy + 3)
-	.local	.LBB6_152
-.LBB6_152:
+	.local	.LBB6_134
+.LBB6_134:
 	lea	iy, ix + 0
 	add	iy, de
 	ld	a, (iy + 0)                     ; 1-byte Folded Reload
 	cp	a, -1
-	jr	z, .LBB6_155
-; %bb.153:
+	jr	z, .LBB6_137
+; %bb.135:
 	ld	a, l
 	cp	a, -1
-	jr	nz, .LBB6_155
-; %bb.154:
+	jr	nz, .LBB6_137
+; %bb.136:
 	ld	iy, (ix + 9)
 	ld	l, (iy + 4)
-	.local	.LBB6_155
-.LBB6_155:
+	.local	.LBB6_137
+.LBB6_137:
 	ld	c, l
 	ld	a, l
 	cp	a, -1
-	jr	z, .LBB6_158
-; %bb.156:
+	jr	z, .LBB6_140
+; %bb.138:
 	ld	iy, (ix + 9)
 	bit	4, (iy + 5)
-	jr	z, .LBB6_158
-; %bb.157:
+	jr	z, .LBB6_140
+; %bb.139:
 	push	bc
 	pop	de
 	ld	bc, 3
@@ -14278,15 +13943,15 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	pop	bc
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 48
+	lea	iy, iy - 42
 	ld	de, (iy + 0)
 	add	hl, de
-	ld	de, -182
+	ld	de, -176
 	lea	iy, ix + 0
 	add	iy, de
 	ld	(iy + 0), hl
-	.local	.LBB6_158
-.LBB6_158:
+	.local	.LBB6_140
+.LBB6_140:
 	ld	iy, (ix + 9)
 	ld	de, (iy + 8)
 	ld	a, d
@@ -14295,7 +13960,7 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	l, e
 	ld	h, d
 	push	hl
-	ld	de, -182
+	ld	de, -176
 	lea	iy, ix + 0
 	add	iy, de
 	ld	hl, (iy + 0)
@@ -14312,13 +13977,13 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	(_d84_rw+68), hl
 	ld	(_d84_rw+71), de
 	ld	iy, _d84_rw+68
-	jp	.LBB6_169
-	.local	.LBB6_159
-.LBB6_159:
+	jp	.LBB6_151
+	.local	.LBB6_141
+.LBB6_141:
 	bit	0, e
-	jp	z, .LBB6_165
-; %bb.160:
-	ld	de, -188
+	jp	z, .LBB6_147
+; %bb.142:
+	ld	de, -182
 	lea	hl, ix + 0
 	add	hl, de
 	ld	(hl), iy
@@ -14331,22 +13996,22 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	l, a
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 51), hl
+	ld	(ix - 45), hl
 	pop	ix
 	bit	3, (iy + 5)
-	ld	de, -182
+	ld	de, -176
 	lea	iy, ix + 0
 	push	af
 	add	iy, de
 	pop	af
 	ld	bc, (iy + 0)
-	jr	nz, .LBB6_164
-; %bb.161:
+	jr	nz, .LBB6_146
+; %bb.143:
 	cp	a, -1
-	jr	z, .LBB6_163
-; %bb.162:
+	jr	z, .LBB6_145
+; %bb.144:
 	ld	bc, 3
-	ld	de, -179
+	ld	de, -173
 	lea	iy, ix + 0
 	add	iy, de
 	ld	hl, (iy + 0)
@@ -14358,25 +14023,25 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	hl, 1
 	ld	c, (iy + 2)
 	call	__ishl
-	ld	de, -223
+	ld	de, -217
 	lea	iy, ix + 0
 	add	iy, de
 	ld	(iy + 0), hl
-	.local	.LBB6_163
-.LBB6_163:
-	ld	de, -223
+	.local	.LBB6_145
+.LBB6_145:
+	ld	de, -217
 	lea	iy, ix + 0
 	add	iy, de
 	ld	hl, (iy + 0)
-	ld	bc, -191
+	ld	bc, -188
 	lea	iy, ix + 0
 	add	iy, bc
 	ld	de, (iy + 0)
 	add	hl, de
 	push	hl
 	pop	bc
-	.local	.LBB6_164
-.LBB6_164:
+	.local	.LBB6_146
+.LBB6_146:
 	ld	iy, (ix + 9)
 	ld	de, (iy + 8)
 	ld	a, d
@@ -14386,7 +14051,7 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	h, d
 	push	hl
 	push	bc
-	ld	de, -179
+	ld	de, -173
 	lea	iy, ix + 0
 	add	iy, de
 	ld	hl, (iy + 0)
@@ -14406,49 +14071,49 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	(hl), c
 	inc	hl
 	ld	(hl), b
-	ld	de, -188
+	ld	de, -182
 	lea	hl, ix + 0
 	add	hl, de
 	ld	iy, (hl)
-	.local	.LBB6_165
-.LBB6_165:
+	.local	.LBB6_147
+.LBB6_147:
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 48)
+	ld	hl, (ix - 42)
 	pop	ix
 	ld	de, -8388608
 	add	hl, de
 	lea	de, iy + 0
 	or	a, a
 	sbc	hl, de
-	jp	nc, .LBB6_170
-; %bb.166:
+	jp	nc, .LBB6_152
+; %bb.148:
 	ld	iy, (ix + 9)
 	ld	a, (iy + 4)
 	push	ix
 	lea	ix, ix - 128
-	ld	hl, (ix - 117)
+	ld	hl, (ix - 111)
 	pop	ix
 	ld	l, a
 	push	ix
 	lea	ix, ix - 128
-	ld	(ix - 117), hl
+	ld	(ix - 111), hl
 	pop	ix
 	bit	4, (iy + 5)
-	ld	de, -185
+	ld	de, -179
 	lea	iy, ix + 0
 	push	af
 	add	iy, de
 	pop	af
 	ld	bc, (iy + 0)
-	jr	z, .LBB6_168
-; %bb.167:
-	ld	de, -182
+	jr	z, .LBB6_150
+; %bb.149:
+	ld	de, -176
 	lea	iy, ix + 0
 	add	iy, de
 	ld	bc, (iy + 0)
-	.local	.LBB6_168
-.LBB6_168:
+	.local	.LBB6_150
+.LBB6_150:
 	ld	iy, (ix + 9)
 	ld	de, (iy + 8)
 	ld	a, d
@@ -14458,7 +14123,7 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	h, d
 	push	hl
 	push	bc
-	ld	de, -245
+	ld	de, -239
 	lea	iy, ix + 0
 	add	iy, de
 	ld	hl, (iy + 0)
@@ -14474,17 +14139,17 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	(_d84_rw+84), hl
 	ld	(_d84_rw+87), de
 	ld	iy, _d84_rw+84
-	.local	.LBB6_169
-.LBB6_169:
+	.local	.LBB6_151
+.LBB6_151:
 	lea	hl, iy + 6
 	ld	(hl), c
 	inc	hl
 	ld	(hl), b
-	.local	.LBB6_170
-.LBB6_170:
+	.local	.LBB6_152
+.LBB6_152:
 	ld	a, (_player+31)
 	bit	0, a
-	ld	bc, -199
+	ld	bc, -193
 	lea	iy, ix + 0
 	push	af
 	add	iy, bc
@@ -14492,42 +14157,33 @@ _d84_draw_seg:                          ; @d84_draw_seg
 	ld	e, (iy + 0)                     ; 1-byte Folded Reload
 	lea	iy, ix + 0
 	lea	iy, iy - 128
-	lea	iy, iy - 66
+	lea	iy, iy - 57
 	ld	bc, (iy + 0)
-	jr	nz, .LBB6_172
-; %bb.171:
+	ld	hl, _planes
+	jr	nz, .LBB6_154
+; %bb.153:
 	ld	hl, _engine_view+2
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 128
-	lea	iy, iy - 1
-	ld	(iy + 0), hl
-	.local	.LBB6_172
-.LBB6_172:
-	lea	iy, ix + 0
-	lea	iy, iy - 128
-	lea	iy, iy - 128
-	lea	iy, iy - 1
-	ld	hl, (iy + 0)
+	.local	.LBB6_154
+.LBB6_154:
 	ld	(_d84_rw+107), hl
 	bit	0, a
-	jr	z, .LBB6_174
-; %bb.173:
+	jr	z, .LBB6_156
+; %bb.155:
 	ld	l, -128
 	ld	a, e
 	or	a, l
 	ld	l, a
-	jr	.LBB6_175
-	.local	.LBB6_174
-.LBB6_174:
+	jr	.LBB6_157
+	.local	.LBB6_156
+.LBB6_156:
 	ld	hl, _plane_colors
 	push	hl
 	pop	iy
 	add	iy, bc
 	ld	l, (iy + 85)
 	ld	e, (iy)
-	.local	.LBB6_175
-.LBB6_175:
+	.local	.LBB6_157
+.LBB6_157:
 	ld	a, l
 	ld	(_d84_rw+110), a
 	ld	a, e
@@ -15598,12 +15254,7 @@ _wall_style:                            ; @wall_style
 .Lfunc_end8:
 	.size	_wall_style, .Lfunc_end8-_wall_style
                                         ; -- End function
-/* GPL-2.0-or-later. Native ADL column clipping and projected-height DDAs.
- * IX holds the verified RenderWall packet across calls into C. All screen
- * bounds are bytes, avoiding general 24-bit shifts, masks and comparisons.
- */
-
-.equ RW_START, 0
+	.equ RW_START, 0
 .equ RW_END, 3
 .equ RW_IZ, 6
 .equ RW_DIZ, 9
@@ -16177,62 +15828,7 @@ _d84_reciprocal:
     rr l
     ret
 
-.section .text._d84_wall,"ax",@progbits
-.global _d84_wall
-_d84_wall:
-	push	ix
-	push	iy
-	ld	ix, 0
-	add	ix, sp
-	ld	hl, (ix+15)
-	ld	(.Lwall_im+1), hl
-	ld	hl, (ix+18)
-	ld	(.Lwall_lt+1), hl
-	ld	a, (ix+30)
-	ld	(.Lwall_dp+3), a
-	ld	a, (ix+21)
-	ex	af, af'
-	ld	hl, (ix+24)
-	ld	de, (ix+27)
-	ld	iy, (ix+12)
-	ld	ix, (ix+9)
-.Lwall_lp:
-	push	hl
-	ld	a, h
-	and	31
-	ld	l, a
-	ld	h, 32
-	mlt	hl
-.Lwall_im:
-	ld	bc, 0
-	add	hl, bc
-	ld	a, (hl)
-.Lwall_lt:
-	ld	hl, 0
-	ld	l, a
-	ld	a, (hl)
-	ld	(ix+0), a
-.Lwall_dp:
-	ld	(iy+0), 0
-	ld	bc, 128
-	add	ix, bc
-	add	iy, bc
-	pop	hl
-	add	hl, de
-	ex	af, af'
-	dec	a
-	jr	z, .Lwall_dn
-	ex	af, af'
-	jr	.Lwall_lp
-.Lwall_dn:
-	pop	iy
-	pop	ix
-	ret
-.local .Lfunc_end_wall
-.Lfunc_end_wall:
-	.size _d84_wall, .Lfunc_end_wall-_d84_wall
-
-	.section	.text._d84_bbox_visible,"ax",@progbits
+.section	.text._d84_bbox_visible,"ax",@progbits
 	.globl	_d84_bbox_visible               ; -- Begin function d84_bbox_visible
 	.type	_d84_bbox_visible,@function
 _d84_bbox_visible:                      ; @d84_bbox_visible
@@ -16240,52 +15836,52 @@ _d84_bbox_visible:                      ; @d84_bbox_visible
 	push	ix
 	ld	ix, 0
 	add	ix, sp
-	lea	hl, ix - 44
+	lea	hl, ix - 36
 	ld	sp, hl
 	ld	iy, (ix + 6)
-	ld	bc, (_camx)
+	ld	de, (_camx)
+	ld	(ix - 3), de
 	ld	de, (iy + 4)
 	ld	a, d
 	rlc	a
 	sbc	hl, hl
 	ld	l, e
 	ld	h, d
-	ld	de, -8388608
-	ld	(ix - 5), bc
-	push	bc
-	pop	iy
-	add	iy, de
-	add	hl, de
+	ld	bc, -8388608
+	ld	iy, (ix - 3)
+	add	iy, bc
+	add	hl, bc
 	lea	de, iy + 0
 	or	a, a
 	sbc	hl, de
 	ld	hl, 0
 	jr	nc, .LBB10_2
 ; %bb.1:
+	ld	de, 2
 	ld	iy, (ix + 6)
-	ld	de, (iy + 6)
-	ld	a, d
+	ld	bc, (iy + 6)
+	ld	a, b
 	rlc	a
 	sbc	hl, hl
 	push	hl
 	pop	iy
-	ld	iyl, e
-	ld	iyh, d
-	ld	hl, -8388608
-	ex	de, hl
-	add	iy, de
-	ld	hl, (ix - 5)
-	add	hl, de
-	lea	de, iy + 0
+	ld	iyl, c
+	ld	iyh, b
+	ld	bc, -8388608
+	add	iy, bc
+	ld	hl, (ix - 3)
+	add	hl, bc
+	lea	bc, iy + 0
 	or	a, a
-	sbc	hl, de
+	sbc	hl, bc
+	ld	bc, -8388608
 	sbc	hl, hl
-	ld	de, 2
 	add	hl, de
 	.local	.LBB10_2
 .LBB10_2:
-	ld	(ix - 11), hl
-	ld	bc, (_camy)
+	ld	(ix - 9), hl
+	ld	hl, (_camy)
+	ld	(ix - 6), hl
 	ld	hl, (ix + 6)
 	ld	de, (hl)
 	ld	a, d
@@ -16295,13 +15891,9 @@ _d84_bbox_visible:                      ; @d84_bbox_visible
 	pop	iy
 	ld	iyl, e
 	ld	iyh, d
-	ld	hl, -8388608
-	ex	de, hl
-	add	iy, de
-	ld	(ix - 8), bc
-	push	bc
-	pop	hl
-	add	hl, de
+	add	iy, bc
+	ld	hl, (ix - 6)
+	add	hl, bc
 	lea	de, iy + 0
 	or	a, a
 	sbc	hl, de
@@ -16315,10 +15907,9 @@ _d84_bbox_visible:                      ; @d84_bbox_visible
 	sbc	hl, hl
 	ld	l, e
 	ld	h, d
-	ld	iy, (ix - 8)
-	ld	de, -8388608
-	add	iy, de
-	add	hl, de
+	ld	iy, (ix - 6)
+	add	iy, bc
+	add	hl, bc
 	lea	de, iy + 0
 	or	a, a
 	sbc	hl, de
@@ -16331,7 +15922,7 @@ _d84_bbox_visible:                      ; @d84_bbox_visible
 	ld	hl, 4
 	.local	.LBB10_6
 .LBB10_6:
-	ld	bc, (ix - 11)
+	ld	bc, (ix - 9)
 	call	__ior
 	push	hl
 	pop	iy
@@ -16357,103 +15948,104 @@ _d84_bbox_visible:                      ; @d84_bbox_visible
 	push	bc
 	pop	hl
 	add	hl, de
-	push	hl
-	pop	bc
+	ld	(ix - 12), hl
 	add	iy, iy
 	lea	de, iy + 0
 	ld	hl, _d84_bbox_visible.corners
 	add	hl, de
-	ld	(ix - 11), hl
+	ld	(ix - 15), hl
 	ld	a, (hl)
-	ld	de, 0
-	push	de
+	ld	bc, 0
+	push	bc
 	pop	hl
-	push	de
-	pop	iy
 	ld	l, a
 	add	hl, hl
 	ex	de, hl
-	ld	(ix - 14), bc
-	push	bc
-	pop	hl
+	ld	hl, (ix - 12)
 	add	hl, de
 	ld	hl, (hl)
-	lea	de, iy + 0
-	lea	bc, iy + 0
-	ld	(ix - 17), hl
+	push	bc
+	pop	de
+	ld	(ix - 21), hl
 	ld	e, l
 	ld	d, h
-	ld	iy, (ix - 11)
+	ld	(ix - 9), de
+	ld	iy, (ix - 15)
 	ld	a, (iy + 1)
 	push	bc
-	pop	iy
-	lea	hl, iy + 0
+	pop	hl
 	ld	l, a
 	add	hl, hl
-	push	hl
-	pop	bc
-	ld	hl, (ix - 14)
-	add	hl, bc
-	ld	hl, (hl)
-	ld	(ix - 29), hl
 	ex	de, hl
-	ld	iyl, e
-	ld	iyh, d
-	ex	de, hl
-	ld	hl, _vertex_stamp
+	ld	hl, (ix - 12)
 	add	hl, de
-	ld	(ix - 44), hl
+	ld	hl, (hl)
+	ld	(ix - 18), hl
+	ld	c, l
+	ld	b, h
+	ld	(ix - 12), bc
+	ld	bc, (ix - 9)
+	ld	hl, _vertex_stamp
+	add	hl, bc
+	ld	(ix - 33), hl
 	ld	a, (hl)
 	ld	l, -2
 	and	a, l
-	ld	l, a
+	ld	e, a
 	ld	a, (_frame_stamp)
-	ld	h, a
-	ld	a, l
-	ld	(ix - 11), h                    ; 1-byte Folded Spill
-	cp	a, h
-	ld	(ix - 23), iy
-	ld	(ix - 26), de
+	ld	l, a
+	ld	a, e
+	cp	a, l
 	jr	nz, .LBB10_11
 ; %bb.10:
-	ex	de, hl
+	push	bc
+	pop	hl
 	add	hl, hl
-	ex	de, hl
-	ld	(ix - 14), de
+	push	hl
+	pop	bc
 	ld	hl, _vertex_side
-	add	hl, de
-	ld	de, (hl)
-	ld	hl, _vertex_depth
-	ld	bc, (ix - 14)
 	add	hl, bc
-	lea	bc, iy + 0
 	ld	iy, (hl)
+	ld	a, iyh
+	rlc	a
+	sbc	hl, hl
+	ex	de, hl
+	ld	e, iyl
+	ld	d, iyh
+	ex	de, hl
+	ld	(ix - 3), hl
+	ld	iy, _vertex_depth
+	lea	hl, iy + 0
+	add	hl, bc
+	ld	(ix - 15), e                    ; 1-byte Folded Spill
+	ld	de, (hl)
+	ld	iy, _vertex_stamp
 	jp	.LBB10_14
 	.local	.LBB10_11
 .LBB10_11:
 	ld	iy, (_map_vertices)
+	push	bc
+	pop	hl
+	add	hl, hl
+	add	hl, hl
 	ex	de, hl
-	add	hl, hl
-	add	hl, hl
-	push	hl
-	pop	bc
-	add	iy, bc
-	lea	de, iy + 0
+	add	iy, de
+	lea	bc, iy + 0
 	ld	iy, _extra_points
-	add	iy, bc
-	ld	bc, -1868
-	add	iy, bc
-	ld	hl, (ix - 17)
+	add	iy, de
+	ld	de, -1868
+	add	iy, de
+	ld	hl, (ix - 21)
                                         ; kill: def $hl killed $hl killed $uhl
-	ld.sis	bc, 467
+	ld.sis	de, 467
 	or	a, a
-	sbc.sis	hl, bc
+	sbc.sis	hl, de
 	jr	c, .LBB10_13
 ; %bb.12:
-	lea	de, iy + 0
+	lea	bc, iy + 0
 	.local	.LBB10_13
 .LBB10_13:
-	push	de
+	push	bc
 	pop	iy
 	ld	de, (iy)
 	ld	a, d
@@ -16461,131 +16053,93 @@ _d84_bbox_visible:                      ; @d84_bbox_visible
 	sbc	hl, hl
 	ld	l, e
 	ld	h, d
-	ld	de, (ix - 5)
+	ld	de, (ix - 3)
 	or	a, a
 	sbc	hl, de
-	push	hl
-	pop	bc
-	ld	(ix - 17), bc
-	ld	de, (iy + 2)
-	ld	a, d
+	ex	de, hl
+	ld	bc, (iy + 2)
+	ld	a, b
 	rlc	a
 	sbc	hl, hl
-	ld	l, e
-	ld	h, d
-	ld	de, (ix - 8)
-	or	a, a
-	sbc	hl, de
-	ex	de, hl
-	ld	(ix - 32), de
-	ld	hl, (_camsin)
-	ld	(ix - 14), hl
-	call	__imulu
-	ld	(ix - 20), hl
-	ld	iy, (_camcos)
-	lea	hl, iy + 0
-	push	de
-	pop	bc
-	call	__imulu
-	push	hl
-	pop	bc
-	ld	hl, (ix - 20)
+	ld	l, c
+	ld	h, b
+	ld	bc, (ix - 6)
 	or	a, a
 	sbc	hl, bc
-	ld	a, 8
-	ld	c, a
-	call	__ishru
-	ex	de, hl
-	ld	(ix - 20), de
+	push	hl
+	push	de
+	call	_d84_rotate
+	ld	hl, 6
+	add	hl, sp
+	ld	sp, hl
 	ld	hl, _d84_rotated
-	ld	(hl), e
-	inc	hl
-	ld	(hl), d
-	lea	hl, iy + 0
-	ld	bc, (ix - 17)
-	call	__imulu
-	push	hl
-	pop	iy
-	ld	hl, (ix - 32)
-	ld	bc, (ix - 14)
-	call	__imulu
-	ex	de, hl
-	add	iy, de
-	lea	hl, iy + 0
-	ld	c, a
-	call	__ishru
-	ex	de, hl
-	ld	hl, _d84_rotated+2
-	ld	(hl), e
-	inc	hl
-	ld	(hl), d
-	ld	hl, (ix - 26)
+	ld	bc, (hl)
+	ld	a, b
+	rlc	a
+	sbc	hl, hl
+	ld	l, c
+	ld	h, b
+	ld	(ix - 3), hl
+	ld	hl, (ix - 9)
 	add	hl, hl
-	push	hl
-	pop	bc
+	ex	de, hl
+	ld	(ix - 6), de
 	ld	hl, _vertex_side
-	add	hl, bc
-	push	bc
-	pop	iy
-	ld	bc, (ix - 20)
+	add	hl, de
 	ld	(hl), c
 	inc	hl
 	ld	(hl), b
-	ld	hl, _vertex_depth
-	lea	bc, iy + 0
+	ld	hl, _d84_rotated+2
+	ld	de, (hl)
+	ld	iy, _vertex_depth
+	lea	hl, iy + 0
+	ld	bc, (ix - 6)
 	add	hl, bc
 	ld	(hl), e
 	inc	hl
 	ld	(hl), d
+	ld	a, (_frame_stamp)
 	ld	iy, _vertex_stamp
 	lea	hl, iy + 0
-	push	de
-	pop	iy
-	ld	de, (ix - 20)
-	ld	bc, (ix - 26)
+	ld	bc, (ix - 9)
 	add	hl, bc
-	ld	a, (ix - 11)
+	ld	(ix - 15), a                    ; 1-byte Folded Spill
 	ld	(hl), a
-	ld	bc, (ix - 23)
 	.local	.LBB10_14
 .LBB10_14:
 	ld	a, d
 	rlc	a
 	sbc	hl, hl
-	ld	(ix - 20), de
+	ld	(ix - 30), de
 	ld	l, e
 	ld	h, d
-	ld	(ix - 17), hl
-	ld	a, iyh
-	rlc	a
-	sbc	hl, hl
-	ld	(ix - 38), iy
-	ex	de, hl
-	ld	e, iyl
-	ld	d, iyh
-	ex	de, hl
-	ld	(ix - 14), hl
-	ld	hl, _vertex_stamp
-	add	hl, bc
-	ld	(ix - 41), hl
-	ld	a, (hl)
+	ld	(ix - 6), hl
+	ld	bc, (ix - 12)
+	add	iy, bc
+	ld	(ix - 36), iy
+	ld	a, (iy)
 	ld	l, -2
 	and	a, l
 	ld	l, a
-	ld	l, (ix - 11)
+	ld	l, (ix - 15)
 	cp	a, l
 	jr	nz, .LBB10_16
 ; %bb.15:
 	push	bc
 	pop	hl
 	add	hl, hl
-	push	hl
-	pop	bc
+	ex	de, hl
 	ld	hl, _vertex_side
-	add	hl, bc
-	ld	iy, (hl)
+	add	hl, de
+	ld	bc, (hl)
+	ld	a, b
+	rlc	a
+	sbc	hl, hl
+	ld	l, c
+	ld	h, b
+	ld	(ix - 24), hl
 	ld	hl, _vertex_depth
-	add	hl, bc
+	add	hl, de
 	ld	bc, (hl)
 	jp	.LBB10_19
 	.local	.LBB10_16
@@ -16602,7 +16156,7 @@ _d84_bbox_visible:                      ; @d84_bbox_visible
 	add	iy, de
 	ld	de, -1868
 	add	iy, de
-	ld	hl, (ix - 29)
+	ld	hl, (ix - 18)
                                         ; kill: def $hl killed $hl killed $uhl
 	ld.sis	de, 467
 	or	a, a
@@ -16620,138 +16174,98 @@ _d84_bbox_visible:                      ; @d84_bbox_visible
 	sbc	hl, hl
 	ld	l, e
 	ld	h, d
-	ld	de, (ix - 5)
+	ld	de, (_camx)
 	or	a, a
 	sbc	hl, de
-	push	hl
-	pop	bc
-	ld	(ix - 29), bc
-	ld	de, (iy + 2)
-	ld	a, d
+	ex	de, hl
+	ld	bc, (iy + 2)
+	ld	a, b
 	rlc	a
 	sbc	hl, hl
-	ld	l, e
-	ld	h, d
-	ld	de, (ix - 8)
-	or	a, a
-	sbc	hl, de
-	ex	de, hl
-	ld	hl, (_camsin)
-	ld	(ix - 5), hl
-	call	__imulu
-	ld	(ix - 8), hl
-	ld	iy, (_camcos)
-	lea	hl, iy + 0
-	push	de
-	pop	bc
-	call	__imulu
-	push	hl
-	pop	bc
-	ld	hl, (ix - 8)
+	ld	l, c
+	ld	h, b
+	ld	bc, (_camy)
 	or	a, a
 	sbc	hl, bc
-	ld	a, 8
-	ld	c, a
-	call	__ishru
 	push	hl
-	pop	bc
-	ld	(ix - 8), bc
+	push	de
+	call	_d84_rotate
+	ld	hl, 6
+	add	hl, sp
+	ld	sp, hl
 	ld	hl, _d84_rotated
-	ld	(hl), c
-	inc	hl
-	ld	(hl), b
-	lea	hl, iy + 0
-	ld	bc, (ix - 29)
-	call	__imulu
-	push	hl
+	ld	bc, (hl)
+	ld	a, b
+	rlc	a
+	sbc	hl, hl
+	ld	l, c
+	ld	h, b
+	ld	(ix - 24), hl
+	ld	de, (ix - 12)
+	push	de
+	pop	hl
+	push	de
 	pop	iy
-	ex	de, hl
-	ld	bc, (ix - 5)
-	call	__imulu
-	ex	de, hl
-	add	iy, de
-	lea	hl, iy + 0
-	ld	iy, (ix - 8)
-	ld	c, a
-	call	__ishru
-	push	hl
-	pop	bc
-	ld	hl, _d84_rotated+2
-	ld	(hl), c
-	inc	hl
-	ld	(hl), b
-	ld	hl, (ix - 23)
 	add	hl, hl
 	ex	de, hl
 	ld	hl, _vertex_side
 	add	hl, de
-	push	de
-	lea	de, iy + 0
-	ld	(hl), e
+	ld	(hl), c
 	inc	hl
-	ld	(hl), d
-	pop	de
+	ld	(hl), b
+	ld	hl, _d84_rotated+2
+	ld	bc, (hl)
 	ld	hl, _vertex_depth
 	add	hl, de
 	ld	(hl), c
 	inc	hl
 	ld	(hl), b
+	ld	a, (_frame_stamp)
 	ld	hl, _vertex_stamp
-	ld	de, (ix - 23)
+	lea	de, iy + 0
 	add	hl, de
-	ld	a, (ix - 11)
 	ld	(hl), a
 	.local	.LBB10_19
 .LBB10_19:
-	ex	de, hl
-	ld	e, iyh
-	ex	de, hl
-	rlc	l
-	sbc	hl, hl
-	ld	(ix - 8), iy
-	ex	de, hl
-	ld	e, iyl
-	ld	d, iyh
-	ex	de, hl
-	ld	(ix - 5), hl
-	ld	l, b
-	rlc	l
-	sbc	hl, hl
-	ex	de, hl
-	ld	(ix - 35), bc
-	ld	e, c
-	ld	d, b
-	ld	iy, (ix - 14)
-	lea	hl, iy + 0
-	add	hl, hl
+	ld	a, b
+	rlc	a
 	sbc	hl, hl
 	push	hl
-	pop	bc
-	lea	hl, iy + 0
-	add	hl, bc
-	call	__ixor
-	ld	a, 6
-	ld	c, a
-	call	__ishru
-	ld	(ix - 29), hl
+	pop	iy
+	ld	(ix - 27), bc
+	ld	iyl, c
+	ld	iyh, b
+	ld	de, (ix - 6)
 	push	de
 	pop	hl
 	add	hl, hl
 	sbc	hl, hl
 	push	hl
 	pop	bc
-	ld	(ix - 11), de
-	ex	de, hl
+	push	de
+	pop	hl
 	add	hl, bc
+	call	__ixor
+	ld	a, 6
+	ld	c, a
+	call	__ishru
+	ld	(ix - 21), hl
+	lea	hl, iy + 0
+	add	hl, hl
+	sbc	hl, hl
+	push	hl
+	pop	bc
+	ld	(ix - 18), iy
+	add	iy, bc
+	lea	hl, iy + 0
 	call	__ixor
 	ld	c, a
 	call	__ishru
-	ld	(ix - 32), hl
-	lea	bc, iy + 0
-	ld	iy, (ix - 17)
-	add	iy, bc
+	ld	(ix - 15), hl
+	ld	iy, (ix - 3)
+	add	iy, de
 	ld	hl, -2
-	ld	de, (ix - 29)
+	ld	de, (ix - 21)
 	or	a, a
 	sbc	hl, de
 	ld	bc, -8388608
@@ -16759,16 +16273,16 @@ _d84_bbox_visible:                      ; @d84_bbox_visible
 	ex	de, hl
 	add	iy, bc
 	lea	hl, iy + 0
-	ld	(ix - 29), de
+	ld	(ix - 21), de
 	or	a, a
 	sbc	hl, de
 	jr	nc, .LBB10_22
 ; %bb.20:
-	ld	de, (ix - 11)
-	ld	iy, (ix - 5)
+	ld	iy, (ix - 24)
+	ld	de, (ix - 18)
 	add	iy, de
 	ld	hl, -2
-	ld	de, (ix - 32)
+	ld	de, (ix - 15)
 	or	a, a
 	sbc	hl, de
 	add	hl, bc
@@ -16785,30 +16299,30 @@ _d84_bbox_visible:                      ; @d84_bbox_visible
 	ret
 	.local	.LBB10_22
 .LBB10_22:
-	ld	iy, (ix - 5)
-	ld	hl, (ix - 14)
-	ld	de, (ix - 17)
+	ld	iy, (ix - 15)
+	ld	hl, (ix - 6)
+	ld	de, (ix - 3)
 	or	a, a
 	sbc	hl, de
 	add	hl, bc
-	ld	de, (ix - 29)
+	ld	de, (ix - 21)
 	or	a, a
 	sbc	hl, de
 	jr	nc, .LBB10_25
 ; %bb.23:
-	ld	hl, (ix - 11)
-	lea	de, iy + 0
+	ld	hl, (ix - 18)
+	ld	de, (ix - 24)
 	or	a, a
 	sbc	hl, de
-	ld	(ix - 5), hl
+	ld	(ix - 21), hl
 	ld	hl, -2
-	ld	de, (ix - 32)
+	lea	de, iy + 0
 	or	a, a
 	sbc	hl, de
 	push	hl
 	pop	iy
 	add	iy, bc
-	ld	hl, (ix - 5)
+	ld	hl, (ix - 21)
 	add	hl, bc
 	lea	de, iy + 0
 	or	a, a
@@ -16822,7 +16336,7 @@ _d84_bbox_visible:                      ; @d84_bbox_visible
 	.local	.LBB10_25
 .LBB10_25:
 	ld.sis	bc, -32768
-	ld	hl, (ix - 38)
+	ld	hl, (ix - 30)
 	ex	de, hl
 	ld	iyl, e
 	ld	iyh, d
@@ -16837,17 +16351,15 @@ _d84_bbox_visible:                      ; @d84_bbox_visible
 	sbc.sis	hl, de
 	jp	c, .LBB10_27
 ; %bb.26:
-	ld	hl, (ix - 35)
+	ld	hl, (ix - 27)
                                         ; kill: def $hl killed $hl killed $uhl
 	add.sis	hl, bc
-	ld	(ix - 17), l
-	ld	(ix - 16), h
 	or	a, a
 	sbc.sis	hl, de
 	jp	nc, .LBB10_28
 	.local	.LBB10_27
 .LBB10_27:
-	ld	hl, (ix - 35)
+	ld	hl, (ix - 27)
 	add.sis	hl, bc
                                         ; kill: def $hl killed $hl killed $uhl
 	or	a, a
@@ -16872,208 +16384,51 @@ _d84_bbox_visible:                      ; @d84_bbox_visible
 	ret
 	.local	.LBB10_28
 .LBB10_28:
-	ld	c, 1
-	ld.sis	de, 32
-	ld	iy, (ix - 38)
-	ex	de, hl
-	ld	e, iyl
-	ld	d, iyh
-	ex	de, hl
-	or	a, a
-	sbc.sis	hl, de
-	ld.sis	de, 17
-	jr	nc, .LBB10_31
-; %bb.29:
-	ex	de, hl
-	ld	e, iyl
-	ld	d, iyh
-	ex	de, hl
-	or	a, a
-	sbc.sis	hl, de
-	jp	nc, .LBB10_39
-; %bb.30:
-	ld	bc, 3
-	ld	hl, (ix - 14)
-	call	__imulu
-	ex	de, hl
-	ld	hl, _small_reciprocals
-	add	hl, de
-	ld	de, (hl)
-	jp	.LBB10_40
-	.local	.LBB10_31
-.LBB10_31:
-	ld	hl, (ix - 44)
-	ld	e, (hl)
-	ld	a, e
-	and	a, c
-	ld	l, a
-	bit	0, l
-	ld	bc, -8388608
-	ld	iy, (ix - 20)
-	jp	nz, .LBB10_41
-; %bb.32:
-	ld	(ix - 5), e                     ; 1-byte Folded Spill
-	ld.sis	de, 2049
-	ld	hl, (ix - 38)
+	ld	e, 1
+	ld.sis	bc, 32
+	ld	hl, (ix - 30)
                                         ; kill: def $hl killed $hl killed $uhl
 	or	a, a
-	sbc.sis	hl, de
-	jp	c, .LBB10_42
-; %bb.33:
-	ld	de, 0
-	.local	.LBB10_34
-.LBB10_34:                              ; =>This Inner Loop Header: Depth=1
-	ld	bc, (ix - 14)
-	push	bc
-	pop	hl
-	call	__ishru_1
-	ld	(ix - 14), hl
-	inc	de
-	push	bc
-	pop	hl
-	push	de
-	pop	iy
-	ld	de, 4098
-	or	a, a
-	sbc	hl, de
-	lea	de, iy + 0
-	jr	nc, .LBB10_34
-; %bb.35:
-	ld	iy, 34
-	push	bc
-	pop	hl
-	lea	bc, iy + 0
-	or	a, a
-	sbc	hl, bc
-	jp	nc, .LBB10_43
-; %bb.36:
-	ld	iy, (ix - 14)
-	lea	hl, iy + 0
-	ld	bc, 2
-	or	a, a
-	sbc	hl, bc
-	lea	hl, iy + 0
-	ld	iy, (ix - 20)
-	jr	nc, .LBB10_38
-; %bb.37:
-	ld	hl, 1
-	.local	.LBB10_38
-.LBB10_38:
-	ld	bc, 3
-	call	__imulu
+	sbc.sis	hl, bc
+	jr	nc, .LBB10_30
+; %bb.29:
+	ld	hl, (ix - 6)
+	push	hl
+	ld	hl, (ix - 3)
+	push	hl
+	call	_d84_screen_x
 	push	hl
 	pop	bc
-	ld	hl, _small_reciprocals
-	add	hl, bc
-	ld	hl, (hl)
-	ld	(ix - 14), hl
-	jp	.LBB10_45
-	.local	.LBB10_39
-.LBB10_39:
-	ld	hl, (ix - 14)
-	add	hl, hl
-	ex	de, hl
-	ld	hl, _reciprocal_table
-	add	hl, de
-	ld	hl, (hl)
-	xor	a, a
-	ld	(ix - 2), a
-	ld	de, (ix - 4)
-	ld	d, h
-	ld	e, l
-	.local	.LBB10_40
-.LBB10_40:
-	or	a, a
-	sbc	hl, hl
-	ld	a, l
-	ld	(ix - 5), a
-	ld	iy, (ix - 20)
-	ld	a, iyh
+	ld	hl, 6
+	add	hl, sp
+	ld	sp, hl
+	jr	.LBB10_33
+	.local	.LBB10_30
+.LBB10_30:
+	ld	hl, (ix - 33)
+	ld	a, (hl)
+	and	a, e
 	ld	l, a
-	rlc	l
-	sbc	hl, hl
+	bit	0, l
+	jr	nz, .LBB10_32
+; %bb.31:
+	ld	hl, (ix - 6)
 	push	hl
-	pop	bc
-	ld	c, iyl
-	ld	b, iyh
-	rlc	a
-	sbc	a, a
-	ex	de, hl
-	ld	e, (ix - 5)                     ; 1-byte Folded Reload
-	call	__lmulu
+	ld	hl, (ix - 3)
 	push	hl
-	pop	bc
-	ld	a, e
-	ld	l, 14
-	call	__lshrs
-	push	bc
-	pop	hl
-	ld	de, 64
-	add	hl, de
-	ld	(ix - 5), hl
-	ld	bc, -8388608
-	jp	.LBB10_47
-	.local	.LBB10_41
-.LBB10_41:
-	ld	hl, (ix - 26)
-	add	hl, hl
-	ex	de, hl
-	ld	hl, _vertex_screen
-	add	hl, de
-	ld	iy, (hl)
-	jp	.LBB10_46
-	.local	.LBB10_42
-.LBB10_42:
-	ld	de, 0
-	ld	hl, (ix - 14)
-	jr	.LBB10_44
-	.local	.LBB10_43
-.LBB10_43:
-	ld	hl, (ix - 14)
-	ld	iy, (ix - 20)
-	.local	.LBB10_44
-.LBB10_44:
-	add	hl, hl
-	push	hl
-	pop	bc
-	ld	hl, _reciprocal_table
-	add	hl, bc
-	ld	hl, (hl)
-	ld	bc, 0
-	ld	c, l
-	ld	b, h
-	ld	(ix - 14), bc
-	.local	.LBB10_45
-.LBB10_45:
-	ld	a, iyh
-	ld	l, a
-	rlc	l
-	sbc	hl, hl
-	lea	bc, iy + 0
+	call	_d84_screen_x
 	push	hl
 	pop	iy
-	ld	iyl, c
-	ld	iyh, b
-	rlc	a
-	sbc	a, a
-	ld	hl, (ix - 14)
-	ld	c, e
-	call	__ishru
-	ld	de, 0
-	lea	bc, iy + 0
-	call	__lmulu
+	ld	hl, 6
+	add	hl, sp
+	ld	sp, hl
+	ld	c, 8
+	lea	hl, iy + 0
+	call	__ishl
+	call	__ishrs
 	push	hl
 	pop	bc
-	ld	a, e
-	ld	l, 14
-	call	__lshru
-	push	bc
-	pop	iy
-	ld.sis	de, 64
-	add.sis	iy, de
-	ld	bc, (ix - 26)
-	push	bc
-	pop	hl
+	ld	hl, (ix - 9)
 	add	hl, hl
 	ex	de, hl
 	ld	hl, _vertex_screen
@@ -17084,364 +16439,212 @@ _d84_bbox_visible:                      ; @d84_bbox_visible
 	inc	hl
 	ld	(hl), d
 	pop	de
-	ld	l, 1
-	ld	a, (ix - 5)
-	or	a, l
-	ld	e, a
-	ld	hl, _vertex_stamp
-	add	hl, bc
-	ld	(hl), e
-	ld	bc, -8388608
-	.local	.LBB10_46
-.LBB10_46:
-	ld	a, iyh
-	rlc	a
-	sbc	hl, hl
+	ld	de, _vertex_stamp
 	ex	de, hl
-	ld	e, iyl
-	ld	d, iyh
+	ld	de, (ix - 9)
+	add	hl, de
+	set	0, (hl)
+	jr	.LBB10_33
+	.local	.LBB10_32
+.LBB10_32:
+	ld	hl, (ix - 9)
+	add	hl, hl
 	ex	de, hl
-	ld	(ix - 5), hl
-	.local	.LBB10_47
-.LBB10_47:
-	ld.sis	de, -32736
-	ld	l, (ix - 17)
-	ld	h, (ix - 16)
-	or	a, a
-	sbc.sis	hl, de
-	ld	iy, (ix - 8)
-	jp	nc, .LBB10_52
-; %bb.48:
-	ld	hl, (ix - 35)
-                                        ; kill: def $hl killed $hl killed $uhl
-	ld.sis	de, 17
-	or	a, a
-	sbc.sis	hl, de
-	jp	nc, .LBB10_60
-; %bb.49:
-	ld	iy, (ix - 11)
-	lea	hl, iy + 0
-	ld	de, 2
-	or	a, a
-	sbc	hl, de
-	jr	nc, .LBB10_51
-; %bb.50:
-	ld	iy, 1
-	.local	.LBB10_51
-.LBB10_51:
-	ld	bc, 3
-	lea	hl, iy + 0
-	call	__imulu
-	ex	de, hl
-	ld	hl, _small_reciprocals
+	ld	hl, _vertex_screen
 	add	hl, de
 	ld	de, (hl)
-	jp	.LBB10_61
-	.local	.LBB10_52
-.LBB10_52:
-	ld	hl, (ix - 41)
-	ld	e, (hl)
+	ld	a, d
+	rlc	a
+	sbc	hl, hl
+	push	hl
+	pop	bc
+	ld	c, e
+	ld	b, d
+	.local	.LBB10_33
+.LBB10_33:
+	ld	hl, (ix - 27)
+	ld	iy, (ix - 18)
+                                        ; kill: def $hl killed $hl killed $uhl
+	ld.sis	de, 32
+	or	a, a
+	sbc.sis	hl, de
+	ld	(ix - 3), bc
+	jr	nc, .LBB10_35
+; %bb.34:
+	push	iy
+	ld	hl, (ix - 24)
+	push	hl
+	call	_d84_screen_x
+	ld	iy, 6
+	add	iy, sp
+	ld	sp, iy
+	jr	.LBB10_38
+	.local	.LBB10_35
+.LBB10_35:
+	ld	hl, (ix - 36)
+	ld	a, (hl)
 	ld	l, 1
-	ld	a, e
 	and	a, l
 	ld	l, a
 	bit	0, l
-	jp	nz, .LBB10_62
-; %bb.53:
-	ld	(ix - 14), e                    ; 1-byte Folded Spill
-	ld.sis	de, 2049
-	ld	hl, (ix - 35)
-                                        ; kill: def $hl killed $hl killed $uhl
-	or	a, a
-	sbc.sis	hl, de
-	jp	c, .LBB10_63
-; %bb.54:
-	ld	de, 0
-	.local	.LBB10_55
-.LBB10_55:                              ; =>This Inner Loop Header: Depth=1
-	ld	bc, (ix - 11)
-	push	bc
-	pop	hl
-	call	__ishru_1
-	ld	(ix - 11), hl
-	inc	de
-	push	bc
-	pop	hl
+	jr	nz, .LBB10_37
+; %bb.36:
+	push	iy
+	ld	hl, (ix - 24)
+	push	hl
+	call	_d84_screen_x
+	push	hl
+	pop	iy
+	ld	hl, 6
+	add	hl, sp
+	ld	sp, hl
+	ld	c, 8
+	lea	hl, iy + 0
+	call	__ishl
+	call	__ishrs
+	ld	(ix - 9), hl
+	ld	de, (ix - 12)
 	push	de
-	pop	iy
-	ld	de, 4098
-	or	a, a
-	sbc	hl, de
-	lea	de, iy + 0
-	jr	nc, .LBB10_55
-; %bb.56:
-	ld	iy, 34
-	push	bc
 	pop	hl
-	lea	bc, iy + 0
-	or	a, a
-	sbc	hl, bc
-	jp	nc, .LBB10_64
-; %bb.57:
-	ld	iy, (ix - 11)
-	lea	hl, iy + 0
-	ld	bc, 2
-	or	a, a
-	sbc	hl, bc
-	lea	hl, iy + 0
-	ld	iy, (ix - 8)
-	jr	nc, .LBB10_59
-; %bb.58:
-	ld	hl, 1
-	.local	.LBB10_59
-.LBB10_59:
-	ld	bc, 3
-	call	__imulu
-	push	hl
-	pop	bc
-	ld	hl, _small_reciprocals
-	add	hl, bc
-	ld	hl, (hl)
-	ld	(ix - 11), hl
-	jr	.LBB10_66
-	.local	.LBB10_60
-.LBB10_60:
-	ld	hl, (ix - 11)
 	add	hl, hl
-	ex	de, hl
-	ld	hl, _reciprocal_table
-	add	hl, de
-	ld	hl, (hl)
-	xor	a, a
-	ld	(ix - 1), a
-	ld	de, (ix - 3)
-	ld	d, h
-	ld	e, l
-	.local	.LBB10_61
-.LBB10_61:
-	or	a, a
-	sbc	hl, hl
-	ld	a, l
-	ld	(ix - 11), a
-	ld	iy, (ix - 8)
-	ld	a, iyh
-	ld	l, a
-	rlc	l
-	sbc	hl, hl
 	push	hl
 	pop	bc
-	ld	c, iyl
-	ld	b, iyh
-	rlc	a
-	sbc	a, a
-	ex	de, hl
-	ld	e, (ix - 11)                    ; 1-byte Folded Reload
-	call	__lmulu
-	push	hl
-	pop	bc
-	ld	a, e
-	ld	l, 14
-	call	__lshrs
-	push	bc
-	pop	hl
-	ld	de, 64
-	add	hl, de
-	xor	a, a
-	ld	bc, -8388608
-	jp	.LBB10_68
-	.local	.LBB10_62
-.LBB10_62:
-	ld	hl, (ix - 23)
-	add	hl, hl
-	ex	de, hl
 	ld	hl, _vertex_screen
-	add	hl, de
-	ld	iy, (hl)
-	xor	a, a
-	jr	.LBB10_67
-	.local	.LBB10_63
-.LBB10_63:
-	ld	de, 0
-	jr	.LBB10_65
-	.local	.LBB10_64
-.LBB10_64:
-	ld	iy, (ix - 8)
-	.local	.LBB10_65
-.LBB10_65:
-	ld	hl, (ix - 11)
-	add	hl, hl
-	push	hl
-	pop	bc
-	ld	hl, _reciprocal_table
 	add	hl, bc
-	ld	hl, (hl)
-	ld	bc, 0
-	ld	c, l
-	ld	b, h
-	ld	(ix - 11), bc
-	.local	.LBB10_66
-.LBB10_66:
-	ld	a, iyh
-	ld	l, a
-	rlc	l
-	sbc	hl, hl
-	lea	bc, iy + 0
-	push	hl
-	pop	iy
-	ld	iyl, c
-	ld	iyh, b
-	rlc	a
-	sbc	a, a
-	ld	hl, (ix - 11)
-	ld	c, e
-	call	__ishru
-	ld	de, 0
-	lea	bc, iy + 0
-	call	__lmulu
-	push	hl
-	pop	bc
-	ld	a, e
-	ld	l, 14
-	call	__lshru
-	push	bc
-	pop	iy
-	ld.sis	de, 64
-	add.sis	iy, de
-	ld	bc, (ix - 23)
-	push	bc
-	pop	hl
-	add	hl, hl
-	ex	de, hl
-	ld	hl, _vertex_screen
-	add	hl, de
 	push	de
 	lea	de, iy + 0
 	ld	(hl), e
 	inc	hl
 	ld	(hl), d
 	pop	de
-	ld	l, 1
-	ld	a, (ix - 14)
-	or	a, l
-	ld	e, a
-	ld	hl, _vertex_stamp
-	add	hl, bc
-	ld	(hl), e
-	xor	a, a
-	ld	bc, -8388608
-	.local	.LBB10_67
-.LBB10_67:
+	ld	hl, (ix - 9)
+	ld	iy, _vertex_stamp
+	add	iy, de
+	set	0, (iy)
+	jr	.LBB10_38
+	.local	.LBB10_37
+.LBB10_37:
+	ld	hl, (ix - 12)
+	add	hl, hl
 	ex	de, hl
-	ld	e, iyh
-	ex	de, hl
-	rlc	l
+	ld	hl, _vertex_screen
+	add	hl, de
+	ld	de, (hl)
+	ld	a, d
+	rlc	a
 	sbc	hl, hl
-	ex	de, hl
-	ld	e, iyl
-	ld	d, iyh
-	ex	de, hl
-	.local	.LBB10_68
-.LBB10_68:
-	ld	(ix - 11), hl
+	ld	l, e
+	ld	h, d
+	.local	.LBB10_38
+.LBB10_38:
+	ld	bc, -8388608
+	ld	de, (ix - 3)
+	ld	(ix - 9), hl
 	push	hl
 	pop	iy
 	add	iy, bc
-	push	bc
-	pop	de
-	ld	bc, (ix - 5)
-	push	bc
+	push	de
 	pop	hl
-	add	hl, de
-	ld	(ix - 17), hl
-	ld	(ix - 14), iy
-	lea	de, iy + 0
+	add	hl, bc
+	ld	(ix - 15), hl
+	ld	(ix - 12), iy
+	lea	bc, iy + 0
 	or	a, a
-	sbc	hl, de
-	jr	c, .LBB10_70
-; %bb.69:
-	ld	bc, (ix - 11)
-	.local	.LBB10_70
-.LBB10_70:
-	ld	(ix - 8), bc
-	push	bc
-	pop	hl
+	sbc	hl, bc
+	push	de
+	pop	iy
+	jr	c, .LBB10_40
+; %bb.39:
+	ld	iy, (ix - 9)
+	.local	.LBB10_40
+.LBB10_40:
+	lea	hl, iy + 0
 	ld	bc, -8388608
 	add	hl, bc
 	ld	de, -8388607
 	or	a, a
 	sbc	hl, de
-	jr	nc, .LBB10_72
-; %bb.71:
+	jr	nc, .LBB10_42
+; %bb.41:
 	or	a, a
 	sbc	hl, hl
-	ld	(ix - 8), hl
-	.local	.LBB10_72
-.LBB10_72:
-	ld	hl, (ix - 14)
-	ld	de, (ix - 17)
+	push	hl
+	pop	iy
+	.local	.LBB10_42
+.LBB10_42:
+	ld	(ix - 6), iy
+	ld	hl, (ix - 12)
+	ld	de, (ix - 15)
 	or	a, a
 	sbc	hl, de
-	ld	de, (ix - 5)
-	jr	c, .LBB10_74
-; %bb.73:
-	ld	de, (ix - 11)
-	.local	.LBB10_74
-.LBB10_74:
-	push	de
-	pop	hl
+	ld	iy, (ix - 3)
+	jr	c, .LBB10_44
+; %bb.43:
+	ld	iy, (ix - 9)
+	.local	.LBB10_44
+.LBB10_44:
+	lea	hl, iy + 0
 	add	hl, bc
-	ld	bc, -8388481
+	ld	de, -8388481
 	or	a, a
-	sbc	hl, bc
-	jr	c, .LBB10_76
-; %bb.75:
-	ld	de, 127
-	.local	.LBB10_76
-.LBB10_76:
-	ex	de, hl
-	ld	iy, (ix - 8)
-	ld	bc, -8388608
+	sbc	hl, de
+	jr	c, .LBB10_46
+; %bb.45:
+	ld	iy, 127
+	.local	.LBB10_46
+.LBB10_46:
+	lea	hl, iy + 0
+	ld	iy, (ix - 6)
 	add	iy, bc
 	add	hl, bc
-	ld	(ix - 5), hl
+	ld	(ix - 3), hl
 	lea	de, iy + 0
 	or	a, a
 	sbc	hl, de
+	ld	a, 0
 	jp	c, .LBB10_8
-; %bb.77:
+; %bb.47:
 	ld	hl, _cliptop
-	.local	.LBB10_78
-.LBB10_78:                              ; =>This Inner Loop Header: Depth=1
-	ld	iy, (ix - 8)
-	ld	(ix - 11), iy
-	ld	de, (ix - 11)
-	add	hl, de
+	ld	de, _clipbottom
+	.local	.LBB10_48
+.LBB10_48:                              ; =>This Inner Loop Header: Depth=1
+	ld	iy, (ix - 6)
+	ld	(ix - 9), iy
+	ld	bc, (ix - 9)
+	add	hl, bc
 	ld	a, (hl)
-	ld	hl, _clipbottom
-	ld	de, (ix - 11)
-	add	hl, de
-	ld	d, (hl)
+	ex	de, hl
 	ld	e, a
+	ld	bc, (ix - 9)
+	add	hl, bc
+	ld	d, (hl)
 	cp	a, d
                                         ; kill: def $a killed $a
 	sbc	a, a
+	ld	(ix - 9), a                     ; 1-byte Folded Spill
 	lea	hl, iy + 0
+	ld	bc, -8388608
 	add	hl, bc
-	ld	bc, (ix - 5)
+	ld	bc, (ix - 3)
 	or	a, a
 	sbc	hl, bc
-	jp	nc, .LBB10_8
-; %bb.79:                               ;   in Loop: Header=BB10_78 Depth=1
+	jr	nc, .LBB10_50
+; %bb.49:                               ;   in Loop: Header=BB10_48 Depth=1
 	inc	iy
-	ld	(ix - 8), iy
-	ld	l, a
+	ld	(ix - 6), iy
 	ld	a, e
 	cp	a, d
-	ld	a, l
-	ld	bc, -8388608
+	ld	a, (ix - 9)                     ; 1-byte Folded Reload
 	ld	hl, _cliptop
-	jp	nc, .LBB10_78
+	ld	de, _clipbottom
+	jp	nc, .LBB10_48
 	jp	.LBB10_8
+	.local	.LBB10_50
+.LBB10_50:
+	ld	a, (ix - 9)                     ; 1-byte Folded Reload
+	ld	sp, ix
+	pop	ix
+	ret
 	.local	.Lfunc_end10
 .Lfunc_end10:
 	.size	_d84_bbox_visible, .Lfunc_end10-_d84_bbox_visible
@@ -17478,8 +16681,8 @@ _engine_render:                         ; @engine_render
 	jr	nz, .LBB11_3
 ; %bb.1:
 	ld	hl, _depthbuffer
-	ld	iyl, -1
-	ld	a, iyl
+	ld	iyh, -1
+	ld	a, iyh
 	ld	(_depthbuffer), a
 	push	hl
 	pop	de
@@ -17490,14 +16693,13 @@ _engine_render:                         ; @engine_render
 	bit	0, a
 	jr	z, .LBB11_3
 ; %bb.2:
-	ld	a, iyl
+	ld	a, iyh
 	ld	(_planes), a
 	ld	hl, _planes
 	push	hl
-	pop	iy
-	inc	iy
+	pop	de
+	inc	de
 	ld	bc, 10239
-	lea	de, iy + 0
 	ldir
 	.local	.LBB11_3
 .LBB11_3:
@@ -17601,12 +16803,11 @@ _engine_render:                         ; @engine_render
 	and	a, l
 	ld	iyh, a
 	add.sis	iy, iy
-	ld	bc, 0
-	push	bc
-	pop	de
+	ld	de, 0
 	ld	e, iyl
 	ld	d, iyh
-	ld	hl, _sine_table
+	push	bc
+	pop	hl
 	add	hl, de
 	ld	de, (hl)
 	ld	a, d
@@ -17615,7 +16816,10 @@ _engine_render:                         ; @engine_render
 	ld	l, e
 	ld	h, d
 	ld	(_camsin), hl
-	push	bc
+	call	_d84_set_camera
+	or	a, a
+	sbc	hl, hl
+	push	hl
 	ld	hl, 235
 	push	hl
 	call	_bsp
@@ -17624,440 +16828,107 @@ _engine_render:                         ; @engine_render
 	ld	sp, hl
 	ld	a, (_player+32)
 	bit	0, a
-	jp	nz, .LBB11_161
+	jp	nz, .LBB11_154
 ; %bb.6:
 	ld	a, (_player+31)
 	bit	0, a
-	jp	z, .LBB11_17
+	ld	bc, 2
+	jr	z, .LBB11_13
 ; %bb.7:
 	ld	de, (_render_detail)
-	ld	bc, 2
 	push	de
 	pop	hl
 	or	a, a
 	sbc	hl, bc
-	jr	nz, .LBB11_10
-; %bb.8:
-	ld	bc, 0
-	ld	de, _planes
-	.local	.LBB11_9
-.LBB11_9:                               ; =>This Inner Loop Header: Depth=1
-	push	de
-	pop	iy
-	add	iy, bc
-	ld	a, (iy)
-	ld	(iy + 1), a
-	push	bc
-	pop	iy
-	ld	bc, 2
-	add	iy, bc
-	lea	hl, iy + 0
-	ld	bc, 10240
-	or	a, a
-	sbc	hl, bc
-	lea	bc, iy + 0
 	jr	nz, .LBB11_9
-	jp	.LBB11_16
-	.local	.LBB11_10
-.LBB11_10:
+; %bb.8:
+	ld	hl, 5120
+	push	hl
+	ld	hl, _planes
+	push	hl
+	call	_d84_double_columns
+	jr	.LBB11_12
+	.local	.LBB11_9
+.LBB11_9:
 	ld	bc, 3
 	push	de
 	pop	hl
 	or	a, a
 	sbc	hl, bc
-	jp	nz, .LBB11_13
-; %bb.11:
-	ld	bc, 0
-	ld	de, _planes
-	.local	.LBB11_12
-.LBB11_12:                              ; =>This Inner Loop Header: Depth=1
-	push	de
-	pop	iy
-	add	iy, bc
-	ld	a, (iy)
-	ld	(iy + 1), a
-	ld	(iy + 2), a
-	ld	a, (iy + 3)
-	ld	(iy + 4), a
-	ld	(iy + 5), a
-	ld	a, (iy + 6)
-	ld	(iy + 7), a
-	ld	(iy + 8), a
-	ld	a, (iy + 9)
-	ld	(iy + 10), a
-	ld	(iy + 11), a
-	ld	a, (iy + 12)
-	ld	(iy + 13), a
-	ld	(iy + 14), a
-	ld	a, (iy + 15)
-	ld	(iy + 16), a
-	ld	(iy + 17), a
-	ld	a, (iy + 18)
-	ld	(iy + 19), a
-	ld	(iy + 20), a
-	ld	a, (iy + 21)
-	ld	(iy + 22), a
-	ld	(iy + 23), a
-	ld	a, (iy + 24)
-	ld	(iy + 25), a
-	ld	(iy + 26), a
-	ld	a, (iy + 27)
-	ld	(iy + 28), a
-	ld	(iy + 29), a
-	ld	a, (iy + 30)
-	ld	(iy + 31), a
-	ld	(iy + 32), a
-	ld	a, (iy + 33)
-	ld	(iy + 34), a
-	ld	(iy + 35), a
-	ld	a, (iy + 36)
-	ld	(iy + 37), a
-	ld	(iy + 38), a
-	ld	a, (iy + 39)
-	ld	(iy + 40), a
-	ld	(iy + 41), a
-	ld	a, (iy + 42)
-	ld	(iy + 43), a
-	ld	(iy + 44), a
-	ld	a, (iy + 45)
-	ld	(iy + 46), a
-	ld	(iy + 47), a
-	ld	a, (iy + 48)
-	ld	(iy + 49), a
-	ld	(iy + 50), a
-	ld	a, (iy + 51)
-	ld	(iy + 52), a
-	ld	(iy + 53), a
-	ld	a, (iy + 54)
-	ld	(iy + 55), a
-	ld	(iy + 56), a
-	ld	a, (iy + 57)
-	ld	(iy + 58), a
-	ld	(iy + 59), a
-	ld	a, (iy + 60)
-	ld	(iy + 61), a
-	ld	(iy + 62), a
-	ld	a, (iy + 63)
-	ld	(iy + 64), a
-	ld	(iy + 65), a
-	ld	a, (iy + 66)
-	ld	(iy + 67), a
-	ld	(iy + 68), a
-	ld	a, (iy + 69)
-	ld	(iy + 70), a
-	ld	(iy + 71), a
-	ld	a, (iy + 72)
-	ld	(iy + 73), a
-	ld	(iy + 74), a
-	ld	a, (iy + 75)
-	ld	(iy + 76), a
-	ld	(iy + 77), a
-	ld	a, (iy + 78)
-	ld	(iy + 79), a
-	ld	(iy + 80), a
-	ld	a, (iy + 81)
-	ld	(iy + 82), a
-	ld	(iy + 83), a
-	ld	a, (iy + 84)
-	ld	(iy + 85), a
-	ld	(iy + 86), a
-	ld	a, (iy + 87)
-	ld	(iy + 88), a
-	ld	(iy + 89), a
-	ld	a, (iy + 90)
-	ld	(iy + 91), a
-	ld	(iy + 92), a
-	ld	a, (iy + 93)
-	ld	(iy + 94), a
-	ld	(iy + 95), a
-	ld	a, (iy + 96)
-	ld	(iy + 97), a
-	ld	(iy + 98), a
-	ld	a, (iy + 99)
-	ld	(iy + 100), a
-	ld	(iy + 101), a
-	ld	a, (iy + 102)
-	ld	(iy + 103), a
-	ld	(iy + 104), a
-	ld	a, (iy + 105)
-	ld	(iy + 106), a
-	ld	(iy + 107), a
-	ld	a, (iy + 108)
-	ld	(iy + 109), a
-	ld	(iy + 110), a
-	ld	a, (iy + 111)
-	ld	(iy + 112), a
-	ld	(iy + 113), a
-	ld	a, (iy + 114)
-	ld	(iy + 115), a
-	ld	(iy + 116), a
-	ld	a, (iy + 117)
-	ld	(iy + 118), a
-	ld	(iy + 119), a
-	ld	a, (iy + 120)
-	ld	(iy + 121), a
-	ld	(iy + 122), a
-	ld	a, (iy + 123)
-	ld	(iy + 124), a
-	ld	(iy + 125), a
-	ld	a, (iy + 126)
-	ld	(iy + 127), a
-	push	bc
-	pop	iy
-	ld	bc, 128
-	add	iy, bc
-	lea	hl, iy + 0
-	ld	bc, 10240
+	jr	nz, .LBB11_11
+; %bb.10:
+	ld	hl, 80
+	push	hl
+	ld	hl, _planes
+	push	hl
+	call	_d84_triple_columns
+	jr	.LBB11_12
+	.local	.LBB11_11
+.LBB11_11:
+	ld	bc, 4
+	ex	de, hl
 	or	a, a
 	sbc	hl, bc
-	lea	bc, iy + 0
-	jp	nz, .LBB11_12
-	jr	.LBB11_16
+	ld	hl, 2560
+	push	hl
+	ld	hl, _planes
+	push	hl
+	call	z, _d84_quad_columns
+	.local	.LBB11_12
+.LBB11_12:
+	ld	hl, 6
+	add	hl, sp
+	ld	sp, hl
+	call	_draw_planes
 	.local	.LBB11_13
 .LBB11_13:
-	ex	de, hl
-	ld	de, 4
-	or	a, a
-	sbc	hl, de
-	ld	de, _planes
-	jr	nz, .LBB11_16
-; %bb.14:
-	ld	bc, 0
-	.local	.LBB11_15
-.LBB11_15:                              ; =>This Inner Loop Header: Depth=1
-	push	de
-	pop	iy
-	add	iy, bc
-	ld	a, (iy)
-	ld	(iy + 3), a
-	ld	(iy + 2), a
-	ld	(iy + 1), a
-	push	bc
-	pop	iy
-	ld	bc, 4
-	add	iy, bc
-	lea	hl, iy + 0
-	ld	bc, 10240
-	or	a, a
-	sbc	hl, bc
-	lea	bc, iy + 0
-	jr	nz, .LBB11_15
-	.local	.LBB11_16
-.LBB11_16:
-	call	_draw_planes
-	.local	.LBB11_17
-.LBB11_17:
 	call	_draw_sprites
 	ld	de, (_render_detail)
-	ld	bc, 2
 	push	de
 	pop	hl
+	ld	bc, 2
 	or	a, a
 	sbc	hl, bc
-	jr	nz, .LBB11_20
-; %bb.18:
-	ld	de, 2
-	push	de
-	pop	bc
-	.local	.LBB11_19
-.LBB11_19:                              ; =>This Inner Loop Header: Depth=1
-	ld	iy, _engine_view
-	add	iy, bc
-	ld	a, (iy)
-	ld	(iy + 1), a
-	push	bc
-	pop	iy
-	add	iy, de
-	lea	hl, iy + 0
-	ld	bc, 10242
-	or	a, a
-	sbc	hl, bc
-	lea	bc, iy + 0
-	jr	nz, .LBB11_19
-	jp	.LBB11_25
-	.local	.LBB11_20
-.LBB11_20:
+	jr	nz, .LBB11_15
+; %bb.14:
+	ld	hl, 5120
+	push	hl
+	ld	hl, _engine_view+2
+	push	hl
+	call	_d84_double_columns
+	jr	.LBB11_18
+	.local	.LBB11_15
+.LBB11_15:
 	ld	bc, 3
 	push	de
 	pop	hl
 	or	a, a
 	sbc	hl, bc
-	jp	nz, .LBB11_23
-; %bb.21:
-	ld	de, 10240
-	ld	bc, 0
-	.local	.LBB11_22
-.LBB11_22:                              ; =>This Inner Loop Header: Depth=1
-	ld	iy, _engine_view+64
-	add	iy, bc
-	ld	a, (iy - 62)
-	ld	(iy - 61), a
-	ld	(iy - 60), a
-	ld	a, (iy - 59)
-	ld	(iy - 58), a
-	ld	(iy - 57), a
-	ld	a, (iy - 56)
-	ld	(iy - 55), a
-	ld	(iy - 54), a
-	ld	a, (iy - 53)
-	ld	(iy - 52), a
-	ld	(iy - 51), a
-	ld	a, (iy - 50)
-	ld	(iy - 49), a
-	ld	(iy - 48), a
-	ld	a, (iy - 47)
-	ld	(iy - 46), a
-	ld	(iy - 45), a
-	ld	a, (iy - 44)
-	ld	(iy - 43), a
-	ld	(iy - 42), a
-	ld	a, (iy - 41)
-	ld	(iy - 40), a
-	ld	(iy - 39), a
-	ld	a, (iy - 38)
-	ld	(iy - 37), a
-	ld	(iy - 36), a
-	ld	a, (iy - 35)
-	ld	(iy - 34), a
-	ld	(iy - 33), a
-	ld	a, (iy - 32)
-	ld	(iy - 31), a
-	ld	(iy - 30), a
-	ld	a, (iy - 29)
-	ld	(iy - 28), a
-	ld	(iy - 27), a
-	ld	a, (iy - 26)
-	ld	(iy - 25), a
-	ld	(iy - 24), a
-	ld	a, (iy - 23)
-	ld	(iy - 22), a
-	ld	(iy - 21), a
-	ld	a, (iy - 20)
-	ld	(iy - 19), a
-	ld	(iy - 18), a
-	ld	a, (iy - 17)
-	ld	(iy - 16), a
-	ld	(iy - 15), a
-	ld	a, (iy - 14)
-	ld	(iy - 13), a
-	ld	(iy - 12), a
-	ld	a, (iy - 11)
-	ld	(iy - 10), a
-	ld	(iy - 9), a
-	ld	a, (iy - 8)
-	ld	(iy - 7), a
-	ld	(iy - 6), a
-	ld	a, (iy - 5)
-	ld	(iy - 4), a
-	ld	(iy - 3), a
-	ld	a, (iy - 2)
-	ld	(iy - 1), a
-	ld	(iy), a
-	ld	a, (iy + 1)
-	ld	(iy + 2), a
-	ld	(iy + 3), a
-	ld	a, (iy + 4)
-	ld	(iy + 5), a
-	ld	(iy + 6), a
-	ld	a, (iy + 7)
-	ld	(iy + 8), a
-	ld	(iy + 9), a
-	ld	a, (iy + 10)
-	ld	(iy + 11), a
-	ld	(iy + 12), a
-	ld	a, (iy + 13)
-	ld	(iy + 14), a
-	ld	(iy + 15), a
-	ld	a, (iy + 16)
-	ld	(iy + 17), a
-	ld	(iy + 18), a
-	ld	a, (iy + 19)
-	ld	(iy + 20), a
-	ld	(iy + 21), a
-	ld	a, (iy + 22)
-	ld	(iy + 23), a
-	ld	(iy + 24), a
-	ld	a, (iy + 25)
-	ld	(iy + 26), a
-	ld	(iy + 27), a
-	ld	a, (iy + 28)
-	ld	(iy + 29), a
-	ld	(iy + 30), a
-	ld	a, (iy + 31)
-	ld	(iy + 32), a
-	ld	(iy + 33), a
-	ld	a, (iy + 34)
-	ld	(iy + 35), a
-	ld	(iy + 36), a
-	ld	a, (iy + 37)
-	ld	(iy + 38), a
-	ld	(iy + 39), a
-	ld	a, (iy + 40)
-	ld	(iy + 41), a
-	ld	(iy + 42), a
-	ld	a, (iy + 43)
-	ld	(iy + 44), a
-	ld	(iy + 45), a
-	ld	a, (iy + 46)
-	ld	(iy + 47), a
-	ld	(iy + 48), a
-	ld	a, (iy + 49)
-	ld	(iy + 50), a
-	ld	(iy + 51), a
-	ld	a, (iy + 52)
-	ld	(iy + 53), a
-	ld	(iy + 54), a
-	ld	a, (iy + 55)
-	ld	(iy + 56), a
-	ld	(iy + 57), a
-	ld	a, (iy + 58)
-	ld	(iy + 59), a
-	ld	(iy + 60), a
-	ld	a, (iy + 61)
-	ld	(iy + 62), a
-	ld	(iy + 63), a
-	ld	a, (iy + 64)
-	ld	(iy + 65), a
-	push	bc
-	pop	iy
-	ld	bc, 128
-	add	iy, bc
-	lea	hl, iy + 0
-	push	de
-	pop	bc
-	or	a, a
-	sbc	hl, bc
-	lea	bc, iy + 0
-	jp	nz, .LBB11_22
-	jr	.LBB11_25
-	.local	.LBB11_23
-.LBB11_23:
+	jr	nz, .LBB11_17
+; %bb.16:
+	ld	hl, 80
+	push	hl
+	ld	hl, _engine_view+2
+	push	hl
+	call	_d84_triple_columns
+	jr	.LBB11_18
+	.local	.LBB11_17
+.LBB11_17:
+	ld	bc, 4
 	ex	de, hl
-	ld	de, 4
-	or	a, a
-	sbc	hl, de
-	ld	bc, 2
-	jr	nz, .LBB11_25
-	.local	.LBB11_24
-.LBB11_24:                              ; =>This Inner Loop Header: Depth=1
-	ld	iy, _engine_view
-	add	iy, bc
-	ld	a, (iy)
-	ld	(iy + 3), a
-	ld	(iy + 2), a
-	ld	(iy + 1), a
-	push	bc
-	pop	iy
-	add	iy, de
-	lea	hl, iy + 0
-	ld	bc, 10242
 	or	a, a
 	sbc	hl, bc
-	lea	bc, iy + 0
-	jr	nz, .LBB11_24
-	.local	.LBB11_25
-.LBB11_25:
-	ld	iy, _gun_frames
+	ld	hl, 2560
+	push	hl
+	ld	hl, _engine_view+2
+	push	hl
+	call	z, _d84_quad_columns
+	.local	.LBB11_18
+.LBB11_18:
+	ld	hl, 6
+	add	hl, sp
+	ld	sp, hl
+	ld	iy, _engine_view
 	ld	a, (_player+27)
 	ld	e, a
 	ld	l, -16
@@ -18066,14 +16937,13 @@ _engine_render:                         ; @engine_render
 	ld	l, a
 	cp	a, -15
 	ld	(ix - 13), e
-	jr	nc, .LBB11_28
-; %bb.26:
+	jr	nc, .LBB11_21
+; %bb.19:
 	ld	a, e
 	or	a, a
-	jr	nz, .LBB11_30
-; %bb.27:
+	jr	nz, .LBB11_23
+; %bb.20:
 	ld	hl, _player+24
-	ld.sis	de, 40
 	ld	bc, (hl)
 	or	a, a
 	sbc	hl, hl
@@ -18090,6 +16960,7 @@ _engine_render:                         ; @engine_render
 	pop	bc
 	ld	hl, _sine_table
 	add	hl, bc
+	lea	de, iy + 0
 	ld	iy, (hl)
 	ex	de, hl
 	ld	e, iyl
@@ -18112,7 +16983,8 @@ _engine_render:                         ; @engine_render
 	ld	iyl, e
 	ld	iyh, d
 	ex	de, hl
-	add.sis	iy, de
+	ld.sis	bc, 40
+	add.sis	iy, bc
 	ld	a, iyh
 	rlc	a
 	sbc	hl, hl
@@ -18120,40 +16992,43 @@ _engine_render:                         ; @engine_render
 	ld	e, iyl
 	ld	d, iyh
 	ex	de, hl
-	jr	.LBB11_31
-	.local	.LBB11_28
-.LBB11_28:
+	push	de
+	pop	iy
+	jr	.LBB11_24
+	.local	.LBB11_21
+.LBB11_21:
 	ld	a, e
 	cp	a, 6
 	sbc	hl, hl
 	cp	a, 10
-	jr	nc, .LBB11_32
-; %bb.29:
+	jr	nc, .LBB11_25
+; %bb.22:
 	inc	hl
 	inc	hl
-	jr	.LBB11_33
-	.local	.LBB11_30
-.LBB11_30:
+	jr	.LBB11_26
+	.local	.LBB11_23
+.LBB11_23:
 	ld	hl, 40
-	.local	.LBB11_31
-.LBB11_31:
+	.local	.LBB11_24
+.LBB11_24:
 	ld	de, _gun_frames
 	ld	(ix - 16), de
-	jr	.LBB11_34
-	.local	.LBB11_32
-.LBB11_32:
+	jr	.LBB11_27
+	.local	.LBB11_25
+.LBB11_25:
 	ld	hl, 1
-	.local	.LBB11_33
-.LBB11_33:
+	.local	.LBB11_26
+.LBB11_26:
 	ld	bc, 1200
 	call	__imulu
 	push	hl
 	pop	bc
-	add	iy, bc
-	ld	(ix - 16), iy
+	ld	hl, _gun_frames
+	add	hl, bc
+	ld	(ix - 16), hl
 	ld	hl, 40
-	.local	.LBB11_34
-.LBB11_34:
+	.local	.LBB11_27
+.LBB11_27:
 	ld	de, _gun_flash+14
 	ld	(ix - 6), de
 	ld	c, 7
@@ -18161,176 +17036,175 @@ _engine_render:                         ; @engine_render
 	call	__ishl
 	push	hl
 	pop	bc
-	ld	iy, _engine_view
 	add	iy, bc
 	lea	hl, iy + 75
 	ld	(ix - 3), hl
 	ld	iy, (ix - 16)
 	lea	iy, iy + 14
 	ld	bc, 0
-	.local	.LBB11_35
-.LBB11_35:                              ; =>This Inner Loop Header: Depth=1
+	.local	.LBB11_28
+.LBB11_28:                              ; =>This Inner Loop Header: Depth=1
 	ld	hl, (ix - 12)
 	add	hl, bc
 	ld	de, 80
 	or	a, a
 	sbc	hl, de
-	jp	nc, .LBB11_67
-; %bb.36:                               ;   in Loop: Header=BB11_35 Depth=1
+	jp	nc, .LBB11_60
+; %bb.29:                               ;   in Loop: Header=BB11_28 Depth=1
 	ld	a, (iy - 14)
 	cp	a, -1
 	lea	hl, iy + 0
-	jp	nz, .LBB11_68
-; %bb.37:                               ;   in Loop: Header=BB11_35 Depth=1
+	jp	nz, .LBB11_61
+; %bb.30:                               ;   in Loop: Header=BB11_28 Depth=1
 	ld	a, (iy - 13)
+	cp	a, -1
+	jp	nz, .LBB11_62
+	.local	.LBB11_31
+.LBB11_31:                              ;   in Loop: Header=BB11_28 Depth=1
+	ld	a, (iy - 12)
+	cp	a, -1
+	jp	nz, .LBB11_63
+	.local	.LBB11_32
+.LBB11_32:                              ;   in Loop: Header=BB11_28 Depth=1
+	ld	a, (iy - 11)
+	cp	a, -1
+	jp	nz, .LBB11_64
+	.local	.LBB11_33
+.LBB11_33:                              ;   in Loop: Header=BB11_28 Depth=1
+	ld	a, (iy - 10)
+	cp	a, -1
+	jp	nz, .LBB11_65
+	.local	.LBB11_34
+.LBB11_34:                              ;   in Loop: Header=BB11_28 Depth=1
+	ld	a, (iy - 9)
+	cp	a, -1
+	jp	nz, .LBB11_66
+	.local	.LBB11_35
+.LBB11_35:                              ;   in Loop: Header=BB11_28 Depth=1
+	ld	a, (iy - 8)
+	cp	a, -1
+	jp	nz, .LBB11_67
+	.local	.LBB11_36
+.LBB11_36:                              ;   in Loop: Header=BB11_28 Depth=1
+	ld	a, (iy - 7)
+	cp	a, -1
+	jp	nz, .LBB11_68
+	.local	.LBB11_37
+.LBB11_37:                              ;   in Loop: Header=BB11_28 Depth=1
+	ld	a, (iy - 6)
 	cp	a, -1
 	jp	nz, .LBB11_69
 	.local	.LBB11_38
-.LBB11_38:                              ;   in Loop: Header=BB11_35 Depth=1
-	ld	a, (iy - 12)
+.LBB11_38:                              ;   in Loop: Header=BB11_28 Depth=1
+	ld	a, (iy - 5)
 	cp	a, -1
 	jp	nz, .LBB11_70
 	.local	.LBB11_39
-.LBB11_39:                              ;   in Loop: Header=BB11_35 Depth=1
-	ld	a, (iy - 11)
+.LBB11_39:                              ;   in Loop: Header=BB11_28 Depth=1
+	ld	a, (iy - 4)
 	cp	a, -1
 	jp	nz, .LBB11_71
 	.local	.LBB11_40
-.LBB11_40:                              ;   in Loop: Header=BB11_35 Depth=1
-	ld	a, (iy - 10)
+.LBB11_40:                              ;   in Loop: Header=BB11_28 Depth=1
+	ld	a, (iy - 3)
 	cp	a, -1
 	jp	nz, .LBB11_72
 	.local	.LBB11_41
-.LBB11_41:                              ;   in Loop: Header=BB11_35 Depth=1
-	ld	a, (iy - 9)
+.LBB11_41:                              ;   in Loop: Header=BB11_28 Depth=1
+	ld	a, (iy - 2)
 	cp	a, -1
 	jp	nz, .LBB11_73
 	.local	.LBB11_42
-.LBB11_42:                              ;   in Loop: Header=BB11_35 Depth=1
-	ld	a, (iy - 8)
+.LBB11_42:                              ;   in Loop: Header=BB11_28 Depth=1
+	ld	a, (iy - 1)
 	cp	a, -1
 	jp	nz, .LBB11_74
 	.local	.LBB11_43
-.LBB11_43:                              ;   in Loop: Header=BB11_35 Depth=1
-	ld	a, (iy - 7)
+.LBB11_43:                              ;   in Loop: Header=BB11_28 Depth=1
+	ld	a, (iy)
 	cp	a, -1
 	jp	nz, .LBB11_75
 	.local	.LBB11_44
-.LBB11_44:                              ;   in Loop: Header=BB11_35 Depth=1
-	ld	a, (iy - 6)
+.LBB11_44:                              ;   in Loop: Header=BB11_28 Depth=1
+	ld	a, (iy + 1)
 	cp	a, -1
 	jp	nz, .LBB11_76
 	.local	.LBB11_45
-.LBB11_45:                              ;   in Loop: Header=BB11_35 Depth=1
-	ld	a, (iy - 5)
+.LBB11_45:                              ;   in Loop: Header=BB11_28 Depth=1
+	ld	a, (iy + 2)
 	cp	a, -1
 	jp	nz, .LBB11_77
 	.local	.LBB11_46
-.LBB11_46:                              ;   in Loop: Header=BB11_35 Depth=1
-	ld	a, (iy - 4)
+.LBB11_46:                              ;   in Loop: Header=BB11_28 Depth=1
+	ld	a, (iy + 3)
 	cp	a, -1
 	jp	nz, .LBB11_78
 	.local	.LBB11_47
-.LBB11_47:                              ;   in Loop: Header=BB11_35 Depth=1
-	ld	a, (iy - 3)
+.LBB11_47:                              ;   in Loop: Header=BB11_28 Depth=1
+	ld	a, (iy + 4)
 	cp	a, -1
 	jp	nz, .LBB11_79
 	.local	.LBB11_48
-.LBB11_48:                              ;   in Loop: Header=BB11_35 Depth=1
-	ld	a, (iy - 2)
+.LBB11_48:                              ;   in Loop: Header=BB11_28 Depth=1
+	ld	a, (iy + 5)
 	cp	a, -1
 	jp	nz, .LBB11_80
 	.local	.LBB11_49
-.LBB11_49:                              ;   in Loop: Header=BB11_35 Depth=1
-	ld	a, (iy - 1)
+.LBB11_49:                              ;   in Loop: Header=BB11_28 Depth=1
+	ld	a, (iy + 6)
 	cp	a, -1
 	jp	nz, .LBB11_81
 	.local	.LBB11_50
-.LBB11_50:                              ;   in Loop: Header=BB11_35 Depth=1
-	ld	a, (iy)
+.LBB11_50:                              ;   in Loop: Header=BB11_28 Depth=1
+	ld	a, (iy + 7)
 	cp	a, -1
 	jp	nz, .LBB11_82
 	.local	.LBB11_51
-.LBB11_51:                              ;   in Loop: Header=BB11_35 Depth=1
-	ld	a, (iy + 1)
+.LBB11_51:                              ;   in Loop: Header=BB11_28 Depth=1
+	ld	a, (iy + 8)
 	cp	a, -1
 	jp	nz, .LBB11_83
 	.local	.LBB11_52
-.LBB11_52:                              ;   in Loop: Header=BB11_35 Depth=1
-	ld	a, (iy + 2)
+.LBB11_52:                              ;   in Loop: Header=BB11_28 Depth=1
+	ld	a, (iy + 9)
 	cp	a, -1
 	jp	nz, .LBB11_84
 	.local	.LBB11_53
-.LBB11_53:                              ;   in Loop: Header=BB11_35 Depth=1
-	ld	a, (iy + 3)
+.LBB11_53:                              ;   in Loop: Header=BB11_28 Depth=1
+	ld	a, (iy + 10)
 	cp	a, -1
 	jp	nz, .LBB11_85
 	.local	.LBB11_54
-.LBB11_54:                              ;   in Loop: Header=BB11_35 Depth=1
-	ld	a, (iy + 4)
+.LBB11_54:                              ;   in Loop: Header=BB11_28 Depth=1
+	ld	a, (iy + 11)
 	cp	a, -1
 	jp	nz, .LBB11_86
 	.local	.LBB11_55
-.LBB11_55:                              ;   in Loop: Header=BB11_35 Depth=1
-	ld	a, (iy + 5)
+.LBB11_55:                              ;   in Loop: Header=BB11_28 Depth=1
+	ld	a, (iy + 12)
 	cp	a, -1
 	jp	nz, .LBB11_87
 	.local	.LBB11_56
-.LBB11_56:                              ;   in Loop: Header=BB11_35 Depth=1
-	ld	a, (iy + 6)
+.LBB11_56:                              ;   in Loop: Header=BB11_28 Depth=1
+	ld	a, (iy + 13)
 	cp	a, -1
 	jp	nz, .LBB11_88
 	.local	.LBB11_57
-.LBB11_57:                              ;   in Loop: Header=BB11_35 Depth=1
-	ld	a, (iy + 7)
+.LBB11_57:                              ;   in Loop: Header=BB11_28 Depth=1
+	ld	a, (iy + 14)
 	cp	a, -1
 	jp	nz, .LBB11_89
 	.local	.LBB11_58
-.LBB11_58:                              ;   in Loop: Header=BB11_35 Depth=1
-	ld	a, (iy + 8)
-	cp	a, -1
-	jp	nz, .LBB11_90
-	.local	.LBB11_59
-.LBB11_59:                              ;   in Loop: Header=BB11_35 Depth=1
-	ld	a, (iy + 9)
-	cp	a, -1
-	jp	nz, .LBB11_91
-	.local	.LBB11_60
-.LBB11_60:                              ;   in Loop: Header=BB11_35 Depth=1
-	ld	a, (iy + 10)
-	cp	a, -1
-	jp	nz, .LBB11_92
-	.local	.LBB11_61
-.LBB11_61:                              ;   in Loop: Header=BB11_35 Depth=1
-	ld	a, (iy + 11)
-	cp	a, -1
-	jp	nz, .LBB11_93
-	.local	.LBB11_62
-.LBB11_62:                              ;   in Loop: Header=BB11_35 Depth=1
-	ld	a, (iy + 12)
-	cp	a, -1
-	jp	nz, .LBB11_94
-	.local	.LBB11_63
-.LBB11_63:                              ;   in Loop: Header=BB11_35 Depth=1
-	ld	a, (iy + 13)
-	cp	a, -1
-	jp	nz, .LBB11_95
-	.local	.LBB11_64
-.LBB11_64:                              ;   in Loop: Header=BB11_35 Depth=1
-	ld	a, (iy + 14)
-	cp	a, -1
-	jp	nz, .LBB11_96
-	.local	.LBB11_65
-.LBB11_65:                              ;   in Loop: Header=BB11_35 Depth=1
+.LBB11_58:                              ;   in Loop: Header=BB11_28 Depth=1
 	ld	a, (iy + 15)
 	cp	a, -1
-	jr	z, .LBB11_67
-	.local	.LBB11_66
-.LBB11_66:                              ;   in Loop: Header=BB11_35 Depth=1
+	jr	z, .LBB11_60
+	.local	.LBB11_59
+.LBB11_59:                              ;   in Loop: Header=BB11_28 Depth=1
 	ld	hl, (ix - 3)
 	ld	(hl), a
-	.local	.LBB11_67
-.LBB11_67:                              ;   in Loop: Header=BB11_35 Depth=1
+	.local	.LBB11_60
+.LBB11_60:                              ;   in Loop: Header=BB11_28 Depth=1
 	inc	bc
 	ld	de, 128
 	ld	hl, (ix - 3)
@@ -18342,279 +17216,279 @@ _engine_render:                         ; @engine_render
 	ld	de, 40
 	or	a, a
 	sbc	hl, de
-	jp	nz, .LBB11_35
-	jp	.LBB11_97
-	.local	.LBB11_68
-.LBB11_68:                              ;   in Loop: Header=BB11_35 Depth=1
+	jp	nz, .LBB11_28
+	jp	.LBB11_90
+	.local	.LBB11_61
+.LBB11_61:                              ;   in Loop: Header=BB11_28 Depth=1
 	ld	iy, (ix - 3)
 	ld	(iy - 29), a
 	push	hl
 	pop	iy
 	ld	a, (iy - 13)
 	cp	a, -1
-	jp	z, .LBB11_38
-	.local	.LBB11_69
-.LBB11_69:                              ;   in Loop: Header=BB11_35 Depth=1
+	jp	z, .LBB11_31
+	.local	.LBB11_62
+.LBB11_62:                              ;   in Loop: Header=BB11_28 Depth=1
 	ld	iy, (ix - 3)
 	ld	(iy - 28), a
 	push	hl
 	pop	iy
 	ld	a, (iy - 12)
 	cp	a, -1
-	jp	z, .LBB11_39
-	.local	.LBB11_70
-.LBB11_70:                              ;   in Loop: Header=BB11_35 Depth=1
+	jp	z, .LBB11_32
+	.local	.LBB11_63
+.LBB11_63:                              ;   in Loop: Header=BB11_28 Depth=1
 	ld	iy, (ix - 3)
 	ld	(iy - 27), a
 	push	hl
 	pop	iy
 	ld	a, (iy - 11)
 	cp	a, -1
-	jp	z, .LBB11_40
-	.local	.LBB11_71
-.LBB11_71:                              ;   in Loop: Header=BB11_35 Depth=1
+	jp	z, .LBB11_33
+	.local	.LBB11_64
+.LBB11_64:                              ;   in Loop: Header=BB11_28 Depth=1
 	ld	iy, (ix - 3)
 	ld	(iy - 26), a
 	push	hl
 	pop	iy
 	ld	a, (iy - 10)
 	cp	a, -1
-	jp	z, .LBB11_41
-	.local	.LBB11_72
-.LBB11_72:                              ;   in Loop: Header=BB11_35 Depth=1
+	jp	z, .LBB11_34
+	.local	.LBB11_65
+.LBB11_65:                              ;   in Loop: Header=BB11_28 Depth=1
 	ld	iy, (ix - 3)
 	ld	(iy - 25), a
 	push	hl
 	pop	iy
 	ld	a, (iy - 9)
 	cp	a, -1
-	jp	z, .LBB11_42
-	.local	.LBB11_73
-.LBB11_73:                              ;   in Loop: Header=BB11_35 Depth=1
+	jp	z, .LBB11_35
+	.local	.LBB11_66
+.LBB11_66:                              ;   in Loop: Header=BB11_28 Depth=1
 	ld	iy, (ix - 3)
 	ld	(iy - 24), a
 	push	hl
 	pop	iy
 	ld	a, (iy - 8)
 	cp	a, -1
-	jp	z, .LBB11_43
-	.local	.LBB11_74
-.LBB11_74:                              ;   in Loop: Header=BB11_35 Depth=1
+	jp	z, .LBB11_36
+	.local	.LBB11_67
+.LBB11_67:                              ;   in Loop: Header=BB11_28 Depth=1
 	ld	iy, (ix - 3)
 	ld	(iy - 23), a
 	push	hl
 	pop	iy
 	ld	a, (iy - 7)
 	cp	a, -1
-	jp	z, .LBB11_44
-	.local	.LBB11_75
-.LBB11_75:                              ;   in Loop: Header=BB11_35 Depth=1
+	jp	z, .LBB11_37
+	.local	.LBB11_68
+.LBB11_68:                              ;   in Loop: Header=BB11_28 Depth=1
 	ld	iy, (ix - 3)
 	ld	(iy - 22), a
 	push	hl
 	pop	iy
 	ld	a, (iy - 6)
 	cp	a, -1
-	jp	z, .LBB11_45
-	.local	.LBB11_76
-.LBB11_76:                              ;   in Loop: Header=BB11_35 Depth=1
+	jp	z, .LBB11_38
+	.local	.LBB11_69
+.LBB11_69:                              ;   in Loop: Header=BB11_28 Depth=1
 	ld	iy, (ix - 3)
 	ld	(iy - 21), a
 	push	hl
 	pop	iy
 	ld	a, (iy - 5)
 	cp	a, -1
-	jp	z, .LBB11_46
-	.local	.LBB11_77
-.LBB11_77:                              ;   in Loop: Header=BB11_35 Depth=1
+	jp	z, .LBB11_39
+	.local	.LBB11_70
+.LBB11_70:                              ;   in Loop: Header=BB11_28 Depth=1
 	ld	iy, (ix - 3)
 	ld	(iy - 20), a
 	push	hl
 	pop	iy
 	ld	a, (iy - 4)
 	cp	a, -1
-	jp	z, .LBB11_47
-	.local	.LBB11_78
-.LBB11_78:                              ;   in Loop: Header=BB11_35 Depth=1
+	jp	z, .LBB11_40
+	.local	.LBB11_71
+.LBB11_71:                              ;   in Loop: Header=BB11_28 Depth=1
 	ld	iy, (ix - 3)
 	ld	(iy - 19), a
 	push	hl
 	pop	iy
 	ld	a, (iy - 3)
 	cp	a, -1
-	jp	z, .LBB11_48
-	.local	.LBB11_79
-.LBB11_79:                              ;   in Loop: Header=BB11_35 Depth=1
+	jp	z, .LBB11_41
+	.local	.LBB11_72
+.LBB11_72:                              ;   in Loop: Header=BB11_28 Depth=1
 	ld	iy, (ix - 3)
 	ld	(iy - 18), a
 	push	hl
 	pop	iy
 	ld	a, (iy - 2)
 	cp	a, -1
-	jp	z, .LBB11_49
-	.local	.LBB11_80
-.LBB11_80:                              ;   in Loop: Header=BB11_35 Depth=1
+	jp	z, .LBB11_42
+	.local	.LBB11_73
+.LBB11_73:                              ;   in Loop: Header=BB11_28 Depth=1
 	ld	iy, (ix - 3)
 	ld	(iy - 17), a
 	push	hl
 	pop	iy
 	ld	a, (iy - 1)
 	cp	a, -1
-	jp	z, .LBB11_50
-	.local	.LBB11_81
-.LBB11_81:                              ;   in Loop: Header=BB11_35 Depth=1
+	jp	z, .LBB11_43
+	.local	.LBB11_74
+.LBB11_74:                              ;   in Loop: Header=BB11_28 Depth=1
 	ld	iy, (ix - 3)
 	ld	(iy - 16), a
 	push	hl
 	pop	iy
 	ld	a, (iy)
 	cp	a, -1
-	jp	z, .LBB11_51
-	.local	.LBB11_82
-.LBB11_82:                              ;   in Loop: Header=BB11_35 Depth=1
+	jp	z, .LBB11_44
+	.local	.LBB11_75
+.LBB11_75:                              ;   in Loop: Header=BB11_28 Depth=1
 	ld	iy, (ix - 3)
 	ld	(iy - 15), a
 	push	hl
 	pop	iy
 	ld	a, (iy + 1)
 	cp	a, -1
-	jp	z, .LBB11_52
-	.local	.LBB11_83
-.LBB11_83:                              ;   in Loop: Header=BB11_35 Depth=1
+	jp	z, .LBB11_45
+	.local	.LBB11_76
+.LBB11_76:                              ;   in Loop: Header=BB11_28 Depth=1
 	ld	iy, (ix - 3)
 	ld	(iy - 14), a
 	push	hl
 	pop	iy
 	ld	a, (iy + 2)
 	cp	a, -1
-	jp	z, .LBB11_53
-	.local	.LBB11_84
-.LBB11_84:                              ;   in Loop: Header=BB11_35 Depth=1
+	jp	z, .LBB11_46
+	.local	.LBB11_77
+.LBB11_77:                              ;   in Loop: Header=BB11_28 Depth=1
 	ld	iy, (ix - 3)
 	ld	(iy - 13), a
 	push	hl
 	pop	iy
 	ld	a, (iy + 3)
 	cp	a, -1
-	jp	z, .LBB11_54
-	.local	.LBB11_85
-.LBB11_85:                              ;   in Loop: Header=BB11_35 Depth=1
+	jp	z, .LBB11_47
+	.local	.LBB11_78
+.LBB11_78:                              ;   in Loop: Header=BB11_28 Depth=1
 	ld	iy, (ix - 3)
 	ld	(iy - 12), a
 	push	hl
 	pop	iy
 	ld	a, (iy + 4)
 	cp	a, -1
-	jp	z, .LBB11_55
-	.local	.LBB11_86
-.LBB11_86:                              ;   in Loop: Header=BB11_35 Depth=1
+	jp	z, .LBB11_48
+	.local	.LBB11_79
+.LBB11_79:                              ;   in Loop: Header=BB11_28 Depth=1
 	ld	iy, (ix - 3)
 	ld	(iy - 11), a
 	push	hl
 	pop	iy
 	ld	a, (iy + 5)
 	cp	a, -1
-	jp	z, .LBB11_56
-	.local	.LBB11_87
-.LBB11_87:                              ;   in Loop: Header=BB11_35 Depth=1
+	jp	z, .LBB11_49
+	.local	.LBB11_80
+.LBB11_80:                              ;   in Loop: Header=BB11_28 Depth=1
 	ld	iy, (ix - 3)
 	ld	(iy - 10), a
 	push	hl
 	pop	iy
 	ld	a, (iy + 6)
 	cp	a, -1
-	jp	z, .LBB11_57
-	.local	.LBB11_88
-.LBB11_88:                              ;   in Loop: Header=BB11_35 Depth=1
+	jp	z, .LBB11_50
+	.local	.LBB11_81
+.LBB11_81:                              ;   in Loop: Header=BB11_28 Depth=1
 	ld	iy, (ix - 3)
 	ld	(iy - 9), a
 	push	hl
 	pop	iy
 	ld	a, (iy + 7)
 	cp	a, -1
-	jp	z, .LBB11_58
-	.local	.LBB11_89
-.LBB11_89:                              ;   in Loop: Header=BB11_35 Depth=1
+	jp	z, .LBB11_51
+	.local	.LBB11_82
+.LBB11_82:                              ;   in Loop: Header=BB11_28 Depth=1
 	ld	iy, (ix - 3)
 	ld	(iy - 8), a
 	push	hl
 	pop	iy
 	ld	a, (iy + 8)
 	cp	a, -1
-	jp	z, .LBB11_59
-	.local	.LBB11_90
-.LBB11_90:                              ;   in Loop: Header=BB11_35 Depth=1
+	jp	z, .LBB11_52
+	.local	.LBB11_83
+.LBB11_83:                              ;   in Loop: Header=BB11_28 Depth=1
 	ld	iy, (ix - 3)
 	ld	(iy - 7), a
 	push	hl
 	pop	iy
 	ld	a, (iy + 9)
 	cp	a, -1
-	jp	z, .LBB11_60
-	.local	.LBB11_91
-.LBB11_91:                              ;   in Loop: Header=BB11_35 Depth=1
+	jp	z, .LBB11_53
+	.local	.LBB11_84
+.LBB11_84:                              ;   in Loop: Header=BB11_28 Depth=1
 	ld	iy, (ix - 3)
 	ld	(iy - 6), a
 	push	hl
 	pop	iy
 	ld	a, (iy + 10)
 	cp	a, -1
-	jp	z, .LBB11_61
-	.local	.LBB11_92
-.LBB11_92:                              ;   in Loop: Header=BB11_35 Depth=1
+	jp	z, .LBB11_54
+	.local	.LBB11_85
+.LBB11_85:                              ;   in Loop: Header=BB11_28 Depth=1
 	ld	iy, (ix - 3)
 	ld	(iy - 5), a
 	push	hl
 	pop	iy
 	ld	a, (iy + 11)
 	cp	a, -1
-	jp	z, .LBB11_62
-	.local	.LBB11_93
-.LBB11_93:                              ;   in Loop: Header=BB11_35 Depth=1
+	jp	z, .LBB11_55
+	.local	.LBB11_86
+.LBB11_86:                              ;   in Loop: Header=BB11_28 Depth=1
 	ld	iy, (ix - 3)
 	ld	(iy - 4), a
 	push	hl
 	pop	iy
 	ld	a, (iy + 12)
 	cp	a, -1
-	jp	z, .LBB11_63
-	.local	.LBB11_94
-.LBB11_94:                              ;   in Loop: Header=BB11_35 Depth=1
+	jp	z, .LBB11_56
+	.local	.LBB11_87
+.LBB11_87:                              ;   in Loop: Header=BB11_28 Depth=1
 	ld	iy, (ix - 3)
 	ld	(iy - 3), a
 	push	hl
 	pop	iy
 	ld	a, (iy + 13)
 	cp	a, -1
-	jp	z, .LBB11_64
-	.local	.LBB11_95
-.LBB11_95:                              ;   in Loop: Header=BB11_35 Depth=1
+	jp	z, .LBB11_57
+	.local	.LBB11_88
+.LBB11_88:                              ;   in Loop: Header=BB11_28 Depth=1
 	ld	iy, (ix - 3)
 	ld	(iy - 2), a
 	push	hl
 	pop	iy
 	ld	a, (iy + 14)
 	cp	a, -1
-	jp	z, .LBB11_65
-	.local	.LBB11_96
-.LBB11_96:                              ;   in Loop: Header=BB11_35 Depth=1
+	jp	z, .LBB11_58
+	.local	.LBB11_89
+.LBB11_89:                              ;   in Loop: Header=BB11_28 Depth=1
 	ld	iy, (ix - 3)
 	ld	(iy - 1), a
 	push	hl
 	pop	iy
 	ld	a, (iy + 15)
 	cp	a, -1
-	jp	nz, .LBB11_66
-	jp	.LBB11_67
-	.local	.LBB11_97
-.LBB11_97:
+	jp	nz, .LBB11_59
+	jp	.LBB11_60
+	.local	.LBB11_90
+.LBB11_90:
 	ld	a, (ix - 13)
 	ld	l, -10
 	add	a, l
 	ld	l, a
 	cp	a, 6
-	jp	nc, .LBB11_161
-; %bb.98:
+	jp	nc, .LBB11_154
+; %bb.91:
 	ld	c, 7
 	ld	hl, (ix - 12)
 	call	__ishl
@@ -18624,200 +17498,200 @@ _engine_render:                         ; @engine_render
 	pop	iy
 	add	iy, de
 	lea	de, iy + 75
-	.local	.LBB11_99
-.LBB11_99:                              ; =>This Inner Loop Header: Depth=1
+	.local	.LBB11_92
+.LBB11_92:                              ; =>This Inner Loop Header: Depth=1
 	ld	hl, (ix - 12)
 	ld	bc, (ix - 9)
 	add	hl, bc
 	ld	bc, 80
 	or	a, a
 	sbc	hl, bc
-	jp	nc, .LBB11_131
-; %bb.100:                              ;   in Loop: Header=BB11_99 Depth=1
+	jp	nc, .LBB11_124
+; %bb.93:                               ;   in Loop: Header=BB11_92 Depth=1
 	ld	iy, (ix - 6)
 	ld	a, (iy - 14)
 	cp	a, -1
-	jp	nz, .LBB11_132
-; %bb.101:                              ;   in Loop: Header=BB11_99 Depth=1
+	jp	nz, .LBB11_125
+; %bb.94:                               ;   in Loop: Header=BB11_92 Depth=1
 	ld	iy, (ix - 6)
 	ld	a, (iy - 13)
 	cp	a, -1
-	jp	nz, .LBB11_133
-	.local	.LBB11_102
-.LBB11_102:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	nz, .LBB11_126
+	.local	.LBB11_95
+.LBB11_95:                              ;   in Loop: Header=BB11_92 Depth=1
 	ld	iy, (ix - 6)
 	ld	a, (iy - 12)
 	cp	a, -1
-	jp	nz, .LBB11_134
-	.local	.LBB11_103
-.LBB11_103:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	nz, .LBB11_127
+	.local	.LBB11_96
+.LBB11_96:                              ;   in Loop: Header=BB11_92 Depth=1
 	ld	iy, (ix - 6)
 	ld	a, (iy - 11)
 	cp	a, -1
-	jp	nz, .LBB11_135
-	.local	.LBB11_104
-.LBB11_104:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	nz, .LBB11_128
+	.local	.LBB11_97
+.LBB11_97:                              ;   in Loop: Header=BB11_92 Depth=1
 	ld	iy, (ix - 6)
 	ld	a, (iy - 10)
 	cp	a, -1
-	jp	nz, .LBB11_136
-	.local	.LBB11_105
-.LBB11_105:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	nz, .LBB11_129
+	.local	.LBB11_98
+.LBB11_98:                              ;   in Loop: Header=BB11_92 Depth=1
 	ld	iy, (ix - 6)
 	ld	a, (iy - 9)
 	cp	a, -1
-	jp	nz, .LBB11_137
-	.local	.LBB11_106
-.LBB11_106:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	nz, .LBB11_130
+	.local	.LBB11_99
+.LBB11_99:                              ;   in Loop: Header=BB11_92 Depth=1
 	ld	iy, (ix - 6)
 	ld	a, (iy - 8)
 	cp	a, -1
-	jp	nz, .LBB11_138
-	.local	.LBB11_107
-.LBB11_107:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	nz, .LBB11_131
+	.local	.LBB11_100
+.LBB11_100:                             ;   in Loop: Header=BB11_92 Depth=1
 	ld	iy, (ix - 6)
 	ld	a, (iy - 7)
 	cp	a, -1
-	jp	nz, .LBB11_139
-	.local	.LBB11_108
-.LBB11_108:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	nz, .LBB11_132
+	.local	.LBB11_101
+.LBB11_101:                             ;   in Loop: Header=BB11_92 Depth=1
 	ld	iy, (ix - 6)
 	ld	a, (iy - 6)
 	cp	a, -1
-	jp	nz, .LBB11_140
-	.local	.LBB11_109
-.LBB11_109:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	nz, .LBB11_133
+	.local	.LBB11_102
+.LBB11_102:                             ;   in Loop: Header=BB11_92 Depth=1
 	ld	iy, (ix - 6)
 	ld	a, (iy - 5)
 	cp	a, -1
-	jp	nz, .LBB11_141
-	.local	.LBB11_110
-.LBB11_110:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	nz, .LBB11_134
+	.local	.LBB11_103
+.LBB11_103:                             ;   in Loop: Header=BB11_92 Depth=1
 	ld	iy, (ix - 6)
 	ld	a, (iy - 4)
 	cp	a, -1
-	jp	nz, .LBB11_142
-	.local	.LBB11_111
-.LBB11_111:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	nz, .LBB11_135
+	.local	.LBB11_104
+.LBB11_104:                             ;   in Loop: Header=BB11_92 Depth=1
 	ld	iy, (ix - 6)
 	ld	a, (iy - 3)
 	cp	a, -1
-	jp	nz, .LBB11_143
-	.local	.LBB11_112
-.LBB11_112:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	nz, .LBB11_136
+	.local	.LBB11_105
+.LBB11_105:                             ;   in Loop: Header=BB11_92 Depth=1
 	ld	iy, (ix - 6)
 	ld	a, (iy - 2)
 	cp	a, -1
-	jp	nz, .LBB11_144
-	.local	.LBB11_113
-.LBB11_113:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	nz, .LBB11_137
+	.local	.LBB11_106
+.LBB11_106:                             ;   in Loop: Header=BB11_92 Depth=1
 	ld	iy, (ix - 6)
 	ld	a, (iy - 1)
 	cp	a, -1
-	jp	nz, .LBB11_145
-	.local	.LBB11_114
-.LBB11_114:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	nz, .LBB11_138
+	.local	.LBB11_107
+.LBB11_107:                             ;   in Loop: Header=BB11_92 Depth=1
 	ld	hl, (ix - 6)
 	ld	a, (hl)
 	cp	a, -1
-	jp	nz, .LBB11_146
-	.local	.LBB11_115
-.LBB11_115:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	nz, .LBB11_139
+	.local	.LBB11_108
+.LBB11_108:                             ;   in Loop: Header=BB11_92 Depth=1
 	ld	iy, (ix - 6)
 	ld	a, (iy + 1)
 	cp	a, -1
-	jp	nz, .LBB11_147
-	.local	.LBB11_116
-.LBB11_116:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	nz, .LBB11_140
+	.local	.LBB11_109
+.LBB11_109:                             ;   in Loop: Header=BB11_92 Depth=1
 	ld	iy, (ix - 6)
 	ld	a, (iy + 2)
 	cp	a, -1
-	jp	nz, .LBB11_148
-	.local	.LBB11_117
-.LBB11_117:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	nz, .LBB11_141
+	.local	.LBB11_110
+.LBB11_110:                             ;   in Loop: Header=BB11_92 Depth=1
 	ld	iy, (ix - 6)
 	ld	a, (iy + 3)
 	cp	a, -1
-	jp	nz, .LBB11_149
-	.local	.LBB11_118
-.LBB11_118:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	nz, .LBB11_142
+	.local	.LBB11_111
+.LBB11_111:                             ;   in Loop: Header=BB11_92 Depth=1
 	ld	iy, (ix - 6)
 	ld	a, (iy + 4)
 	cp	a, -1
-	jp	nz, .LBB11_150
-	.local	.LBB11_119
-.LBB11_119:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	nz, .LBB11_143
+	.local	.LBB11_112
+.LBB11_112:                             ;   in Loop: Header=BB11_92 Depth=1
 	ld	iy, (ix - 6)
 	ld	a, (iy + 5)
 	cp	a, -1
-	jp	nz, .LBB11_151
-	.local	.LBB11_120
-.LBB11_120:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	nz, .LBB11_144
+	.local	.LBB11_113
+.LBB11_113:                             ;   in Loop: Header=BB11_92 Depth=1
 	ld	iy, (ix - 6)
 	ld	a, (iy + 6)
 	cp	a, -1
-	jp	nz, .LBB11_152
-	.local	.LBB11_121
-.LBB11_121:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	nz, .LBB11_145
+	.local	.LBB11_114
+.LBB11_114:                             ;   in Loop: Header=BB11_92 Depth=1
 	ld	iy, (ix - 6)
 	ld	a, (iy + 7)
 	cp	a, -1
-	jp	nz, .LBB11_153
-	.local	.LBB11_122
-.LBB11_122:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	nz, .LBB11_146
+	.local	.LBB11_115
+.LBB11_115:                             ;   in Loop: Header=BB11_92 Depth=1
 	ld	iy, (ix - 6)
 	ld	a, (iy + 8)
 	cp	a, -1
-	jp	nz, .LBB11_154
-	.local	.LBB11_123
-.LBB11_123:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	nz, .LBB11_147
+	.local	.LBB11_116
+.LBB11_116:                             ;   in Loop: Header=BB11_92 Depth=1
 	ld	iy, (ix - 6)
 	ld	a, (iy + 9)
 	cp	a, -1
-	jp	nz, .LBB11_155
-	.local	.LBB11_124
-.LBB11_124:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	nz, .LBB11_148
+	.local	.LBB11_117
+.LBB11_117:                             ;   in Loop: Header=BB11_92 Depth=1
 	ld	iy, (ix - 6)
 	ld	a, (iy + 10)
 	cp	a, -1
-	jp	nz, .LBB11_156
-	.local	.LBB11_125
-.LBB11_125:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	nz, .LBB11_149
+	.local	.LBB11_118
+.LBB11_118:                             ;   in Loop: Header=BB11_92 Depth=1
 	ld	iy, (ix - 6)
 	ld	a, (iy + 11)
 	cp	a, -1
-	jp	nz, .LBB11_157
-	.local	.LBB11_126
-.LBB11_126:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	nz, .LBB11_150
+	.local	.LBB11_119
+.LBB11_119:                             ;   in Loop: Header=BB11_92 Depth=1
 	ld	iy, (ix - 6)
 	ld	a, (iy + 12)
 	cp	a, -1
-	jp	nz, .LBB11_158
-	.local	.LBB11_127
-.LBB11_127:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	nz, .LBB11_151
+	.local	.LBB11_120
+.LBB11_120:                             ;   in Loop: Header=BB11_92 Depth=1
 	ld	iy, (ix - 6)
 	ld	a, (iy + 13)
 	cp	a, -1
-	jp	nz, .LBB11_159
-	.local	.LBB11_128
-.LBB11_128:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	nz, .LBB11_152
+	.local	.LBB11_121
+.LBB11_121:                             ;   in Loop: Header=BB11_92 Depth=1
 	ld	iy, (ix - 6)
 	ld	a, (iy + 14)
 	cp	a, -1
-	jp	nz, .LBB11_160
-	.local	.LBB11_129
-.LBB11_129:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	nz, .LBB11_153
+	.local	.LBB11_122
+.LBB11_122:                             ;   in Loop: Header=BB11_92 Depth=1
 	ld	iy, (ix - 6)
 	ld	a, (iy + 15)
 	cp	a, -1
-	jr	z, .LBB11_131
-	.local	.LBB11_130
-.LBB11_130:                             ;   in Loop: Header=BB11_99 Depth=1
+	jr	z, .LBB11_124
+	.local	.LBB11_123
+.LBB11_123:                             ;   in Loop: Header=BB11_92 Depth=1
 	push	de
 	pop	hl
 	ld	(hl), a
-	.local	.LBB11_131
-.LBB11_131:                             ;   in Loop: Header=BB11_99 Depth=1
+	.local	.LBB11_124
+.LBB11_124:                             ;   in Loop: Header=BB11_92 Depth=1
 	ld	hl, (ix - 9)
 	inc	hl
 	ld	bc, 128
@@ -18832,272 +17706,272 @@ _engine_render:                         ; @engine_render
 	ld	bc, 40
 	or	a, a
 	sbc	hl, bc
-	jp	nz, .LBB11_99
-	jp	.LBB11_161
-	.local	.LBB11_132
-.LBB11_132:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	nz, .LBB11_92
+	jp	.LBB11_154
+	.local	.LBB11_125
+.LBB11_125:                             ;   in Loop: Header=BB11_92 Depth=1
 	push	de
 	pop	iy
 	ld	(iy - 29), a
 	ld	iy, (ix - 6)
 	ld	a, (iy - 13)
 	cp	a, -1
-	jp	z, .LBB11_102
-	.local	.LBB11_133
-.LBB11_133:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	z, .LBB11_95
+	.local	.LBB11_126
+.LBB11_126:                             ;   in Loop: Header=BB11_92 Depth=1
 	push	de
 	pop	iy
 	ld	(iy - 28), a
 	ld	iy, (ix - 6)
 	ld	a, (iy - 12)
 	cp	a, -1
-	jp	z, .LBB11_103
-	.local	.LBB11_134
-.LBB11_134:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	z, .LBB11_96
+	.local	.LBB11_127
+.LBB11_127:                             ;   in Loop: Header=BB11_92 Depth=1
 	push	de
 	pop	iy
 	ld	(iy - 27), a
 	ld	iy, (ix - 6)
 	ld	a, (iy - 11)
 	cp	a, -1
-	jp	z, .LBB11_104
-	.local	.LBB11_135
-.LBB11_135:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	z, .LBB11_97
+	.local	.LBB11_128
+.LBB11_128:                             ;   in Loop: Header=BB11_92 Depth=1
 	push	de
 	pop	iy
 	ld	(iy - 26), a
 	ld	iy, (ix - 6)
 	ld	a, (iy - 10)
 	cp	a, -1
-	jp	z, .LBB11_105
-	.local	.LBB11_136
-.LBB11_136:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	z, .LBB11_98
+	.local	.LBB11_129
+.LBB11_129:                             ;   in Loop: Header=BB11_92 Depth=1
 	push	de
 	pop	iy
 	ld	(iy - 25), a
 	ld	iy, (ix - 6)
 	ld	a, (iy - 9)
 	cp	a, -1
-	jp	z, .LBB11_106
-	.local	.LBB11_137
-.LBB11_137:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	z, .LBB11_99
+	.local	.LBB11_130
+.LBB11_130:                             ;   in Loop: Header=BB11_92 Depth=1
 	push	de
 	pop	iy
 	ld	(iy - 24), a
 	ld	iy, (ix - 6)
 	ld	a, (iy - 8)
 	cp	a, -1
-	jp	z, .LBB11_107
-	.local	.LBB11_138
-.LBB11_138:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	z, .LBB11_100
+	.local	.LBB11_131
+.LBB11_131:                             ;   in Loop: Header=BB11_92 Depth=1
 	push	de
 	pop	iy
 	ld	(iy - 23), a
 	ld	iy, (ix - 6)
 	ld	a, (iy - 7)
 	cp	a, -1
-	jp	z, .LBB11_108
-	.local	.LBB11_139
-.LBB11_139:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	z, .LBB11_101
+	.local	.LBB11_132
+.LBB11_132:                             ;   in Loop: Header=BB11_92 Depth=1
 	push	de
 	pop	iy
 	ld	(iy - 22), a
 	ld	iy, (ix - 6)
 	ld	a, (iy - 6)
 	cp	a, -1
-	jp	z, .LBB11_109
-	.local	.LBB11_140
-.LBB11_140:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	z, .LBB11_102
+	.local	.LBB11_133
+.LBB11_133:                             ;   in Loop: Header=BB11_92 Depth=1
 	push	de
 	pop	iy
 	ld	(iy - 21), a
 	ld	iy, (ix - 6)
 	ld	a, (iy - 5)
 	cp	a, -1
-	jp	z, .LBB11_110
-	.local	.LBB11_141
-.LBB11_141:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	z, .LBB11_103
+	.local	.LBB11_134
+.LBB11_134:                             ;   in Loop: Header=BB11_92 Depth=1
 	push	de
 	pop	iy
 	ld	(iy - 20), a
 	ld	iy, (ix - 6)
 	ld	a, (iy - 4)
 	cp	a, -1
-	jp	z, .LBB11_111
-	.local	.LBB11_142
-.LBB11_142:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	z, .LBB11_104
+	.local	.LBB11_135
+.LBB11_135:                             ;   in Loop: Header=BB11_92 Depth=1
 	push	de
 	pop	iy
 	ld	(iy - 19), a
 	ld	iy, (ix - 6)
 	ld	a, (iy - 3)
 	cp	a, -1
-	jp	z, .LBB11_112
-	.local	.LBB11_143
-.LBB11_143:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	z, .LBB11_105
+	.local	.LBB11_136
+.LBB11_136:                             ;   in Loop: Header=BB11_92 Depth=1
 	push	de
 	pop	iy
 	ld	(iy - 18), a
 	ld	iy, (ix - 6)
 	ld	a, (iy - 2)
 	cp	a, -1
-	jp	z, .LBB11_113
-	.local	.LBB11_144
-.LBB11_144:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	z, .LBB11_106
+	.local	.LBB11_137
+.LBB11_137:                             ;   in Loop: Header=BB11_92 Depth=1
 	push	de
 	pop	iy
 	ld	(iy - 17), a
 	ld	iy, (ix - 6)
 	ld	a, (iy - 1)
 	cp	a, -1
-	jp	z, .LBB11_114
-	.local	.LBB11_145
-.LBB11_145:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	z, .LBB11_107
+	.local	.LBB11_138
+.LBB11_138:                             ;   in Loop: Header=BB11_92 Depth=1
 	push	de
 	pop	iy
 	ld	(iy - 16), a
 	ld	hl, (ix - 6)
 	ld	a, (hl)
 	cp	a, -1
-	jp	z, .LBB11_115
-	.local	.LBB11_146
-.LBB11_146:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	z, .LBB11_108
+	.local	.LBB11_139
+.LBB11_139:                             ;   in Loop: Header=BB11_92 Depth=1
 	push	de
 	pop	iy
 	ld	(iy - 15), a
 	ld	iy, (ix - 6)
 	ld	a, (iy + 1)
 	cp	a, -1
-	jp	z, .LBB11_116
-	.local	.LBB11_147
-.LBB11_147:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	z, .LBB11_109
+	.local	.LBB11_140
+.LBB11_140:                             ;   in Loop: Header=BB11_92 Depth=1
 	push	de
 	pop	iy
 	ld	(iy - 14), a
 	ld	iy, (ix - 6)
 	ld	a, (iy + 2)
 	cp	a, -1
-	jp	z, .LBB11_117
-	.local	.LBB11_148
-.LBB11_148:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	z, .LBB11_110
+	.local	.LBB11_141
+.LBB11_141:                             ;   in Loop: Header=BB11_92 Depth=1
 	push	de
 	pop	iy
 	ld	(iy - 13), a
 	ld	iy, (ix - 6)
 	ld	a, (iy + 3)
 	cp	a, -1
-	jp	z, .LBB11_118
-	.local	.LBB11_149
-.LBB11_149:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	z, .LBB11_111
+	.local	.LBB11_142
+.LBB11_142:                             ;   in Loop: Header=BB11_92 Depth=1
 	push	de
 	pop	iy
 	ld	(iy - 12), a
 	ld	iy, (ix - 6)
 	ld	a, (iy + 4)
 	cp	a, -1
-	jp	z, .LBB11_119
-	.local	.LBB11_150
-.LBB11_150:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	z, .LBB11_112
+	.local	.LBB11_143
+.LBB11_143:                             ;   in Loop: Header=BB11_92 Depth=1
 	push	de
 	pop	iy
 	ld	(iy - 11), a
 	ld	iy, (ix - 6)
 	ld	a, (iy + 5)
 	cp	a, -1
-	jp	z, .LBB11_120
-	.local	.LBB11_151
-.LBB11_151:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	z, .LBB11_113
+	.local	.LBB11_144
+.LBB11_144:                             ;   in Loop: Header=BB11_92 Depth=1
 	push	de
 	pop	iy
 	ld	(iy - 10), a
 	ld	iy, (ix - 6)
 	ld	a, (iy + 6)
 	cp	a, -1
-	jp	z, .LBB11_121
-	.local	.LBB11_152
-.LBB11_152:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	z, .LBB11_114
+	.local	.LBB11_145
+.LBB11_145:                             ;   in Loop: Header=BB11_92 Depth=1
 	push	de
 	pop	iy
 	ld	(iy - 9), a
 	ld	iy, (ix - 6)
 	ld	a, (iy + 7)
 	cp	a, -1
-	jp	z, .LBB11_122
-	.local	.LBB11_153
-.LBB11_153:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	z, .LBB11_115
+	.local	.LBB11_146
+.LBB11_146:                             ;   in Loop: Header=BB11_92 Depth=1
 	push	de
 	pop	iy
 	ld	(iy - 8), a
 	ld	iy, (ix - 6)
 	ld	a, (iy + 8)
 	cp	a, -1
-	jp	z, .LBB11_123
-	.local	.LBB11_154
-.LBB11_154:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	z, .LBB11_116
+	.local	.LBB11_147
+.LBB11_147:                             ;   in Loop: Header=BB11_92 Depth=1
 	push	de
 	pop	iy
 	ld	(iy - 7), a
 	ld	iy, (ix - 6)
 	ld	a, (iy + 9)
 	cp	a, -1
-	jp	z, .LBB11_124
-	.local	.LBB11_155
-.LBB11_155:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	z, .LBB11_117
+	.local	.LBB11_148
+.LBB11_148:                             ;   in Loop: Header=BB11_92 Depth=1
 	push	de
 	pop	iy
 	ld	(iy - 6), a
 	ld	iy, (ix - 6)
 	ld	a, (iy + 10)
 	cp	a, -1
-	jp	z, .LBB11_125
-	.local	.LBB11_156
-.LBB11_156:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	z, .LBB11_118
+	.local	.LBB11_149
+.LBB11_149:                             ;   in Loop: Header=BB11_92 Depth=1
 	push	de
 	pop	iy
 	ld	(iy - 5), a
 	ld	iy, (ix - 6)
 	ld	a, (iy + 11)
 	cp	a, -1
-	jp	z, .LBB11_126
-	.local	.LBB11_157
-.LBB11_157:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	z, .LBB11_119
+	.local	.LBB11_150
+.LBB11_150:                             ;   in Loop: Header=BB11_92 Depth=1
 	push	de
 	pop	iy
 	ld	(iy - 4), a
 	ld	iy, (ix - 6)
 	ld	a, (iy + 12)
 	cp	a, -1
-	jp	z, .LBB11_127
-	.local	.LBB11_158
-.LBB11_158:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	z, .LBB11_120
+	.local	.LBB11_151
+.LBB11_151:                             ;   in Loop: Header=BB11_92 Depth=1
 	push	de
 	pop	iy
 	ld	(iy - 3), a
 	ld	iy, (ix - 6)
 	ld	a, (iy + 13)
 	cp	a, -1
-	jp	z, .LBB11_128
-	.local	.LBB11_159
-.LBB11_159:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	z, .LBB11_121
+	.local	.LBB11_152
+.LBB11_152:                             ;   in Loop: Header=BB11_92 Depth=1
 	push	de
 	pop	iy
 	ld	(iy - 2), a
 	ld	iy, (ix - 6)
 	ld	a, (iy + 14)
 	cp	a, -1
-	jp	z, .LBB11_129
-	.local	.LBB11_160
-.LBB11_160:                             ;   in Loop: Header=BB11_99 Depth=1
+	jp	z, .LBB11_122
+	.local	.LBB11_153
+.LBB11_153:                             ;   in Loop: Header=BB11_92 Depth=1
 	push	de
 	pop	iy
 	ld	(iy - 1), a
 	ld	iy, (ix - 6)
 	ld	a, (iy + 15)
 	cp	a, -1
-	jp	nz, .LBB11_130
-	jp	.LBB11_131
-	.local	.LBB11_161
-.LBB11_161:
+	jp	nz, .LBB11_123
+	jp	.LBB11_124
+	.local	.LBB11_154
+.LBB11_154:
 	ld	a, 4
 	ld	(_engine_view+5058), a
 	ld	(_engine_view+5314), a
@@ -19475,8 +18349,7 @@ _bsp:                                   ; @bsp
 	jr	.Lbsp_seg
 	.local	.Lfunc_end12
 .Lfunc_end12:
-	.size	_bsp, .Lfunc_end12-_bsp
-                                        ; -- End function
+	                                        ; -- End function
 
 	.section	.text._draw_planes,"ax",@progbits
 	.type	_draw_planes,@function          ; -- Begin function draw_planes
@@ -19485,31 +18358,25 @@ _draw_planes:                           ; @draw_planes
 	push	ix
 	ld	ix, 0
 	add	ix, sp
-	lea	hl, ix - 57
+	lea	hl, ix - 51
 	ld	sp, hl
 	sbc	hl, hl
 	ld	de, _engine_view+2
-	ld	(ix - 9), de
+	ld	(ix - 3), de
 	ld	de, _depthbuffer
-	ld	(ix - 15), de
-	ld	bc, _planes
-	ld	de, (_images+237)
-	ld	(ix - 48), de
-	ld	(ix - 18), bc
-	push	bc
-	pop	iy
+	ld	(ix - 12), de
+	ld	de, _planes
 	push	hl
 	pop	bc
+	ld	(ix - 15), de
+	push	de
+	pop	iy
 	.local	.LBB13_1
 .LBB13_1:                               ; =>This Loop Header: Depth=1
                                         ;     Child Loop BB13_2 Depth 2
                                         ;       Child Loop BB13_5 Depth 3
-                                        ;       Child Loop BB13_51 Depth 3
-                                        ;       Child Loop BB13_48 Depth 3
-                                        ;       Child Loop BB13_44 Depth 3
-                                        ;       Child Loop BB13_35 Depth 3
-                                        ;       Child Loop BB13_14 Depth 3
-	ld	(ix - 3), iy
+                                        ;       Child Loop BB13_13 Depth 3
+	ld	(ix - 6), iy
 	ld	hl, 40
 	or	a, a
 	sbc	hl, bc
@@ -19534,16 +18401,12 @@ _draw_planes:                           ; @draw_planes
 	add	hl, hl
 	ld	(ix - 33), hl
 	lea	bc, iy + 0
-	ld	iy, (ix - 3)
+	ld	iy, (ix - 6)
 	.local	.LBB13_2
 .LBB13_2:                               ;   Parent Loop BB13_1 Depth=1
                                         ; =>  This Loop Header: Depth=2
                                         ;       Child Loop BB13_5 Depth 3
-                                        ;       Child Loop BB13_51 Depth 3
-                                        ;       Child Loop BB13_48 Depth 3
-                                        ;       Child Loop BB13_44 Depth 3
-                                        ;       Child Loop BB13_35 Depth 3
-                                        ;       Child Loop BB13_14 Depth 3
+                                        ;       Child Loop BB13_13 Depth 3
 	ld	a, (iy)
 	push	bc
 	pop	hl
@@ -19552,8 +18415,9 @@ _draw_planes:                           ; @draw_planes
 	ld	de, -8388480
 	or	a, a
 	sbc	hl, de
-	ld	(ix - 3), bc
 	push	bc
+	pop	de
+	push	de
 	pop	iy
 	jr	nc, .LBB13_4
 ; %bb.3:                                ;   in Loop: Header=BB13_2 Depth=2
@@ -19562,8 +18426,9 @@ _draw_planes:                           ; @draw_planes
 .LBB13_4:                               ;   in Loop: Header=BB13_2 Depth=2
 	lea	bc, iy + 0
 	inc	bc
-	ld	hl, (ix - 3)
-	ld	(ix - 12), a
+	ld	(ix - 6), de
+	ex	de, hl
+	ld	(ix - 9), a
 	.local	.LBB13_5
 .LBB13_5:                               ;   Parent Loop BB13_1 Depth=1
                                         ;     Parent Loop BB13_2 Depth=2
@@ -19577,60 +18442,41 @@ _draw_planes:                           ; @draw_planes
 	push	de
 	pop	hl
 	inc	hl
-	ld	(ix - 6), bc
+	ld	(ix - 18), bc
 	lea	bc, iy + 0
-	ld	iy, (ix - 18)
+	ld	iy, (ix - 15)
 	add	iy, de
 	ld	a, (iy + 1)
 	push	bc
 	pop	iy
-	ld	c, (ix - 12)
+	ld	c, (ix - 9)
 	cp	a, c
-	ld	bc, (ix - 6)
-	ld	a, (ix - 12)                    ; 1-byte Folded Reload
+	ld	bc, (ix - 18)
+	ld	a, (ix - 9)                     ; 1-byte Folded Reload
 	jr	z, .LBB13_5
 ; %bb.7:                                ;   in Loop: Header=BB13_2 Depth=2
-	ld	(ix - 21), de
+	ld	(ix - 18), de
 	push	hl
 	pop	bc
 	jr	.LBB13_9
 	.local	.LBB13_8
 .LBB13_8:                               ;   in Loop: Header=BB13_2 Depth=2
-	ld	(ix - 21), iy
+	ld	(ix - 18), iy
 	.local	.LBB13_9
 .LBB13_9:                               ;   in Loop: Header=BB13_2 Depth=2
 	push	bc
 	pop	hl
-	ld	de, (ix - 3)
-	or	a, a
-	sbc	hl, de
-	ld	(ix - 6), hl
-	ld	e, a
-	cp	a, -1
-	jr	nz, .LBB13_11
-	.local	.LBB13_10
-.LBB13_10:                              ;   in Loop: Header=BB13_2 Depth=2
-	ld	hl, (ix - 9)
 	ld	de, (ix - 6)
-	add	hl, de
-	ld	(ix - 9), hl
-	ld	hl, (ix - 15)
-	add	hl, de
-	ld	(ix - 15), hl
-	ld	iy, (ix - 18)
-	add	iy, bc
-	ld	de, -8388608
-	ld	hl, (ix - 21)
-	add	hl, de
-	ld	de, -8388481
 	or	a, a
 	sbc	hl, de
-	jp	c, .LBB13_2
-	jp	.LBB13_52
-	.local	.LBB13_11
-.LBB13_11:                              ;   in Loop: Header=BB13_2 Depth=2
+	ex	de, hl
+	cp	a, -1
+	jp	z, .LBB13_41
+; %bb.10:                               ;   in Loop: Header=BB13_2 Depth=2
+	ld	(ix - 21), de
 	ld	(ix - 24), bc
 	ld	iy, _render_stats+6
+	ld	e, a
 	ld	hl, (iy)
 	inc.sis	hl
 	ld	(iy), l
@@ -19662,22 +18508,26 @@ _draw_planes:                           ; @draw_planes
 	add	iy, bc
 	ld	a, (iy + 5)
 	cp	a, -1
-	jp	nz, .LBB13_15
-; %bb.12:                               ;   in Loop: Header=BB13_2 Depth=2
-	ld	hl, (ix - 6)
-	add	hl, bc
-	or	a, a
-	sbc	hl, bc
+	jp	nz, .LBB13_14
+; %bb.11:                               ;   in Loop: Header=BB13_2 Depth=2
 	ld	bc, (ix - 24)
-	jp	z, .LBB13_10
-; %bb.13:                               ;   in Loop: Header=BB13_2 Depth=2
-	ld	iy, (ix - 9)
-	ld	de, (ix - 3)
-	.local	.LBB13_14
-.LBB13_14:                              ;   Parent Loop BB13_1 Depth=1
+	push	bc
+	pop	hl
+	ld	de, (ix - 6)
+	or	a, a
+	sbc	hl, de
+	ld	de, (ix - 21)
+	jp	z, .LBB13_41
+; %bb.12:                               ;   in Loop: Header=BB13_2 Depth=2
+	ld	hl, (_images+237)
+	ld	(ix - 30), hl
+	ld	iy, (ix - 3)
+	ld	hl, (ix - 6)
+	.local	.LBB13_13
+.LBB13_13:                              ;   Parent Loop BB13_1 Depth=1
                                         ;     Parent Loop BB13_2 Depth=2
                                         ; =>    This Inner Loop Header: Depth=3
-	ld	(ix - 3), de
+	ld	(ix - 6), hl
 	ld	hl, _player+18
 	ld	hl, (hl)
                                         ; kill: def $hl killed $hl killed $uhl
@@ -19686,8 +18536,8 @@ _draw_planes:                           ; @draw_planes
 	ld	de, 0
 	ld	e, l
 	ld	d, h
-	ld	(ix - 12), de
-	ld	de, (ix - 3)
+	ld	(ix - 9), de
+	ld	de, (ix - 6)
 	push	de
 	pop	hl
 	add	hl, hl
@@ -19700,7 +18550,7 @@ _draw_planes:                           ; @draw_planes
 	add	hl, bc
 	ld	c, 2
 	call	__ishrs
-	ld	de, (ix - 12)
+	ld	de, (ix - 9)
 	add	hl, de
 	ld	bc, 31
 	call	__iand
@@ -19708,25 +18558,27 @@ _draw_planes:                           ; @draw_planes
 	ld	de, (ix - 33)
 	add	hl, de
 	ex	de, hl
-	ld	hl, (ix - 48)
+	ld	hl, (ix - 30)
 	add	hl, de
 	ld	a, (hl)
 	ld	(iy), a
-	ld	de, (ix - 3)
+	ld	de, (ix - 6)
 	inc	de
 	inc	iy
 	push	bc
 	pop	hl
 	or	a, a
 	sbc	hl, de
-	jp	nz, .LBB13_14
-	jp	.LBB13_10
-	.local	.LBB13_15
-.LBB13_15:                              ;   in Loop: Header=BB13_2 Depth=2
+	ex	de, hl
+	ld	de, (ix - 21)
+	jp	nz, .LBB13_13
+	jp	.LBB13_41
+	.local	.LBB13_14
+.LBB13_14:                              ;   in Loop: Header=BB13_2 Depth=2
 	or	a, a
 	sbc	hl, hl
 	ld	l, a
-	ld	(ix - 51), hl
+	ld	(ix - 48), hl
 	ld	hl, (ix - 27)
 	ld	bc, 40
 	sbc	hl, bc
@@ -19734,17 +18586,17 @@ _draw_planes:                           ; @draw_planes
 	ld	(ix - 30), hl
 	ld	(ix - 39), hl
 	ld	hl, _shade_rows+93
-	jp	z, .LBB13_27
-; %bb.16:                               ;   in Loop: Header=BB13_2 Depth=2
-	ld	a, (ix - 12)                    ; 1-byte Folded Reload
+	jp	z, .LBB13_26
+; %bb.15:                               ;   in Loop: Header=BB13_2 Depth=2
+	ld	a, (ix - 9)                     ; 1-byte Folded Reload
 	add	a, -128
 	cp	a, -128
 	ld	hl, _sector_floor
-	jr	nc, .LBB13_18
-; %bb.17:                               ;   in Loop: Header=BB13_2 Depth=2
+	jr	nc, .LBB13_17
+; %bb.16:                               ;   in Loop: Header=BB13_2 Depth=2
 	ld	hl, _sector_ceiling
-	.local	.LBB13_18
-.LBB13_18:                              ;   in Loop: Header=BB13_2 Depth=2
+	.local	.LBB13_17
+.LBB13_17:                              ;   in Loop: Header=BB13_2 Depth=2
 	ld	de, (ix - 42)
 	add	hl, de
 	ld	de, (hl)
@@ -19786,11 +18638,11 @@ _draw_planes:                           ; @draw_planes
 	or	a, a
 	sbc	hl, de
 	ld	(ix - 39), bc
-	jr	nc, .LBB13_20
-; %bb.19:                               ;   in Loop: Header=BB13_2 Depth=2
+	jr	nc, .LBB13_19
+; %bb.18:                               ;   in Loop: Header=BB13_2 Depth=2
 	ld	bc, 1
-	.local	.LBB13_20
-.LBB13_20:                              ;   in Loop: Header=BB13_2 Depth=2
+	.local	.LBB13_19
+.LBB13_19:                              ;   in Loop: Header=BB13_2 Depth=2
 	ld	(ix - 30), bc
 	push	bc
 	pop	hl
@@ -19798,22 +18650,22 @@ _draw_planes:                           ; @draw_planes
 	or	a, a
 	sbc	hl, de
 	ld	bc, 0
-	jr	c, .LBB13_22
-; %bb.21:                               ;   in Loop: Header=BB13_2 Depth=2
+	jr	c, .LBB13_21
+; %bb.20:                               ;   in Loop: Header=BB13_2 Depth=2
 	ld	hl, 8192
 	ld	(ix - 30), hl
-	.local	.LBB13_22
-.LBB13_22:                              ;   in Loop: Header=BB13_2 Depth=2
+	.local	.LBB13_21
+.LBB13_21:                              ;   in Loop: Header=BB13_2 Depth=2
 	lea	hl, iy + 0
 	ld	de, -8384512
 	or	a, a
 	sbc	hl, de
-	jr	c, .LBB13_24
-; %bb.23:                               ;   in Loop: Header=BB13_2 Depth=2
+	jr	c, .LBB13_23
+; %bb.22:                               ;   in Loop: Header=BB13_2 Depth=2
 	ld	hl, _shade_rows+93
-	jp	.LBB13_27
-	.local	.LBB13_24
-.LBB13_24:                              ;   in Loop: Header=BB13_2 Depth=2
+	jp	.LBB13_26
+	.local	.LBB13_23
+.LBB13_23:                              ;   in Loop: Header=BB13_2 Depth=2
 	push	bc
 	pop	de
 	ld	e, (ix - 45)                    ; 1-byte Folded Reload
@@ -19827,11 +18679,11 @@ _draw_planes:                           ; @draw_planes
 	add	a, l
 	ld	c, a
 	cp	a, 31
-	jr	c, .LBB13_26
-; %bb.25:                               ;   in Loop: Header=BB13_2 Depth=2
+	jr	c, .LBB13_25
+; %bb.24:                               ;   in Loop: Header=BB13_2 Depth=2
 	ld	c, 31
-	.local	.LBB13_26
-.LBB13_26:                              ;   in Loop: Header=BB13_2 Depth=2
+	.local	.LBB13_25
+.LBB13_25:                              ;   in Loop: Header=BB13_2 Depth=2
 	or	a, a
 	sbc	hl, hl
 	ld	l, c
@@ -19840,10 +18692,10 @@ _draw_planes:                           ; @draw_planes
 	ex	de, hl
 	ld	hl, _shade_rows
 	add	hl, de
-	.local	.LBB13_27
-.LBB13_27:                              ;   in Loop: Header=BB13_2 Depth=2
+	.local	.LBB13_26
+.LBB13_26:                              ;   in Loop: Header=BB13_2 Depth=2
 	ld	iy, (hl)
-	ld	hl, (ix - 51)
+	ld	hl, (ix - 48)
 	ld	bc, 3
 	call	__imulu
 	ex	de, hl
@@ -19852,21 +18704,21 @@ _draw_planes:                           ; @draw_planes
 	ld	hl, (hl)
 	ld	a, (_player+31)
 	bit	0, a
-	jp	z, .LBB13_36
-; %bb.28:                               ;   in Loop: Header=BB13_2 Depth=2
-	ld	(ix - 57), hl
-	ld	(ix - 54), iy
+	jp	z, .LBB13_35
+; %bb.27:                               ;   in Loop: Header=BB13_2 Depth=2
+	ld	(ix - 51), hl
+	ld	(ix - 48), iy
 	ld	hl, (_camsin)
 	ld	de, (ix - 30)
 	push	de
 	pop	bc
 	ld	(ix - 30), de
 	call	__imulu
-	ld	(ix - 12), hl
+	ld	(ix - 9), hl
 	ld	a, 6
 	ld	c, a
 	call	__ishrs
-	ld	(ix - 45), hl
+	ld	(ix - 42), hl
 	ld	hl, (_camcos)
 	push	de
 	pop	bc
@@ -19877,147 +18729,105 @@ _draw_planes:                           ; @draw_planes
 	sbc	hl, de
 	ld	c, a
 	call	__ishrs
-	ld	(ix - 51), hl
+	ld	(ix - 45), hl
 	ld	bc, (_player)
 	push	de
 	pop	iy
 	add	iy, bc
-	ld	hl, (ix - 3)
+	ld	hl, (ix - 6)
 	ld	de, -64
 	add	hl, de
 	push	hl
 	pop	bc
+	ld	hl, (ix - 42)
+	call	__imulu
+	ex	de, hl
+	add	iy, de
+	ld	(ix - 6), iy
+	ld	de, (_player+4)
+	ld	iy, (ix - 9)
+	add	iy, de
 	ld	hl, (ix - 45)
 	call	__imulu
 	ex	de, hl
 	add	iy, de
-	ld	(ix - 42), iy
-	ld	de, (_player+4)
-	ld	iy, (ix - 12)
-	add	iy, de
-	ld	hl, (ix - 51)
-	call	__imulu
-	ex	de, hl
-	lea	hl, iy + 0
-	add	hl, de
-	ld	(ix - 12), hl
+	ld	(ix - 9), iy
 	ld	hl, (ix - 30)
 	ld	c, 4
 	call	__ishru
 	push	hl
-	pop	bc
+	pop	iy
 	ld	de, 254
 	or	a, a
 	sbc	hl, de
-	jr	c, .LBB13_30
-; %bb.29:                               ;   in Loop: Header=BB13_2 Depth=2
-	ld	bc, 254
-	.local	.LBB13_30
-.LBB13_30:                              ;   in Loop: Header=BB13_2 Depth=2
+	jr	c, .LBB13_29
+; %bb.28:                               ;   in Loop: Header=BB13_2 Depth=2
+	ld	iy, 254
+	.local	.LBB13_29
+.LBB13_29:                              ;   in Loop: Header=BB13_2 Depth=2
 	ld	de, -8388608
 	ld	hl, (ix - 39)
 	add	hl, de
 	ld	de, -8388576
 	or	a, a
 	sbc	hl, de
-	ld	de, 3
+	jr	nc, .LBB13_31
+; %bb.30:                               ;   in Loop: Header=BB13_2 Depth=2
+	ld	iy, 1
+	.local	.LBB13_31
+.LBB13_31:                              ;   in Loop: Header=BB13_2 Depth=2
+	ld	de, (_render_detail)
 	push	de
-	pop	iy
-	jr	nc, .LBB13_32
-; %bb.31:                               ;   in Loop: Header=BB13_2 Depth=2
-	ld	bc, 1
-	.local	.LBB13_32
-.LBB13_32:                              ;   in Loop: Header=BB13_2 Depth=2
-	ld	(ix - 30), bc
-	ld	bc, (_render_detail)
-	push	bc
 	pop	hl
-	ld	de, 2
-	or	a, a
-	sbc	hl, de
-	jp	nz, .LBB13_41
-; %bb.33:                               ;   in Loop: Header=BB13_2 Depth=2
-	ld	hl, (ix - 6)
-	or	a, a
-	sbc	hl, de
-	ld	bc, (ix - 24)
-	jp	c, .LBB13_10
-; %bb.34:                               ;   in Loop: Header=BB13_2 Depth=2
-	ld	hl, (ix - 6)
-	call	__ishru_1
-	ex	de, hl
-	ld	hl, (ix - 45)
-	add	hl, hl
-	ld	(ix - 39), hl
-	ld	hl, (ix - 51)
-	add	hl, hl
-	ld	(ix - 45), hl
-	ld	hl, (ix - 30)
-	ld	a, l
-	ld	hl, (ix - 9)
-	ld	(ix - 3), hl
-	ld	hl, (ix - 15)
-	ld	(ix - 30), hl
-	.local	.LBB13_35
-.LBB13_35:                              ;   Parent Loop BB13_1 Depth=1
-                                        ;     Parent Loop BB13_2 Depth=2
-                                        ; =>    This Inner Loop Header: Depth=3
-	dec	de
-	ld	hl, (ix - 12)
-	ld	c, 4
-	call	__ishru
-	ld	bc, 992
-	call	__iand
-	push	hl
-	pop	iy
-	ld	hl, (ix - 42)
-	ld	c, 9
-	call	__ishru
-	ld	bc, 31
-	call	__iand
-	lea	bc, iy + 0
-	add	hl, bc
-	push	hl
-	pop	bc
-	ld	hl, (ix - 57)
-	add	hl, bc
-	ld	l, (hl)
-	ld	bc, 0
-	ld	c, l
-	ld	hl, (ix - 54)
-	add	hl, bc
-	ld	bc, (ix - 24)
-	ld	l, (hl)
-	ld	iy, (ix - 3)
-	ld	(iy), l
-	ld	hl, (ix - 30)
-	ld	(hl), a
-	lea	iy, iy + 2
-	ld	(ix - 3), iy
-	push	hl
-	pop	iy
-	lea	iy, iy + 2
-	ld	(ix - 30), iy
-	push	de
-	pop	iy
-	ld	de, (ix - 39)
-	ld	hl, (ix - 42)
-	add	hl, de
-	ld	(ix - 42), hl
-	lea	hl, iy + 0
-	ld	de, (ix - 45)
-	ld	iy, (ix - 12)
-	add	iy, de
-	ld	(ix - 12), iy
-	push	hl
-	pop	de
-	add	hl, bc
+	ld	bc, 2
 	or	a, a
 	sbc	hl, bc
-	jr	nz, .LBB13_35
-	jp	.LBB13_10
-	.local	.LBB13_36
-.LBB13_36:                              ;   in Loop: Header=BB13_2 Depth=2
+	jp	nz, .LBB13_42
+; %bb.32:                               ;   in Loop: Header=BB13_2 Depth=2
+	ld	de, (ix - 21)
+	push	de
+	pop	hl
+	or	a, a
+	sbc	hl, bc
+	ld	bc, (ix - 24)
+	jp	c, .LBB13_41
+; %bb.33:                               ;   in Loop: Header=BB13_2 Depth=2
+	ex	de, hl
+	call	__ishru_1
+	push	hl
+	pop	bc
+	lea	de, iy + 0
+	ld	iy, (ix - 42)
+	add	iy, iy
+	ld	hl, (ix - 45)
+	add	hl, hl
+	push	de
+	push	hl
+	push	iy
+	ld	de, (ix - 9)
+	push	de
+	ld	de, (ix - 6)
+	push	de
+	push	bc
+	ld	hl, (ix - 48)
+	push	hl
+	ld	hl, (ix - 51)
+	push	hl
+	ld	hl, (ix - 12)
+	push	hl
+	ld	hl, (ix - 3)
+	push	hl
+	call	_d84_span2
+	.local	.LBB13_34
+.LBB13_34:                              ;   in Loop: Header=BB13_2 Depth=2
+	ld	de, (ix - 21)
+	ld	bc, (ix - 24)
+	ld	hl, 30
+	add	hl, sp
+	ld	sp, hl
+	jr	.LBB13_41
+	.local	.LBB13_35
+.LBB13_35:                              ;   in Loop: Header=BB13_2 Depth=2
 	ld	de, 528
 	add	hl, de
 	push	hl
@@ -20030,11 +18840,11 @@ _draw_planes:                           ; @draw_planes
 	ld	e, (hl)
 	add	iy, de
 	ld	a, (iy)
-	ld	hl, (ix - 6)
+	ld	hl, (ix - 21)
 	push	hl
 	ld	l, a
 	push	hl
-	ld	hl, (ix - 9)
+	ld	hl, (ix - 3)
 	push	hl
 	call	_memset
 	ld	hl, 9
@@ -20048,50 +18858,73 @@ _draw_planes:                           ; @draw_planes
 	ld	bc, 254
 	or	a, a
 	sbc	hl, bc
-	jr	c, .LBB13_38
-; %bb.37:                               ;   in Loop: Header=BB13_2 Depth=2
+	jr	c, .LBB13_37
+; %bb.36:                               ;   in Loop: Header=BB13_2 Depth=2
 	ld	de, 254
-	.local	.LBB13_38
-.LBB13_38:                              ;   in Loop: Header=BB13_2 Depth=2
+	.local	.LBB13_37
+.LBB13_37:                              ;   in Loop: Header=BB13_2 Depth=2
 	ld	bc, -8388608
 	ld	hl, (ix - 39)
 	add	hl, bc
 	ld	bc, -8388576
 	or	a, a
 	sbc	hl, bc
-	jr	nc, .LBB13_40
-; %bb.39:                               ;   in Loop: Header=BB13_2 Depth=2
+	jr	nc, .LBB13_39
+; %bb.38:                               ;   in Loop: Header=BB13_2 Depth=2
 	ld	a, 1
 	ld	e, a
-	.local	.LBB13_40
-.LBB13_40:                              ;   in Loop: Header=BB13_2 Depth=2
-	ld	hl, (ix - 6)
+	.local	.LBB13_39
+.LBB13_39:                              ;   in Loop: Header=BB13_2 Depth=2
+	ld	hl, (ix - 21)
 	push	hl
 	push	de
-	ld	hl, (ix - 15)
+	ld	hl, (ix - 12)
 	push	hl
 	call	_memset
+	ld	de, (ix - 21)
 	ld	hl, 9
+	.local	.LBB13_40
+.LBB13_40:                              ;   in Loop: Header=BB13_2 Depth=2
 	add	hl, sp
 	ld	sp, hl
 	ld	bc, (ix - 24)
-	jp	.LBB13_10
 	.local	.LBB13_41
 .LBB13_41:                              ;   in Loop: Header=BB13_2 Depth=2
-	push	bc
+	ld	hl, (ix - 3)
+	add	hl, de
+	ld	(ix - 3), hl
+	ld	hl, (ix - 12)
+	add	hl, de
+	ld	(ix - 12), hl
+	ld	iy, (ix - 15)
+	add	iy, bc
+	ld	de, -8388608
+	ld	hl, (ix - 18)
+	add	hl, de
+	ld	de, -8388481
+	or	a, a
+	sbc	hl, de
+	jp	c, .LBB13_2
+	jp	.LBB13_51
+	.local	.LBB13_42
+.LBB13_42:                              ;   in Loop: Header=BB13_2 Depth=2
+	push	de
 	pop	hl
-	lea	de, iy + 0
+	ld	bc, 3
 	or	a, a
-	sbc	hl, de
-	jp	nz, .LBB13_45
-; %bb.42:                               ;   in Loop: Header=BB13_2 Depth=2
-	ld	hl, (ix - 6)
-	or	a, a
-	sbc	hl, de
-	ld	bc, (ix - 24)
-	jp	c, .LBB13_10
+	sbc	hl, bc
+	jr	nz, .LBB13_47
 ; %bb.43:                               ;   in Loop: Header=BB13_2 Depth=2
-	ld	hl, (ix - 6)
+	ld	de, (ix - 21)
+	push	de
+	pop	hl
+	or	a, a
+	sbc	hl, bc
+	ld	bc, (ix - 24)
+	jr	c, .LBB13_41
+; %bb.44:                               ;   in Loop: Header=BB13_2 Depth=2
+	ld	(ix - 30), iy
+	ex	de, hl
 	ld	de, 0
 	ld	bc, -5592405
 	push	de
@@ -20100,237 +18933,120 @@ _draw_planes:                           ; @draw_planes
 	ld	c, 24
 	call	__i48shru
 	call	__ishru_1
-	ex	de, hl
-	ld	hl, (ix - 45)
+	xor	a, a
+	bit	0, a
+	ld	iy, (ix - 21)
+	jr	nz, .LBB13_46
+; %bb.45:                               ;   in Loop: Header=BB13_2 Depth=2
+	push	hl
+	pop	iy
+	.local	.LBB13_46
+.LBB13_46:                              ;   in Loop: Header=BB13_2 Depth=2
+	ld	hl, (ix - 42)
 	ld	bc, 3
 	call	__imulu
-	ld	(ix - 39), hl
-	ld	hl, (ix - 51)
+	ex	de, hl
+	ld	hl, (ix - 45)
 	call	__imulu
-	ld	(ix - 45), hl
-	ld	hl, (ix - 30)
-	ld	a, l
-	ld	hl, (ix - 9)
-	ld	(ix - 3), hl
-	ld	hl, (ix - 15)
-	ld	(ix - 30), hl
-	.local	.LBB13_44
-.LBB13_44:                              ;   Parent Loop BB13_1 Depth=1
-                                        ;     Parent Loop BB13_2 Depth=2
-                                        ; =>    This Inner Loop Header: Depth=3
-	dec	de
-	ld	hl, (ix - 12)
-	ld	c, 4
-	call	__ishru
-	ld	bc, 992
-	call	__iand
-	push	hl
-	pop	iy
-	ld	hl, (ix - 42)
-	ld	c, 9
-	call	__ishru
-	ld	bc, 31
-	call	__iand
-	lea	bc, iy + 0
-	add	hl, bc
-	push	hl
-	pop	bc
-	ld	hl, (ix - 57)
-	add	hl, bc
-	ld	l, (hl)
-	ld	bc, 0
-	ld	c, l
-	ld	hl, (ix - 54)
-	add	hl, bc
-	ld	bc, (ix - 24)
-	ld	l, (hl)
-	ld	iy, (ix - 3)
-	ld	(iy), l
-	ld	hl, (ix - 30)
-	ld	(hl), a
-	lea	iy, iy + 3
-	ld	(ix - 3), iy
-	push	hl
-	pop	iy
-	lea	iy, iy + 3
-	ld	(ix - 30), iy
-	push	de
-	pop	iy
-	ld	de, (ix - 39)
-	ld	hl, (ix - 42)
-	add	hl, de
-	ld	(ix - 42), hl
-	lea	hl, iy + 0
-	ld	de, (ix - 45)
-	ld	iy, (ix - 12)
-	add	iy, de
-	ld	(ix - 12), iy
-	push	hl
-	pop	de
-	add	hl, bc
-	or	a, a
-	sbc	hl, bc
-	jr	nz, .LBB13_44
-	jp	.LBB13_10
-	.local	.LBB13_45
-.LBB13_45:                              ;   in Loop: Header=BB13_2 Depth=2
+	ld	bc, (ix - 30)
 	push	bc
-	pop	hl
+	push	hl
+	push	de
+	ld	hl, (ix - 9)
+	push	hl
+	ld	hl, (ix - 6)
+	push	hl
+	push	iy
+	ld	hl, (ix - 48)
+	push	hl
+	ld	hl, (ix - 51)
+	push	hl
+	ld	hl, (ix - 12)
+	push	hl
+	ld	hl, (ix - 3)
+	push	hl
+	call	_d84_span3
+	ld	hl, 30
+	add	hl, sp
+	ld	sp, hl
+	ld	bc, (ix - 24)
+	ld	de, (ix - 21)
+	jp	.LBB13_41
+	.local	.LBB13_47
+.LBB13_47:                              ;   in Loop: Header=BB13_2 Depth=2
+	ex	de, hl
 	ld	de, 4
 	or	a, a
 	sbc	hl, de
-	jp	nz, .LBB13_49
-; %bb.46:                               ;   in Loop: Header=BB13_2 Depth=2
-	ld	hl, (ix - 6)
+	jr	nz, .LBB13_50
+; %bb.48:                               ;   in Loop: Header=BB13_2 Depth=2
+	ld	bc, (ix - 21)
+	push	bc
+	pop	hl
 	or	a, a
 	sbc	hl, de
+	push	bc
+	pop	de
 	ld	bc, (ix - 24)
-	jp	c, .LBB13_10
-; %bb.47:                               ;   in Loop: Header=BB13_2 Depth=2
-	ld	hl, (ix - 6)
+	jp	c, .LBB13_41
+; %bb.49:                               ;   in Loop: Header=BB13_2 Depth=2
+	ex	de, hl
 	ld	c, 2
 	call	__ishru
 	ex	de, hl
+	ld	hl, (ix - 42)
+	add	hl, hl
+	add	hl, hl
+	push	hl
+	pop	bc
 	ld	hl, (ix - 45)
 	add	hl, hl
 	add	hl, hl
-	ld	(ix - 39), hl
-	ld	hl, (ix - 51)
-	add	hl, hl
-	add	hl, hl
-	ld	(ix - 45), hl
-	ld	hl, (ix - 30)
-	ld	a, l
+	push	iy
+	push	hl
+	push	bc
 	ld	hl, (ix - 9)
-	ld	(ix - 3), hl
-	ld	hl, (ix - 15)
-	ld	(ix - 30), hl
-	.local	.LBB13_48
-.LBB13_48:                              ;   Parent Loop BB13_1 Depth=1
-                                        ;     Parent Loop BB13_2 Depth=2
-                                        ; =>    This Inner Loop Header: Depth=3
-	dec	de
-	ld	hl, (ix - 12)
-	ld	c, 4
-	call	__ishru
-	ld	bc, 992
-	call	__iand
 	push	hl
-	pop	iy
-	ld	hl, (ix - 42)
-	ld	c, 9
-	call	__ishru
-	ld	bc, 31
-	call	__iand
-	lea	bc, iy + 0
-	add	hl, bc
-	push	hl
-	pop	bc
-	ld	hl, (ix - 57)
-	add	hl, bc
-	ld	l, (hl)
-	ld	bc, 0
-	ld	c, l
-	ld	hl, (ix - 54)
-	add	hl, bc
-	ld	bc, (ix - 24)
-	ld	l, (hl)
-	ld	iy, (ix - 3)
-	ld	(iy), l
-	ld	hl, (ix - 30)
-	ld	(hl), a
-	lea	iy, iy + 4
-	ld	(ix - 3), iy
-	push	hl
-	pop	iy
-	lea	iy, iy + 4
-	ld	(ix - 30), iy
-	push	de
-	pop	iy
-	ld	de, (ix - 39)
-	ld	hl, (ix - 42)
-	add	hl, de
-	ld	(ix - 42), hl
-	lea	hl, iy + 0
-	ld	de, (ix - 45)
-	ld	iy, (ix - 12)
-	add	iy, de
-	ld	(ix - 12), iy
-	push	hl
-	pop	de
-	add	hl, bc
-	or	a, a
-	sbc	hl, bc
-	jr	nz, .LBB13_48
-	jp	.LBB13_10
-	.local	.LBB13_49
-.LBB13_49:                              ;   in Loop: Header=BB13_2 Depth=2
 	ld	hl, (ix - 6)
-	add	hl, bc
-	or	a, a
-	sbc	hl, bc
-	ld	bc, (ix - 24)
-	jp	z, .LBB13_10
-; %bb.50:                               ;   in Loop: Header=BB13_2 Depth=2
-	ld	hl, (ix - 30)
-	ld	a, l
-	ld	hl, (ix - 3)
-	or	a, a
-	sbc	hl, bc
-	ld	de, (ix - 9)
-	ld	(ix - 3), de
-	ld	de, (ix - 15)
-	ld	(ix - 30), de
-	.local	.LBB13_51
-.LBB13_51:                              ;   Parent Loop BB13_1 Depth=1
-                                        ;     Parent Loop BB13_2 Depth=2
-                                        ; =>    This Inner Loop Header: Depth=3
-	ld	(ix - 39), hl
+	push	hl
+	push	de
+	ld	hl, (ix - 48)
+	push	hl
+	ld	hl, (ix - 51)
+	push	hl
 	ld	hl, (ix - 12)
-	ld	c, 4
-	call	__ishru
-	ld	bc, 992
-	call	__iand
-	ex	de, hl
+	push	hl
+	ld	hl, (ix - 3)
+	push	hl
+	call	_d84_span4
+	jp	.LBB13_34
+	.local	.LBB13_50
+.LBB13_50:                              ;   in Loop: Header=BB13_2 Depth=2
+	push	iy
+	ld	hl, (ix - 45)
+	push	hl
 	ld	hl, (ix - 42)
-	ld	c, 9
-	call	__ishru
-	ld	bc, 31
-	call	__iand
-	ld	bc, (ix - 24)
-	add	hl, de
-	ex	de, hl
-	ld	hl, (ix - 57)
-	add	hl, de
-	ld	l, (hl)
-	ld	de, 0
-	ld	e, l
-	ld	hl, (ix - 54)
-	add	hl, de
-	ld	l, (hl)
-	ld	iy, (ix - 3)
-	ld	(iy), l
-	ld	hl, (ix - 39)
-	inc	iy
-	ld	(ix - 3), iy
-	ld	iy, (ix - 30)
-	ld	(iy), a
-	inc	iy
-	ld	(ix - 30), iy
-	ld	de, (ix - 45)
-	ld	iy, (ix - 42)
-	add	iy, de
-	ld	(ix - 42), iy
-	ld	de, (ix - 51)
-	ld	iy, (ix - 12)
-	add	iy, de
-	ld	(ix - 12), iy
-	ld	de, 1
-	add	hl, de
-	jr	nc, .LBB13_51
-	jp	.LBB13_10
-	.local	.LBB13_52
-.LBB13_52:                              ;   in Loop: Header=BB13_1 Depth=1
+	push	hl
+	ld	hl, (ix - 9)
+	push	hl
+	ld	hl, (ix - 6)
+	push	hl
+	ld	hl, (ix - 21)
+	push	hl
+	ld	hl, (ix - 48)
+	push	hl
+	ld	hl, (ix - 51)
+	push	hl
+	ld	hl, (ix - 12)
+	push	hl
+	ld	hl, (ix - 3)
+	push	hl
+	call	_d84_span
+	ld	de, (ix - 21)
+	ld	hl, 30
+	jp	.LBB13_40
+	.local	.LBB13_51
+.LBB13_51:                              ;   in Loop: Header=BB13_1 Depth=1
 	ld	bc, (ix - 27)
 	inc	bc
 	push	bc
@@ -20338,9 +19054,9 @@ _draw_planes:                           ; @draw_planes
 	ld	de, 80
 	or	a, a
 	sbc	hl, de
-	ld	(ix - 18), iy
+	ld	(ix - 15), iy
 	jp	nz, .LBB13_1
-; %bb.53:
+; %bb.52:
 	ld	sp, ix
 	pop	ix
 	ret
@@ -20355,136 +19071,85 @@ _draw_sprites:                          ; @draw_sprites
 	push	ix
 	ld	ix, 0
 	add	ix, sp
-	lea	hl, ix - 69
+	lea	hl, ix - 53
 	ld	sp, hl
-	ld	de, 0
-	ld	hl, (_camx)
-	ld	(ix - 12), hl
-	ld	hl, (_camy)
-	ld	(ix - 15), hl
-	ld	hl, (_camsin)
-	ld	(ix - 6), hl
-	ld	hl, (_camcos)
-	ld	(ix - 21), hl
-	ld	(ix - 18), de
+	ld	bc, 0
+	push	bc
+	pop	iy
 	.local	.LBB14_1
 .LBB14_1:                               ; =>This Loop Header: Depth=1
-                                        ;     Child Loop BB14_6 Depth 2
-	push	de
+                                        ;     Child Loop BB14_8 Depth 2
+	ld	(ix - 6), iy
+	ld	(ix - 9), bc
+	push	bc
 	pop	hl
 	ld	bc, 12
 	call	__imulu
-	push	hl
-	pop	bc
+	ex	de, hl
 	ld	iy, _actors
-	add	iy, bc
+	add	iy, de
 	ld	a, (iy + 6)
 	or	a, a
-	jp	nz, .LBB14_11
+	jp	nz, .LBB14_4
 ; %bb.2:                                ;   in Loop: Header=BB14_1 Depth=1
-	ld	(ix - 24), de
-	ld	bc, (iy)
-	ld	a, b
+	ld	de, (iy)
+	ld	a, d
 	rlc	a
 	sbc	hl, hl
-	ld	l, c
-	ld	h, b
-	ld	bc, (ix - 12)
+	ld	l, e
+	ld	h, d
+	ld	de, (_camx)
 	or	a, a
-	sbc	hl, bc
-	ld	(ix - 9), hl
+	sbc	hl, de
+	ex	de, hl
 	ld	bc, (iy + 2)
 	ld	a, b
 	rlc	a
 	sbc	hl, hl
 	ld	l, c
 	ld	h, b
-	ld	bc, (ix - 15)
+	ld	bc, (_camy)
 	or	a, a
 	sbc	hl, bc
-	ex	de, hl
-	ld	hl, (ix - 6)
-	ld	bc, (ix - 9)
-	call	__imulu
-	ld	(ix - 27), hl
-	ld	iy, (ix - 21)
-	lea	hl, iy + 0
+	push	hl
 	push	de
-	pop	bc
-	call	__imulu
-	push	hl
-	pop	bc
-	ld	hl, (ix - 27)
-	or	a, a
-	sbc	hl, bc
-	ld	a, 8
-	ld	c, a
-	call	__ishru
-	push	hl
-	pop	bc
-	ld	hl, _d84_rotated
-	ld	(ix - 27), bc
-	ld	(hl), c
-	inc	hl
-	ld	(hl), b
-	lea	hl, iy + 0
-	ld	bc, (ix - 9)
-	call	__imulu
-	push	hl
-	pop	iy
-	ld	hl, (ix - 6)
-	push	de
-	pop	bc
-	call	__imulu
-	push	hl
-	pop	bc
-	add	iy, bc
-	lea	hl, iy + 0
-	ld	c, a
-	call	__ishru
-	push	hl
-	pop	iy
+	call	_d84_rotate
+	ld	hl, 6
+	add	hl, sp
+	ld	sp, hl
 	ld	hl, _d84_rotated+2
-	push	de
-	lea	de, iy + 0
-	ld	(hl), e
-	inc	hl
-	ld	(hl), d
-	pop	de
+	ld	iy, (hl)
 	ex	de, hl
 	ld	e, iyl
 	ld	d, iyh
 	ex	de, hl
-	ld.sis	bc, -32768
-	add.sis	hl, bc
-	ld	(ix - 9), l
-	ld	(ix - 8), h
-	ld.sis	bc, -32760
+	ld.sis	de, -32768
+	add.sis	hl, de
+	ld	(ix - 12), l
+	ld	(ix - 11), h
+	ld.sis	de, -32760
 	or	a, a
-	sbc.sis	hl, bc
-	jr	nc, .LBB14_4
+	sbc.sis	hl, de
+	jr	c, .LBB14_4
 ; %bb.3:                                ;   in Loop: Header=BB14_1 Depth=1
-	ld	de, (ix - 24)
-	jp	.LBB14_11
-	.local	.LBB14_4
-.LBB14_4:                               ;   in Loop: Header=BB14_1 Depth=1
-	ld	bc, (ix - 27)
-	ld	l, c
-	ld	h, b
+	ld	hl, _d84_rotated
+	ld	de, (hl)
+	ld	l, e
+	ld	h, d
 	add.sis	hl, hl
 	sbc.sis	hl, hl
-	ex.sis	de, hl
-	ld	l, c
-	ld	h, b
-	add.sis	hl, de
+	ld	c, l
+	ld	b, h
+	ld	(ix - 15), de
+	ld	l, e
+	ld	h, d
+	add.sis	hl, bc
 	ld	a, l
-	xor	a, e
-	ld	c, a
+	xor	a, c
+	ld	e, a
 	ld	a, h
-	xor	a, d
-	ld	b, a
-	ld	e, c
-	ld	d, b
+	xor	a, b
+	ld	d, a
 	ex	de, hl
 	ld	e, iyl
 	ld	d, iyh
@@ -20493,16 +19158,28 @@ _draw_sprites:                          ; @draw_sprites
 	add.sis	hl, bc
 	or	a, a
 	sbc.sis	hl, de
-	ld	de, (ix - 24)
-	jp	c, .LBB14_11
-; %bb.5:                                ;   in Loop: Header=BB14_1 Depth=1
-	push	de
+	jr	nc, .LBB14_6
+	.local	.LBB14_4
+.LBB14_4:                               ;   in Loop: Header=BB14_1 Depth=1
+	ld	iy, (ix - 6)
+	ld	bc, (ix - 9)
+	.local	.LBB14_5
+.LBB14_5:                               ;   in Loop: Header=BB14_1 Depth=1
+	inc	bc
+	push	bc
 	pop	hl
+	ld	de, 91
+	or	a, a
+	sbc	hl, de
+	jp	z, .LBB14_13
+	jp	.LBB14_1
+	.local	.LBB14_6
+.LBB14_6:                               ;   in Loop: Header=BB14_1 Depth=1
+	ld	hl, (ix - 9)
 	add	hl, hl
-	push	hl
-	pop	bc
+	ex	de, hl
 	ld	hl, _sprite_z
-	add	hl, bc
+	add	hl, de
 	push	de
 	lea	de, iy + 0
 	ld	(hl), e
@@ -20510,26 +19187,24 @@ _draw_sprites:                          ; @draw_sprites
 	ld	(hl), d
 	pop	de
 	ld	hl, _sprite_x
-	add	hl, bc
-	ld	bc, (ix - 27)
-	ld	(hl), c
+	add	hl, de
+	ld	de, (ix - 15)
+	ld	(hl), e
 	inc	hl
-	ld	(hl), b
-	ld	bc, (ix - 18)
+	ld	(hl), d
+	ld	bc, (ix - 6)
 	sbc	hl, hl
 	adc	hl, bc
-	ld	hl, 0
-	ld	(ix - 27), hl
-	jp	z, .LBB14_10
-	.local	.LBB14_6
-.LBB14_6:                               ;   Parent Loop BB14_1 Depth=1
+	ld	de, 0
+	jp	z, .LBB14_12
+; %bb.7:                                ;   in Loop: Header=BB14_1 Depth=1
+	push	bc
+	pop	de
+	.local	.LBB14_8
+.LBB14_8:                               ;   Parent Loop BB14_1 Depth=1
                                         ; =>  This Inner Loop Header: Depth=2
-	ld	(ix - 27), bc
-	ld	hl, _sprite_order
-	push	hl
-	pop	iy
-	add	iy, bc
-	ld	(ix - 30), iy
+	ld	iy, _sprite_order
+	add	iy, de
 	ld	a, (iy - 1)
 	or	a, a
 	sbc	hl, hl
@@ -20543,106 +19218,71 @@ _draw_sprites:                          ; @draw_sprites
 	ld.sis	bc, -32768
 	add.sis	hl, bc
                                         ; kill: def $hl killed $hl killed $uhl
-	ld	c, (ix - 9)
-	ld	b, (ix - 8)
+	ld	c, (ix - 12)
+	ld	b, (ix - 11)
 	or	a, a
 	sbc.sis	hl, bc
-	jr	nc, .LBB14_9
-; %bb.7:                                ;   in Loop: Header=BB14_6 Depth=2
-	ld	bc, (ix - 27)
-	dec	bc
-	ld	hl, (ix - 30)
-	ld	(hl), a
+	jr	nc, .LBB14_11
+; %bb.9:                                ;   in Loop: Header=BB14_8 Depth=2
+	dec	de
+	ld	(iy), a
 	sbc	hl, hl
-	adc	hl, bc
-	jp	nz, .LBB14_6
-; %bb.8:                                ;   in Loop: Header=BB14_1 Depth=1
-	or	a, a
-	sbc	hl, hl
-	ld	(ix - 27), hl
-	.local	.LBB14_9
-.LBB14_9:                               ;   in Loop: Header=BB14_1 Depth=1
-	ld	bc, (ix - 18)
-	.local	.LBB14_10
-.LBB14_10:                              ;   in Loop: Header=BB14_1 Depth=1
-	ld	a, e
-	ld	hl, _sprite_order
-	push	bc
-	pop	iy
-	ld	bc, (ix - 27)
-	add	hl, bc
-	ld	(hl), a
-	inc	iy
-	ld	(ix - 18), iy
+	adc	hl, de
+	jp	nz, .LBB14_8
+; %bb.10:                               ;   in Loop: Header=BB14_1 Depth=1
+	ld	de, 0
 	.local	.LBB14_11
 .LBB14_11:                              ;   in Loop: Header=BB14_1 Depth=1
-	inc	de
-	push	de
-	pop	hl
-	ld	bc, 91
-	or	a, a
-	sbc	hl, bc
-	jp	nz, .LBB14_1
-; %bb.12:
-	ld	hl, (ix - 18)
-	add	hl, bc
-	or	a, a
-	sbc	hl, bc
-	jr	nz, .LBB14_14
+	ld	bc, (ix - 6)
+	.local	.LBB14_12
+.LBB14_12:                              ;   in Loop: Header=BB14_1 Depth=1
+	push	bc
+	pop	iy
+	ld	bc, (ix - 9)
+	ld	a, c
+	ld	hl, _sprite_order
+	add	hl, de
+	ld	(hl), a
+	inc	iy
+	jp	.LBB14_5
 	.local	.LBB14_13
 .LBB14_13:
+	lea	bc, iy + 0
+	sbc	hl, hl
+	adc	hl, bc
+	jr	nz, .LBB14_15
+	.local	.LBB14_14
+.LBB14_14:
 	ld	sp, ix
 	pop	ix
 	ret
-	.local	.LBB14_14
-.LBB14_14:
-	ld	a, (_player+24)
-	bit	3, a
-	jr	z, .LBB14_16
-; %bb.15:
-	ld	hl, 0
-	jr	.LBB14_17
-	.local	.LBB14_16
-.LBB14_16:
-	ld	hl, -1
-	.local	.LBB14_17
-.LBB14_17:
-	ld	(ix - 62), hl
-	ld	hl, (_map_actors)
-	ld	(ix - 47), hl
-	ld	hl, _player+8
-	ld	de, (hl)
-	ld	a, d
-	rlc	a
-	sbc	hl, hl
-	ld	l, e
-	ld	h, d
-	ld	(ix - 50), hl
-	ld	hl, (_render_detail)
-	ld	(ix - 27), hl
+	.local	.LBB14_15
+.LBB14_15:
 	ld	h, 0
 	ld	(ix - 21), hl
 	or	a, a
 	sbc	hl, hl
-	push	hl
-	pop	bc
-	.local	.LBB14_18
-.LBB14_18:                              ; =>This Loop Header: Depth=1
+	ex	de, hl
+	.local	.LBB14_16
+.LBB14_16:                              ; =>This Loop Header: Depth=1
                                         ;     Child Loop BB14_66 Depth 2
-                                        ;       Child Loop BB14_69 Depth 3
+	ld	(ix - 6), bc
 	ld	hl, _sprite_order
-	ld	(ix - 39), bc
-	add	hl, bc
+	ld	(ix - 36), de
+	add	hl, de
 	ld	a, (hl)
 	ld	iy, 0
+	ld	(ix - 42), iy
 	ld	iyl, a
+	ld	hl, (_map_actors)
+	ld	(ix - 9), hl
 	lea	hl, iy + 0
 	ld	bc, 14
 	call	__imulu
 	ex	de, hl
-	ld	hl, (ix - 47)
+	ld	hl, (ix - 9)
 	add	hl, de
-	ld	(ix - 12), hl
+	ld	(ix - 9), hl
 	lea	hl, iy + 0
 	ld	bc, 12
 	call	__imulu
@@ -20655,7 +19295,7 @@ _draw_sprites:                          ; @draw_sprites
 	ld	hl, _sprite_z
 	add	hl, de
 	ld	iy, (hl)
-	ld	(ix - 9), iy
+	ld	(ix - 18), iy
 	ld	a, iyh
 	rlc	a
 	sbc	hl, hl
@@ -20677,12 +19317,12 @@ _draw_sprites:                          ; @draw_sprites
 	add	hl, hl
 	add	hl, hl
 	add	hl, hl
-	ld	(ix - 24), bc
+	ld	(ix - 27), bc
 	call	__idivs
 	ld	de, 64
 	add	hl, de
-	ld	(ix - 30), hl
-	ld	iy, (ix - 12)
+	ld	(ix - 24), hl
+	ld	iy, (ix - 9)
 	ld	a, (iy + 9)
 	ld	hl, (ix - 21)
 	ld	l, a
@@ -20693,7 +19333,7 @@ _draw_sprites:                          ; @draw_sprites
 	add	hl, hl
 	add	hl, hl
 	add	hl, hl
-	ld	bc, (ix - 9)
+	ld	bc, (ix - 18)
                                         ; kill: def $bc killed $bc killed $ubc
 	call	__sdivs
 	ld	e, l
@@ -20703,47 +19343,57 @@ _draw_sprites:                          ; @draw_sprites
 	ld.sis	bc, -32766
 	or	a, a
 	sbc.sis	hl, bc
-	jr	nc, .LBB14_20
-; %bb.19:                               ;   in Loop: Header=BB14_18 Depth=1
+	jr	nc, .LBB14_18
+; %bb.17:                               ;   in Loop: Header=BB14_16 Depth=1
 	ld.sis	de, 1
-	.local	.LBB14_20
-.LBB14_20:                              ;   in Loop: Header=BB14_18 Depth=1
+	.local	.LBB14_18
+.LBB14_18:                              ;   in Loop: Header=BB14_16 Depth=1
 	or	a, a
 	sbc	hl, hl
 	push	hl
 	pop	bc
 	ld	c, e
 	ld	b, d
-	ld	(ix - 6), bc
-	ld	iy, (ix - 12)
+	ld	(ix - 12), bc
+	ld	iy, (ix - 9)
 	ld	a, (iy + 10)
 	push	hl
 	pop	bc
-	ld	(ix - 36), a                    ; 1-byte Folded Spill
+	ld	(ix - 33), a                    ; 1-byte Folded Spill
 	ld	c, a
+	lea	de, iy + 0
 	ld	iy, (ix - 15)
 	ld	l, (iy + 8)
 	ld	a, l
 	or	a, a
-	ld	de, (ix - 9)
 	jr	nz, .LBB14_25
-; %bb.21:                               ;   in Loop: Header=BB14_18 Depth=1
-	ld	iy, (ix - 12)
+; %bb.19:                               ;   in Loop: Header=BB14_16 Depth=1
+	push	de
+	pop	iy
 	ld	a, (iy + 11)
 	or	a, a
 	jp	nz, .LBB14_28
-	.local	.LBB14_22
-.LBB14_22:                              ;   in Loop: Header=BB14_18 Depth=1
+	.local	.LBB14_20
+.LBB14_20:                              ;   in Loop: Header=BB14_16 Depth=1
+	lea	hl, iy + 0
 	ld	iy, (ix - 15)
 	ld	a, (iy + 9)
 	or	a, a
 	jp	nz, .LBB14_34
-; %bb.23:                               ;   in Loop: Header=BB14_18 Depth=1
-	ld	de, (ix - 62)
-	ld	iy, (ix - 12)
+; %bb.21:                               ;   in Loop: Header=BB14_16 Depth=1
+	ld	a, (_player+24)
+	bit	3, a
+	ld	de, -1
+	push	hl
+	pop	iy
+	jr	z, .LBB14_23
+; %bb.22:                               ;   in Loop: Header=BB14_16 Depth=1
+	ld	de, 0
+	.local	.LBB14_23
+.LBB14_23:                              ;   in Loop: Header=BB14_16 Depth=1
 	add	iy, de
 	ld	a, (iy + 7)
-	ld	iy, (ix - 9)
+	ld	iy, (ix - 18)
 	ex	de, hl
 	ld	e, iyl
 	ld	d, iyh
@@ -20754,14 +19404,14 @@ _draw_sprites:                          ; @draw_sprites
 	or	a, a
 	sbc.sis	hl, de
 	jp	c, .LBB14_40
-; %bb.24:                               ;   in Loop: Header=BB14_18 Depth=1
+; %bb.24:                               ;   in Loop: Header=BB14_16 Depth=1
 	ld	hl, _shade_rows+93
 	push	bc
 	pop	iy
 	jp	.LBB14_44
 	.local	.LBB14_25
-.LBB14_25:                              ;   in Loop: Header=BB14_18 Depth=1
-	ld	(ix - 33), bc
+.LBB14_25:                              ;   in Loop: Header=BB14_16 Depth=1
+	ld	(ix - 30), bc
 	ld	iy, 0
 	lea	de, iy + 0
 	ld	e, l
@@ -20781,7 +19431,7 @@ _draw_sprites:                          ; @draw_sprites
 	sbc	hl, de
 	ld	de, 4
 	jp	nc, .LBB14_27
-; %bb.26:                               ;   in Loop: Header=BB14_18 Depth=1
+; %bb.26:                               ;   in Loop: Header=BB14_16 Depth=1
 	ld	hl, (ix - 21)
                                         ; kill: def $h killed $h killed $uhl def $hl
 	ld	l, b
@@ -20790,18 +19440,18 @@ _draw_sprites:                          ; @draw_sprites
 	ld	iyl, a
 	lea	de, iy + 0
 	.local	.LBB14_27
-.LBB14_27:                              ;   in Loop: Header=BB14_18 Depth=1
+.LBB14_27:                              ;   in Loop: Header=BB14_16 Depth=1
 	ld	hl, _barrel_explode
 	add	hl, de
 	ld	a, (hl)
-	ld	de, (ix - 6)
+	ld	de, (ix - 12)
 	push	de
 	pop	hl
 	ld	c, 2
 	call	__ishru
 	add	hl, de
-	ld	(ix - 6), hl
-	ld	de, (ix - 33)
+	ld	(ix - 9), hl
+	ld	de, (ix - 30)
 	push	de
 	pop	hl
 	call	__ishru
@@ -20809,37 +19459,42 @@ _draw_sprites:                          ; @draw_sprites
 	pop	iy
 	add	iy, de
 	ld	hl, _shade_rows
+	ld	de, (ix - 9)
+	ld	(ix - 12), de
 	jp	.LBB14_44
 	.local	.LBB14_28
-.LBB14_28:                              ;   in Loop: Header=BB14_18 Depth=1
+.LBB14_28:                              ;   in Loop: Header=BB14_16 Depth=1
+	lea	hl, iy + 0
 	ld	iy, (ix - 15)
 	ld	d, (iy + 10)
 	ld	a, d
 	inc	a
 	cp	a, 2
 	jr	nc, .LBB14_35
-; %bb.29:                               ;   in Loop: Header=BB14_18 Depth=1
+; %bb.29:                               ;   in Loop: Header=BB14_16 Depth=1
+	ld	iy, (ix - 15)
 	ld	a, (iy + 5)
 	or	a, a
-	jp	nz, .LBB14_22
-; %bb.30:                               ;   in Loop: Header=BB14_18 Depth=1
-	ld	iy, (ix - 12)
+	push	hl
+	pop	iy
+	jp	nz, .LBB14_20
+; %bb.30:                               ;   in Loop: Header=BB14_16 Depth=1
 	ld	a, (iy + 8)
-	ld	(ix - 12), a
+	ld	(ix - 9), a
 	push	bc
 	pop	hl
 	ld	c, 2
 	call	__ishru
-	ld	a, (ix - 36)                    ; 1-byte Folded Reload
+	ld	a, (ix - 33)                    ; 1-byte Folded Reload
 	cp	a, 4
 	ld	iy, 1
 	jr	c, .LBB14_32
-; %bb.31:                               ;   in Loop: Header=BB14_18 Depth=1
+; %bb.31:                               ;   in Loop: Header=BB14_16 Depth=1
 	push	hl
 	pop	iy
 	.local	.LBB14_32
-.LBB14_32:                              ;   in Loop: Header=BB14_18 Depth=1
-	ld	bc, (ix - 9)
+.LBB14_32:                              ;   in Loop: Header=BB14_16 Depth=1
+	ld	bc, (ix - 18)
 	ld	l, c
 	ld	h, b
 	ld.sis	de, -32768
@@ -20847,21 +19502,22 @@ _draw_sprites:                          ; @draw_sprites
 	ld.sis	de, -28672
 	or	a, a
 	sbc.sis	hl, de
-	jp	c, .LBB14_75
-; %bb.33:                               ;   in Loop: Header=BB14_18 Depth=1
+	jp	c, .LBB14_70
+; %bb.33:                               ;   in Loop: Header=BB14_16 Depth=1
 	ld	hl, _shade_rows+93
 	jp	.LBB14_43
 	.local	.LBB14_34
-.LBB14_34:                              ;   in Loop: Header=BB14_18 Depth=1
-	ld	iy, (ix - 12)
+.LBB14_34:                              ;   in Loop: Header=BB14_16 Depth=1
+	push	hl
+	pop	iy
 	ld	a, (iy + 7)
 	ld	hl, _shade_rows
 	push	bc
 	pop	iy
 	jp	.LBB14_44
 	.local	.LBB14_35
-.LBB14_35:                              ;   in Loop: Header=BB14_18 Depth=1
-	ld	(ix - 33), bc
+.LBB14_35:                              ;   in Loop: Header=BB14_16 Depth=1
+	ld	(ix - 30), bc
 	ld	a, d
 	cp	a, 9
 	sbc	hl, hl
@@ -20870,29 +19526,29 @@ _draw_sprites:                          ; @draw_sprites
 	cp	a, 5
 	ld	bc, 6
 	jr	c, .LBB14_37
-; %bb.36:                               ;   in Loop: Header=BB14_18 Depth=1
+; %bb.36:                               ;   in Loop: Header=BB14_16 Depth=1
 	push	hl
 	pop	bc
 	.local	.LBB14_37
-.LBB14_37:                              ;   in Loop: Header=BB14_18 Depth=1
+.LBB14_37:                              ;   in Loop: Header=BB14_16 Depth=1
 	ld	iy, 0
 	ld	iyl, d
-	ld	hl, (ix - 12)
+	ld	hl, (ix - 9)
 	add	hl, bc
 	ld	a, (hl)
-	ld	(ix - 12), a
-	ld	hl, (ix - 33)
+	ld	(ix - 9), a
+	ld	hl, (ix - 30)
 	ld	c, 2
 	call	__ishru
-	ld	a, (ix - 36)                    ; 1-byte Folded Reload
+	ld	a, (ix - 33)                    ; 1-byte Folded Reload
 	cp	a, 4
 	ld	de, 1
 	jr	c, .LBB14_39
-; %bb.38:                               ;   in Loop: Header=BB14_18 Depth=1
+; %bb.38:                               ;   in Loop: Header=BB14_16 Depth=1
 	ex	de, hl
 	.local	.LBB14_39
-.LBB14_39:                              ;   in Loop: Header=BB14_18 Depth=1
-	ld	hl, (ix - 33)
+.LBB14_39:                              ;   in Loop: Header=BB14_16 Depth=1
+	ld	hl, (ix - 30)
 	or	a, a
 	sbc	hl, de
 	push	hl
@@ -20904,14 +19560,14 @@ _draw_sprites:                          ; @draw_sprites
 	call	__idivs
 	push	hl
 	pop	iy
-	ld	de, (ix - 33)
+	ld	de, (ix - 30)
 	add	iy, de
 	ld	hl, _shade_rows
 	jp	.LBB14_43
 	.local	.LBB14_40
-.LBB14_40:                              ;   in Loop: Header=BB14_18 Depth=1
-	ld	(ix - 12), a                    ; 1-byte Folded Spill
-	ld	(ix - 33), bc
+.LBB14_40:                              ;   in Loop: Header=BB14_16 Depth=1
+	ld	(ix - 9), a                     ; 1-byte Folded Spill
+	ld	(ix - 30), bc
 	lea	bc, iy + 0
 	ld	iy, (ix - 15)
 	ld	a, (iy + 4)
@@ -20929,10 +19585,10 @@ _draw_sprites:                          ; @draw_sprites
 	ld	e, a
 	cp	a, 31
 	jr	c, .LBB14_42
-; %bb.41:                               ;   in Loop: Header=BB14_18 Depth=1
+; %bb.41:                               ;   in Loop: Header=BB14_16 Depth=1
 	ld	e, 31
 	.local	.LBB14_42
-.LBB14_42:                              ;   in Loop: Header=BB14_18 Depth=1
+.LBB14_42:                              ;   in Loop: Header=BB14_16 Depth=1
 	or	a, a
 	sbc	hl, hl
 	ld	l, e
@@ -20941,17 +19597,18 @@ _draw_sprites:                          ; @draw_sprites
 	ex	de, hl
 	ld	hl, _shade_rows
 	add	hl, de
-	ld	iy, (ix - 33)
+	ld	iy, (ix - 30)
 	.local	.LBB14_43
-.LBB14_43:                              ;   in Loop: Header=BB14_18 Depth=1
-	ld	a, (ix - 12)                    ; 1-byte Folded Reload
+.LBB14_43:                              ;   in Loop: Header=BB14_16 Depth=1
+	ld	a, (ix - 9)                     ; 1-byte Folded Reload
 	.local	.LBB14_44
-.LBB14_44:                              ;   in Loop: Header=BB14_18 Depth=1
+.LBB14_44:                              ;   in Loop: Header=BB14_16 Depth=1
 	ld	hl, (hl)
-	ld	(ix - 56), hl
-	ld	de, 0
-	ld	e, a
-	ld	(ix - 33), de
+	ld	(ix - 45), hl
+	or	a, a
+	sbc	hl, hl
+	ld	l, a
+	ld	(ix - 9), hl
 	lea	hl, iy + 0
 	add	hl, hl
 	add	hl, hl
@@ -20959,29 +19616,29 @@ _draw_sprites:                          ; @draw_sprites
 	add	hl, hl
 	add	hl, hl
 	add	hl, hl
-	ld	bc, (ix - 24)
+	ld	bc, (ix - 27)
 	call	__idivs
 	push	hl
 	pop	iy
-	ld	bc, -8388608
-	add	hl, bc
-	ld	bc, -8388606
+	ld	de, -8388608
+	add	hl, de
+	ld	de, -8388606
 	or	a, a
-	sbc	hl, bc
+	sbc	hl, de
 	jr	nc, .LBB14_46
-; %bb.45:                               ;   in Loop: Header=BB14_18 Depth=1
+; %bb.45:                               ;   in Loop: Header=BB14_16 Depth=1
 	ld	iy, 1
 	.local	.LBB14_46
-.LBB14_46:                              ;   in Loop: Header=BB14_18 Depth=1
-	ld	hl, (ix - 6)
+.LBB14_46:                              ;   in Loop: Header=BB14_16 Depth=1
+	ld	(ix - 30), iy
+	ld	hl, (ix - 12)
 	call	__ishru_1
-	lea	de, iy + 0
 	push	hl
 	pop	bc
-	ld	hl, (ix - 30)
+	ld	hl, (ix - 24)
 	or	a, a
 	sbc	hl, bc
-	ld	(ix - 12), hl
+	ld	(ix - 24), hl
 	ld	iy, (ix - 15)
 	ld	a, (iy + 4)
 	or	a, a
@@ -20992,43 +19649,52 @@ _draw_sprites:                          ; @draw_sprites
 	pop	bc
 	ld	hl, _sector_floor
 	add	hl, bc
-	ld	bc, (hl)
-	ld	a, b
+	ld	de, (hl)
+	ld	a, d
 	rlc	a
 	sbc	hl, hl
-	ld	l, c
-	ld	h, b
-	ld	bc, (ix - 50)
-	or	a, a
-	sbc	hl, bc
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	ld	bc, (ix - 24)
-	call	__idivs
 	push	hl
 	pop	bc
-	ld	hl, 40
-	or	a, a
-	sbc	hl, bc
-	push	hl
-	pop	iy
-	ld	(ix - 42), de
+	ld	c, e
+	ld	b, d
+	ld	hl, _player+8
+	ld	iy, (hl)
+	ld	a, iyh
+	rlc	a
+	sbc	hl, hl
+	ex	de, hl
+	ld	e, iyl
+	ld	d, iyh
+	push	bc
+	pop	hl
 	or	a, a
 	sbc	hl, de
-	ld	(ix - 36), hl
-	ld	hl, (ix - 33)
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	ld	bc, (ix - 27)
+	call	__idivs
+	ex	de, hl
+	ld	hl, 40
+	or	a, a
+	sbc	hl, de
+	ld	(ix - 15), hl
+	ld	de, (ix - 30)
+	or	a, a
+	sbc	hl, de
+	ld	(ix - 33), hl
+	ld	hl, (ix - 9)
 	ld	bc, 3
 	call	__imulu
 	ex	de, hl
 	ld	hl, _images
 	add	hl, de
 	ld	hl, (hl)
-	ld	(ix - 53), hl
-	ld	de, (ix - 9)
+	ld	(ix - 48), hl
+	ld	de, (ix - 18)
 	ld	l, e
 	ld	h, d
 	add.sis	hl, hl
@@ -21050,44 +19716,45 @@ _draw_sprites:                          ; @draw_sprites
 	or	a, a
 	sbc.sis	hl, de
 	jr	c, .LBB14_48
-; %bb.47:                               ;   in Loop: Header=BB14_18 Depth=1
+; %bb.47:                               ;   in Loop: Header=BB14_16 Depth=1
 	ld.sis	bc, 254
 	.local	.LBB14_48
-.LBB14_48:                              ;   in Loop: Header=BB14_18 Depth=1
-	ld	(ix - 44), c
-	ld	(ix - 43), b
-	ld	bc, (ix - 12)
-	push	bc
-	pop	hl
+.LBB14_48:                              ;   in Loop: Header=BB14_16 Depth=1
+	ld	(ix - 53), c
+	ld	(ix - 52), b
+	ld	iy, (ix - 24)
+	lea	hl, iy + 0
 	ld	de, -8388608
 	add	hl, de
-	inc	de
+	ld	bc, -8388607
 	or	a, a
-	sbc	hl, de
+	sbc	hl, bc
 	jr	nc, .LBB14_50
-; %bb.49:                               ;   in Loop: Header=BB14_18 Depth=1
-	ld	de, 0
-	push	de
-	pop	bc
+; %bb.49:                               ;   in Loop: Header=BB14_16 Depth=1
+	or	a, a
+	sbc	hl, hl
+	push	hl
+	pop	iy
 	.local	.LBB14_50
-.LBB14_50:                              ;   in Loop: Header=BB14_18 Depth=1
-	ld	(ix - 33), bc
-	ld	hl, (ix - 12)
-	ld	de, (ix - 6)
+.LBB14_50:                              ;   in Loop: Header=BB14_16 Depth=1
+	ld	(ix - 9), iy
+	ld	iy, (ix - 24)
+	ld	de, (ix - 12)
+	add	iy, de
+	lea	hl, iy + 0
+	ld	de, -8388608
 	add	hl, de
-	ld	(ix - 15), hl
-	ld	bc, -8388608
-	add	hl, bc
 	ld	bc, -8388480
 	or	a, a
 	sbc	hl, bc
 	jr	c, .LBB14_52
-; %bb.51:                               ;   in Loop: Header=BB14_18 Depth=1
+; %bb.51:                               ;   in Loop: Header=BB14_16 Depth=1
 	ld	hl, 128
-	ld	(ix - 15), hl
+	push	hl
+	pop	iy
 	.local	.LBB14_52
-.LBB14_52:                              ;   in Loop: Header=BB14_18 Depth=1
-	ld	de, (ix - 36)
+.LBB14_52:                              ;   in Loop: Header=BB14_16 Depth=1
+	ld	de, (ix - 33)
 	push	de
 	pop	hl
 	ld	bc, -8388608
@@ -21095,177 +19762,172 @@ _draw_sprites:                          ; @draw_sprites
 	inc	bc
 	or	a, a
 	sbc	hl, bc
-	ld	(ix - 24), de
+	ld	(ix - 27), de
 	jr	nc, .LBB14_54
-; %bb.53:                               ;   in Loop: Header=BB14_18 Depth=1
+; %bb.53:                               ;   in Loop: Header=BB14_16 Depth=1
 	or	a, a
 	sbc	hl, hl
-	ld	(ix - 24), hl
+	ld	(ix - 27), hl
 	.local	.LBB14_54
-.LBB14_54:                              ;   in Loop: Header=BB14_18 Depth=1
-	lea	hl, iy + 0
-	ld	bc, -8388608
-	add	hl, bc
+.LBB14_54:                              ;   in Loop: Header=BB14_16 Depth=1
+	ld	hl, (ix - 15)
+	ld	de, -8388608
+	add	hl, de
 	ld	bc, -8388528
 	or	a, a
 	sbc	hl, bc
-	ld	(ix - 30), iy
 	jr	c, .LBB14_56
-; %bb.55:                               ;   in Loop: Header=BB14_18 Depth=1
+; %bb.55:                               ;   in Loop: Header=BB14_16 Depth=1
 	ld	hl, 80
-	ld	(ix - 30), hl
+	ld	(ix - 15), hl
 	.local	.LBB14_56
-.LBB14_56:                              ;   in Loop: Header=BB14_18 Depth=1
+.LBB14_56:                              ;   in Loop: Header=BB14_16 Depth=1
 	ld.sis	hl, 16384
-	ld	bc, (ix - 6)
+	ld	bc, (ix - 12)
                                         ; kill: def $bc killed $bc killed $ubc
 	call	__sdivu
-	ld	(ix - 59), l
-	ld	(ix - 58), h
+	ld	(ix - 51), l
+	ld	(ix - 50), h
 	ld	hl, 16384
-	ld	bc, (ix - 42)
+	ld	bc, (ix - 30)
 	call	__idivu
-	ld	(ix - 6), hl
-	ld	bc, (ix - 27)
+	ld	(ix - 12), hl
+	ld	bc, (_render_detail)
 	push	bc
 	pop	hl
 	ld	de, 2
 	or	a, a
 	sbc	hl, de
+	ld	(ix - 39), iy
 	jr	c, .LBB14_58
-; %bb.57:                               ;   in Loop: Header=BB14_18 Depth=1
+; %bb.57:                               ;   in Loop: Header=BB14_16 Depth=1
 	push	bc
 	pop	iy
-	ld	de, (ix - 33)
+	ld	de, (ix - 9)
 	add	iy, de
 	dec	iy
 	lea	hl, iy + 0
 	call	__irems
 	ex	de, hl
 	lea	hl, iy + 0
+	ld	iy, (ix - 39)
 	or	a, a
 	sbc	hl, de
-	ex	de, hl
 	jr	.LBB14_59
 	.local	.LBB14_58
-.LBB14_58:                              ;   in Loop: Header=BB14_18 Depth=1
-	ld	de, (ix - 33)
+.LBB14_58:                              ;   in Loop: Header=BB14_16 Depth=1
+	ld	hl, (ix - 9)
 	.local	.LBB14_59
-.LBB14_59:                              ;   in Loop: Header=BB14_18 Depth=1
+.LBB14_59:                              ;   in Loop: Header=BB14_16 Depth=1
+	ld	de, -8388608
+	add	iy, de
+	ld	(ix - 9), hl
+	add	hl, de
+	lea	de, iy + 0
+	or	a, a
+	sbc	hl, de
+	jp	nc, .LBB14_69
+; %bb.60:                               ;   in Loop: Header=BB14_16 Depth=1
 	ld	iy, (ix - 15)
 	ld	hl, -8388608
-	push	hl
-	pop	bc
-	add	iy, bc
-	push	de
-	pop	hl
-	add	hl, bc
-	lea	bc, iy + 0
+	ex	de, hl
+	add	iy, de
+	ld	hl, (ix - 27)
+	add	hl, de
+	lea	de, iy + 0
 	or	a, a
-	sbc	hl, bc
-	jp	nc, .LBB14_74
-; %bb.60:                               ;   in Loop: Header=BB14_18 Depth=1
-	ld	iy, (ix - 30)
-	ld	hl, -8388608
-	push	hl
-	pop	bc
-	add	iy, bc
-	ld	hl, (ix - 24)
-	add	hl, bc
-	lea	bc, iy + 0
-	or	a, a
-	sbc	hl, bc
-	jp	nc, .LBB14_74
-; %bb.61:                               ;   in Loop: Header=BB14_18 Depth=1
-	ld	bc, (ix - 27)
-	ld	hl, (ix - 15)
+	sbc	hl, de
+	jp	nc, .LBB14_69
+; %bb.61:                               ;   in Loop: Header=BB14_16 Depth=1
+	ld	hl, (ix - 39)
 	add	hl, bc
 	dec	hl
+	ld	de, (ix - 9)
 	or	a, a
 	sbc	hl, de
 	push	hl
 	pop	iy
 	call	__idivu
-	ld	(ix - 42), hl
+	ld	(ix - 30), hl
 	lea	hl, iy + 0
 	or	a, a
 	sbc	hl, bc
-	jp	c, .LBB14_74
-; %bb.62:                               ;   in Loop: Header=BB14_18 Depth=1
-	ld	iy, 0
-	ld	l, (ix - 59)
-	ld	h, (ix - 58)
-	ex	de, hl
-	ld	iyl, e
-	ld	iyh, d
-	ex	de, hl
-	push	de
-	pop	hl
-	ld	(ix - 33), de
-	ld	de, (ix - 12)
+	jp	c, .LBB14_69
+; %bb.62:                               ;   in Loop: Header=BB14_16 Depth=1
 	or	a, a
-	sbc	hl, de
-	lea	bc, iy + 0
-	call	__imulu
-	ld	(ix - 68), hl
+	sbc	hl, hl
+	push	hl
+	pop	bc
+	ld	l, (ix - 51)
+	ld	h, (ix - 50)
+	ld	c, l
+	ld	b, h
+	ld	iy, (ix - 9)
+	lea	hl, iy + 0
 	ld	de, (ix - 24)
+	sbc	hl, de
+	ld	(ix - 39), bc
+	call	__imulu
+	ld	(ix - 51), hl
+	ld	de, (ix - 27)
 	push	de
 	pop	hl
 	ld	c, 7
 	call	__ishl
 	push	hl
 	pop	bc
-	ld	hl, (ix - 33)
-	add	hl, bc
-	ld	(ix - 12), hl
+	add	iy, bc
+	ld	(ix - 24), iy
 	ex	de, hl
-	ld	de, (ix - 36)
+	ld	bc, (ix - 33)
 	or	a, a
-	sbc	hl, de
-	ld	bc, (ix - 6)
+	sbc	hl, bc
+	ld	bc, (ix - 12)
 	call	__imulu
-	ex	de, hl
-	ld	hl, (ix - 27)
-	lea	bc, iy + 0
-	call	__imulu
-	ld	(ix - 36), hl
+	push	hl
+	pop	iy
 	ld.sis	bc, -32768
-	ld	hl, (ix - 9)
+	ld	hl, (ix - 18)
 	add.sis	hl, bc
                                         ; kill: def $hl killed $hl killed $uhl
 	ld.sis	bc, -32736
 	or	a, a
 	sbc.sis	hl, bc
 	jr	nc, .LBB14_64
-; %bb.63:                               ;   in Loop: Header=BB14_18 Depth=1
+; %bb.63:                               ;   in Loop: Header=BB14_16 Depth=1
 	ld.sis	hl, 1
 	ld	c, l
 	ld	b, h
 	jr	.LBB14_65
 	.local	.LBB14_64
-.LBB14_64:                              ;   in Loop: Header=BB14_18 Depth=1
+.LBB14_64:                              ;   in Loop: Header=BB14_16 Depth=1
 	ld	hl, (ix - 21)
-	ld	c, (ix - 44)
-	ld	b, (ix - 43)
+	ld	c, (ix - 53)
+	ld	b, (ix - 52)
 	ld	b, h
 	.local	.LBB14_65
-.LBB14_65:                              ;   in Loop: Header=BB14_18 Depth=1
-	ld	(ix - 44), c
-	ld	(ix - 43), b
-	ld	(ix - 69), c                    ; 1-byte Folded Spill
+.LBB14_65:                              ;   in Loop: Header=BB14_16 Depth=1
+	ld	hl, (ix - 42)
+	ld	l, c
+	ld	h, b
+	ld	(ix - 42), hl
+	ld	hl, (ix - 15)
+	ld	de, (ix - 27)
+	or	a, a
+	sbc	hl, de
+	ex	de, hl
 	ld	hl, _engine_view+2
-	ld	bc, (ix - 12)
-	add	hl, bc
-	ld	(ix - 33), hl
-	ld	hl, _depthbuffer
+	ld	bc, (ix - 24)
 	add	hl, bc
 	ld	(ix - 9), hl
-	push	de
-	pop	iy
+	ld	hl, _depthbuffer
+	add	hl, bc
+	ld	(ix - 15), hl
 	.local	.LBB14_66
-.LBB14_66:                              ;   Parent Loop BB14_18 Depth=1
-                                        ; =>  This Loop Header: Depth=2
-                                        ;       Child Loop BB14_69 Depth 3
+.LBB14_66:                              ;   Parent Loop BB14_16 Depth=1
+                                        ; =>  This Inner Loop Header: Depth=2
+	ld	(ix - 24), de
+	ld	(ix - 18), iy
 	lea	hl, iy + 0
 	ld	c, 8
 	call	__ishru
@@ -21279,7 +19941,6 @@ _draw_sprites:                          ; @draw_sprites
 	ld	de, 63
 	.local	.LBB14_68
 .LBB14_68:                              ;   in Loop: Header=BB14_66 Depth=2
-	ld	(ix - 59), iy
 	ex	de, hl
 	add	hl, hl
 	add	hl, hl
@@ -21288,104 +19949,64 @@ _draw_sprites:                          ; @draw_sprites
 	add	hl, hl
 	add	hl, hl
 	ex	de, hl
-	ld	hl, (ix - 53)
-	add	hl, de
-	ld	(ix - 65), hl
-	or	a, a
-	sbc	hl, hl
-	push	hl
-	pop	bc
-	ld	de, (ix - 42)
-	ld	iy, (ix - 68)
-	.local	.LBB14_69
-.LBB14_69:                              ;   Parent Loop BB14_18 Depth=1
-                                        ;     Parent Loop BB14_66 Depth=2
-                                        ; =>    This Inner Loop Header: Depth=3
-	ld	(ix - 12), bc
-	ld	hl, (ix - 9)
-	add	hl, bc
-	ld	l, (hl)
-	ld	c, (ix - 44)
-	ld	b, (ix - 43)
-	ld	a, c
-	cp	a, l
-	jr	nc, .LBB14_72
-; %bb.70:                               ;   in Loop: Header=BB14_69 Depth=3
-	lea	hl, iy + 0
-	ld	c, 8
-	call	__ishru
-	push	hl
-	pop	bc
-	ld	hl, (ix - 65)
-	add	hl, bc
-	ld	a, (hl)
-	cp	a, -1
-	jr	z, .LBB14_72
-; %bb.71:                               ;   in Loop: Header=BB14_69 Depth=3
-	ld	bc, 0
-	ld	c, a
-	ld	hl, (ix - 56)
-	add	hl, bc
-	ld	a, (hl)
-	ld	hl, (ix - 33)
-	ld	bc, (ix - 12)
-	add	hl, bc
-	ld	(hl), a
-	ld	hl, (ix - 9)
-	add	hl, bc
-	ld	a, (ix - 69)
-	ld	(hl), a
-	.local	.LBB14_72
-.LBB14_72:                              ;   in Loop: Header=BB14_69 Depth=3
-	dec	de
-	ld	bc, (ix - 36)
-	add	iy, bc
-	ld	(ix - 15), iy
-	ld	iy, (ix - 12)
-	ld	bc, (ix - 27)
-	add	iy, bc
-	sbc	hl, hl
-	adc	hl, de
-	lea	hl, iy + 0
-	ld	iy, (ix - 15)
-	push	hl
-	pop	bc
-	jr	nz, .LBB14_69
-; %bb.73:                               ;   in Loop: Header=BB14_66 Depth=2
-	ld	bc, (ix - 24)
-	inc	bc
-	ld	de, (ix - 6)
-	ld	iy, (ix - 59)
+	ld	iy, (ix - 48)
 	add	iy, de
+	ld	de, (_render_detail)
+	push	de
+	pop	hl
+	ld	bc, (ix - 39)
+	call	__imulu
+	push	de
+	ld	de, (ix - 42)
+	push	de
+	push	hl
+	ld	hl, (ix - 51)
+	push	hl
+	ld	hl, (ix - 30)
+	push	hl
+	ld	hl, (ix - 45)
+	push	hl
+	push	iy
+	ld	hl, (ix - 15)
+	push	hl
+	ld	hl, (ix - 9)
+	push	hl
+	call	_d84_sprite
+	ld	hl, 27
+	add	hl, sp
+	ld	sp, hl
+	ld	de, (ix - 12)
+	ld	iy, (ix - 18)
+	add	iy, de
+	ld	bc, (ix - 24)
+	dec	bc
 	ld	hl, 128
 	ex	de, hl
-	ld	hl, (ix - 33)
-	add	hl, de
-	ld	(ix - 33), hl
 	ld	hl, (ix - 9)
 	add	hl, de
 	ld	(ix - 9), hl
-	ld	(ix - 24), bc
+	ld	hl, (ix - 15)
+	add	hl, de
+	ld	(ix - 15), hl
+	sbc	hl, hl
+	adc	hl, bc
 	push	bc
-	pop	hl
-	ld	de, (ix - 30)
-	or	a, a
-	sbc	hl, de
+	pop	de
 	jp	nz, .LBB14_66
-	.local	.LBB14_74
-.LBB14_74:                              ;   in Loop: Header=BB14_18 Depth=1
-	ld	bc, (ix - 39)
-	inc	bc
-	push	bc
+	.local	.LBB14_69
+.LBB14_69:                              ;   in Loop: Header=BB14_16 Depth=1
+	ld	de, (ix - 36)
+	inc	de
+	push	de
 	pop	hl
-	ld	de, (ix - 18)
+	ld	bc, (ix - 6)
 	or	a, a
-	sbc	hl, de
-	jp	nz, .LBB14_18
-	jp	.LBB14_13
-	.local	.LBB14_75
-.LBB14_75:                              ;   in Loop: Header=BB14_18 Depth=1
-	ld	(ix - 33), iy
+	sbc	hl, bc
+	jp	nz, .LBB14_16
+	jp	.LBB14_14
+	.local	.LBB14_70
+.LBB14_70:                              ;   in Loop: Header=BB14_16 Depth=1
+	ld	(ix - 30), iy
 	ld	iy, (ix - 15)
 	ld	a, (iy + 4)
 	ld	de, 0
@@ -21401,11 +20022,11 @@ _draw_sprites:                          ; @draw_sprites
 	add	a, l
 	ld	e, a
 	cp	a, 31
-	jr	c, .LBB14_77
-; %bb.76:                               ;   in Loop: Header=BB14_18 Depth=1
+	jr	c, .LBB14_72
+; %bb.71:                               ;   in Loop: Header=BB14_16 Depth=1
 	ld	e, 31
-	.local	.LBB14_77
-.LBB14_77:                              ;   in Loop: Header=BB14_18 Depth=1
+	.local	.LBB14_72
+.LBB14_72:                              ;   in Loop: Header=BB14_16 Depth=1
 	or	a, a
 	sbc	hl, hl
 	ld	l, e
@@ -21414,8 +20035,8 @@ _draw_sprites:                          ; @draw_sprites
 	ex	de, hl
 	ld	hl, _shade_rows
 	add	hl, de
-	ld	a, (ix - 12)                    ; 1-byte Folded Reload
-	ld	iy, (ix - 33)
+	ld	a, (ix - 9)                     ; 1-byte Folded Reload
+	ld	iy, (ix - 30)
 	jp	.LBB14_44
 	.local	.Lfunc_end14
 .Lfunc_end14:
@@ -21484,8 +20105,7 @@ _d84_blit_viewport:                     ; @d84_blit_viewport
 	ret
 	.local	.Lfunc_end15
 .Lfunc_end15:
-	.size	_d84_blit_viewport, .Lfunc_end15-_d84_blit_viewport
-                                        ; -- End function
+	                                        ; -- End function
 	.section	.text._explode_barrel,"ax",@progbits
 	.type	_explode_barrel,@function       ; -- Begin function explode_barrel
 _explode_barrel:                        ; @explode_barrel
@@ -22338,8 +20958,7 @@ _d84_wall_column:                       ; @d84_wall_column
 	ret
 	.local	.Lfunc_end17
 .Lfunc_end17:
-	.size	_d84_wall_column, .Lfunc_end17-_d84_wall_column
-	.section	.rodata._d84_wall_column,"a",@progbits
+		.section	.rodata._d84_wall_column,"a",@progbits
 JTI17_0:
 	d24	.LBB17_22
 	d24	.LBB17_25
@@ -26895,12 +25514,14 @@ _barrel_explode:
 
 	.ident	"clang version 19.1.0 (https://github.com/CE-Programming/llvm-project ef28e9c54cd1333a6091ab2ffbd315b465fc5090)"
 	.section	".note.GNU-stack","",@progbits
+	.extern	_d84_span2
+	.extern	_d84_rotate
 	.extern	_llvm.smin.i24
-	.extern	_llvm.uadd.with.overflow.i24
 	.extern	_llvm.lifetime.end.p0
 	.extern	__ishru
 	.extern	__Unwind_SjLj_Unregister
 	.extern	__lldivu
+	.extern	_d84_screen_x
 	.extern	__idivs
 	.extern	__lshrs
 	.extern	_memset
@@ -26917,16 +25538,23 @@ _barrel_explode:
 	.extern	_llvm.umin.i24
 	.extern	__idivu
 	.extern	__ldivs
+	.extern	_d84_triple_columns
 	.extern	__irems
 	.extern	_llvm.eh.sjlj.lsda
+	.extern	_d84_wall
 	.extern	__iand
 	.extern	__setflag
+	.extern	_d84_fill_column
 	.extern	_llvm.stacksave.p0
-	.extern	_memcmp
+	.extern	_d84_span
 	.extern	_llvm.lifetime.start.p0
+	.extern	_memcmp
+	.extern	_d84_span4
 	.extern	_llvm.smin.i16
+	.extern	_d84_sprite
 	.extern	__lshru
 	.extern	__ixor
+	.extern	_d84_span3
 	.extern	__sdivs
 	.extern	_llvm.eh.sjlj.functioncontext
 	.extern	__sdivu
@@ -26934,8 +25562,8 @@ _barrel_explode:
 	.extern	_llvm.umax.i24
 	.extern	__bshru
 	.extern	_llvm.umin.i8
-	.extern	_llvm.memset.p0.i24
 	.extern	_llvm.memcpy.p0.p0.i24
+	.extern	_llvm.memset.p0.i24
 	.extern	_llvm.eh.sjlj.setup.dispatch
 	.extern	_llvm.abs.i16
 	.extern	__i48mulu
@@ -26945,9 +25573,12 @@ _barrel_explode:
 	.extern	_llvm.smax.i24
 	.extern	__ishru_1
 	.extern	__lcmps
+	.extern	_d84_double_columns
+	.extern	_d84_quad_columns
 	.extern	__sshru
 	.extern	__sshrs
 	.extern	__llshl
+	.extern	_d84_set_camera
 	.extern	__imulu
 	.extern	_llvm.eh.sjlj.callsite
 	.extern	__lmulu
@@ -26956,3 +25587,652 @@ _barrel_explode:
 	.extern	__ishrs
 	.extern	__smulu
 	.extern	__ishl
+
+
+/* GPL-2.0-or-later. Exact signed 8.8 camera transforms for eZ80 ADL.
+ * Cardinal views are permutations/sign changes. Other views use four signed
+ * 16x9 products; each non-cardinal multiply uses two hardware MLTs.
+ * Rotated output contains two signed words. The spare third word permits
+ * native 24-bit stores without touching any other object.
+ */
+.assume ADL=1
+.section .text._d84_set_camera,"ax",@progbits
+.global _d84_set_camera
+_d84_set_camera:
+    ld hl,(_camcos)
+    call .Lcoefficient
+    ld (.Lrot_cos1+1),bc
+    ld (.Lrot_cos2+1),bc
+    ld hl,(_camsin)
+    call .Lcoefficient
+    ld (.Lrot_sin1+1),bc
+    ld (.Lrot_sin2+1),bc
+    ld de,0
+    ld hl,(_camcos)
+    or a,a
+    sbc hl,de
+    jr z,.Lcamera_vertical
+    ld hl,(_camsin)
+    or a,a
+    sbc hl,de
+    jr z,.Lcamera_horizontal
+    ld hl,.Lrotate_general
+    jr .Lcamera_route
+.Lcamera_vertical:
+    ld a,(_camsin+1)
+    bit 7,a
+    ld hl,.Lrotate_north
+    jr z,.Lcamera_route
+    ld hl,.Lrotate_south
+    jr .Lcamera_route
+.Lcamera_horizontal:
+    ld a,(_camcos+1)
+    bit 7,a
+    ld hl,.Lrotate_east
+    jr z,.Lcamera_route
+    ld hl,.Lrotate_west
+.Lcamera_route:
+    ld (.Lrotate_dispatch+1),hl
+    ret
+/* BC packs sign in B bit 0, abs(coefficient)==256 in bit 1, low byte in C. */
+.Lcoefficient:
+    ld bc,0
+    bit 7,h
+    jr z,.Lcoefficient_positive
+    inc b
+    ld de,0
+    ex de,hl
+    or a,a
+    sbc hl,de
+.Lcoefficient_positive:
+    ld c,l
+    ld a,h
+    or a,a
+    ret z
+    set 1,b
+    ret
+
+.section .text._d84_rotate,"ax",@progbits
+.global _d84_rotate
+_d84_rotate:
+    push ix
+    ld ix,0
+    add ix,sp
+    ld hl,(ix+6)
+    ld de,(ix+9)
+.Lrotate_dispatch:
+    jp .Lrotate_general
+.Lrotate_north:
+    ld (_d84_rotated),hl
+    ld (_d84_rotated+2),de
+    pop ix
+    ret
+.Lrotate_east:
+    push hl
+    ex de,hl
+    call .Lrotate_negate
+    ld (_d84_rotated),hl
+    pop hl
+    ld (_d84_rotated+2),hl
+    pop ix
+    ret
+.Lrotate_west:
+    ld (_d84_rotated),de
+    call .Lrotate_negate
+    ld (_d84_rotated+2),hl
+    pop ix
+    ret
+.Lrotate_south:
+    push de
+    call .Lrotate_negate
+    ld (_d84_rotated),hl
+    pop hl
+    call .Lrotate_negate
+    ld (_d84_rotated+2),hl
+    pop ix
+    ret
+.Lrotate_general:
+.Lrot_sin1:
+    ld bc,0
+    call .Lmultiply_s16_s9
+    ld (.Lrotate_product),hl
+    ld hl,(ix+9)
+.Lrot_cos1:
+    ld bc,0
+    call .Lmultiply_s16_s9
+    ex de,hl
+    ld hl,(.Lrotate_product)
+    or a,a
+    sbc hl,de
+    ld (.Lrotate_product),hl
+    ld hl,(.Lrotate_product+1)
+    ld (_d84_rotated),hl
+    ld hl,(ix+6)
+.Lrot_cos2:
+    ld bc,0
+    call .Lmultiply_s16_s9
+    ld (.Lrotate_product),hl
+    ld hl,(ix+9)
+.Lrot_sin2:
+    ld bc,0
+    call .Lmultiply_s16_s9
+    ld de,(.Lrotate_product)
+    add hl,de
+    ld (.Lrotate_product),hl
+    ld hl,(.Lrotate_product+1)
+    ld (_d84_rotated+2),hl
+    pop ix
+    ret
+.Lmultiply_s16_s9:
+    bit 7,h
+    jr z,.Lmultiply_positive
+    ld a,b
+    xor a,1
+    ld b,a
+    call .Lrotate_negate
+.Lmultiply_positive:
+    bit 1,b
+    jr nz,.Lmultiply_256
+    ld d,h
+    ld e,c
+    mlt de
+    ld h,l
+    ld l,c
+    mlt hl
+    ex de,hl
+.Lmultiply_256:
+    .rept 8
+    add hl,hl
+    .endr
+    bit 1,b
+    jr nz,.Lmultiply_signed
+    add hl,de
+.Lmultiply_signed:
+    bit 0,b
+    ret z
+.Lrotate_negate:
+    ld de,0
+    ex de,hl
+    or a,a
+    sbc hl,de
+    ret
+
+.section .data.d84_rotate_scratch,"aw",@progbits
+.Lrotate_product:
+    .byte 0,0,0,0
+
+/* C ABI: exact 64 + floor(r * Q20_reciprocal(z) / 16384).
+ * Six 8x8 multiplies form the relevant bytes of the unsigned 16x24 product.
+ * For negative r, retain the discarded fraction to reproduce arithmetic
+ * right shift exactly, including floor rather than truncation toward zero.
+ */
+.section .text._d84_screen_x,"ax",@progbits
+.global _d84_screen_x
+_d84_screen_x:
+    push ix
+    ld ix,0
+    add ix,sp
+    ld hl,-12
+    add hl,sp
+    ld sp,hl
+    ld hl,(ix+9)
+    call _d84_reciprocal
+    ld (ix-6),hl
+    ld hl,(ix+6)
+    xor a,a
+    ld (ix-12),a
+    bit 7,h
+    jr z,.Lproject_abs
+    inc a
+    ld (ix-12),a
+    ld de,0
+    ex de,hl
+    or a,a
+    sbc hl,de
+.Lproject_abs:
+    ld (ix-3),hl
+    ld d,l
+    ld e,(ix-6)
+    mlt de
+    ld (ix-10),e
+    ld c,d
+    ld h,(ix-2)
+    ld l,(ix-6)
+    mlt hl
+    ld d,(ix-3)
+    ld e,(ix-5)
+    mlt de
+    add hl,de
+    ld de,0
+    ld e,c
+    add hl,de
+    ld (ix-11),l
+    ld (ix-9),hl
+    ld de,0
+    ld e,(ix-8)
+    ld d,(ix-7)
+    push de
+    ld h,(ix-2)
+    ld l,(ix-5)
+    mlt hl
+    ld d,(ix-3)
+    ld e,(ix-4)
+    mlt de
+    add hl,de
+    pop de
+    add hl,de
+    ld d,(ix-2)
+    ld e,(ix-4)
+    mlt de
+    ld a,h
+    add a,e
+    ld de,0
+    ld e,l
+    ld d,a
+    ex de,hl
+    add hl,hl
+    add hl,hl
+    ld a,(ix-11)
+    rlca
+    rlca
+    and a,3
+    ld de,0
+    ld e,a
+    add hl,de
+    ld a,(ix-12)
+    or a,a
+    jr z,.Lproject_center
+    ld a,(ix-11)
+    and a,63
+    or a,(ix-10)
+    ld b,a
+    ld de,0
+    ex de,hl
+    or a,a
+    sbc hl,de
+    ld a,b
+    or a,a
+    jr z,.Lproject_center
+    dec hl
+.Lproject_center:
+    ld de,64
+    add hl,de
+    ld sp,ix
+    pop ix
+    ret
+
+
+/* GPL-2.0-or-later. eZ80 ADL pixel kernels, executed from program RAM.
+ * IX/IY are preserved. Other registers, including alternate AF, are scratch.
+ * Immediate operands are patched once per span/column, never per pixel.
+ * Shade tables must be 256-byte aligned. Count is 1..128.
+ */
+.assume ADL=1
+.section .text._d84_fill_column,"ax",@progbits
+.global _d84_fill_column
+_d84_fill_column:
+    push ix
+    ld ix,0
+    add ix,sp
+    ld hl,(ix+6)
+    ld b,(ix+9)
+    ld a,(ix+12)
+    ld de,128
+.Lfill_loop:
+    ld (hl),a
+    add hl,de
+    djnz .Lfill_loop
+    pop ix
+    ret
+.section .text._d84_double_columns,"ax",@progbits
+.global _d84_double_columns
+/* Count is a multiple of eight; the renderer passes 5120 pairs. */
+_d84_double_columns:
+    push ix
+    ld ix,0
+    add ix,sp
+    ld hl,(ix+6)
+    ld bc,(ix+9)
+    srl b
+    rr c
+    srl b
+    rr c
+    srl b
+    rr c
+.Ldouble_loop:
+    .rept 8
+    ld a,(hl)
+    inc hl
+    ld (hl),a
+    inc hl
+    .endr
+    dec bc
+    ld a,b
+    or c
+    jr nz,.Ldouble_loop
+    pop ix
+    ret
+.section .text._d84_span,"ax",@progbits
+.global _d84_span
+.global _d84_span2
+.global _d84_span3
+.global _d84_span4
+_d84_span:
+    call .Lspan_clear_stride
+    jr .Lspan_start
+_d84_span2:
+    call .Lspan_clear_stride
+    ld a,0xdd
+    ld (.Lspan_stride),a
+    ld a,0x23
+    ld (.Lspan_stride+1),a
+    ld (.Lspan_stride+3),a
+    ld a,0xfd
+    ld (.Lspan_stride+2),a
+    jr .Lspan_start
+_d84_span3:
+    call .Lspan_clear_stride
+    /* Two extra (inc ix / inc iy) after the base incs → stride 3. */
+    ld a,0xdd
+    ld (.Lspan_stride),a
+    ld (.Lspan_stride+4),a
+    ld a,0x23
+    ld (.Lspan_stride+1),a
+    ld (.Lspan_stride+3),a
+    ld (.Lspan_stride+5),a
+    ld (.Lspan_stride+7),a
+    ld a,0xfd
+    ld (.Lspan_stride+2),a
+    ld (.Lspan_stride+6),a
+    jr .Lspan_start
+_d84_span4:
+    call .Lspan_clear_stride
+    ld hl,0xfd23dd
+    ld (.Lspan_stride),hl
+    ld (.Lspan_stride+4),hl
+    ld (.Lspan_stride+8),hl
+    ld a,0x23
+    ld (.Lspan_stride+3),a
+    ld (.Lspan_stride+7),a
+    ld (.Lspan_stride+11),a
+.Lspan_start:
+    push ix
+    push iy
+    ld ix,0
+    add ix,sp
+    ld hl,(ix+15)
+    ld (.Lspan_image+1),hl
+    ld hl,(ix+18)
+    ld (.Lspan_light+1),hl
+    ld hl,(ix+30)
+    ld (.Lspan_stepx+1),hl
+    ld hl,(ix+33)
+    ld (.Lspan_stepy+1),hl
+    ld a,(ix+36)
+    ld (.Lspan_depth+3),a
+    ld a,(ix+21)
+    or a,a
+    jr z,.Lspan_empty
+    ex af,af'
+    ld hl,(ix+24)
+    ld de,(ix+27)
+    ld iy,(ix+12)
+    ld ix,(ix+9)
+.Lspan_loop:
+    push hl
+    push de
+    ex de,hl
+    ld a,h
+    and 62
+    ld l,a
+    ld h,16
+    mlt hl
+    ld a,d
+    rrca
+    and 31
+    or l
+    ld l,a
+.Lspan_image:
+    ld bc,0
+    add hl,bc
+    ld a,(hl)
+.Lspan_light:
+    ld hl,0
+    ld l,a
+    ld a,(hl)
+    ld (ix+0),a
+.Lspan_depth:
+    ld (iy+0),0
+    inc ix
+    inc iy
+.Lspan_stride:
+    .rept 12
+    .byte 0
+    .endr
+    pop de
+    pop hl
+.Lspan_stepx:
+    ld bc,0
+    add hl,bc
+    ex de,hl
+.Lspan_stepy:
+    ld bc,0
+    add hl,bc
+    ex de,hl
+    ex af,af'
+    dec a
+    jr z,.Lspan_done
+    ex af,af'
+    jr .Lspan_loop
+.Lspan_done:
+.Lspan_empty:
+    pop iy
+    pop ix
+    ret
+.Lspan_clear_stride:
+    push hl
+    push bc
+    ld hl,.Lspan_stride
+    ld b,12
+    xor a,a
+.Lspan_clear_loop:
+    ld (hl),a
+    inc hl
+    djnz .Lspan_clear_loop
+    pop bc
+    pop hl
+    ret
+
+.section .text._d84_wall,"ax",@progbits
+.global _d84_wall
+_d84_wall:
+    push ix
+    push iy
+    ld ix,0
+    add ix,sp
+    ld hl,(ix+15)
+    ld (.Lpix_wall_image+1),hl
+    ld hl,(ix+18)
+    ld (.Lpix_wall_light+1),hl
+    ld a,(ix+30)
+    ld (.Lpix_wall_depth+3),a
+    ld a,(ix+21)
+    ex af,af'
+    ld hl,(ix+24)
+    ld de,(ix+27)
+    ld iy,(ix+12)
+    ld ix,(ix+9)
+.Lpix_wall_loop:
+    push hl
+    ld a,h
+    and 31
+    ld l,a
+    ld h,32
+    mlt hl
+.Lpix_wall_image:
+    ld bc,0
+    add hl,bc
+    ld a,(hl)
+.Lpix_wall_light:
+    ld hl,0
+    ld l,a
+    ld a,(hl)
+    ld (ix+0),a
+.Lpix_wall_depth:
+    ld (iy+0),0
+    ld bc,128
+    add ix,bc
+    add iy,bc
+    pop hl
+    add hl,de
+    ex af,af'
+    dec a
+    jr z,.Lpix_wall_done
+    ex af,af'
+    jr .Lpix_wall_loop
+.Lpix_wall_done:
+    pop iy
+    pop ix
+    ret
+
+.section .text._d84_sprite,"ax",@progbits
+.global _d84_sprite
+_d84_sprite:
+    push ix
+    push iy
+    ld ix,0
+    add ix,sp
+    ld hl,(ix+15)
+    ld (.Lsprite_image+1),hl
+    ld hl,(ix+18)
+    ld (.Lsprite_light+1),hl
+    ld hl,(ix+27)
+    ld (.Lsprite_step+1),hl
+    ld a,(ix+30)
+    ld (.Lsprite_test+1),a
+    ld (.Lsprite_depth+3),a
+    ld hl,0
+    ld (.Lsprite_stride),hl
+    ld (.Lsprite_stride+3),hl
+    ld (.Lsprite_stride+6),hl
+    ld (.Lsprite_stride+9),hl
+    ld a,(ix+33)
+    dec a
+    jr z,.Lsprite_start
+    ld b,a
+    ld hl,.Lsprite_stride
+.Lsprite_patch:
+    ld (hl),0xdd
+    inc hl
+    ld (hl),0x23
+    inc hl
+    ld (hl),0xfd
+    inc hl
+    ld (hl),0x23
+    inc hl
+    djnz .Lsprite_patch
+.Lsprite_start:
+    ld a,(ix+21)
+    ex af,af'
+    ld hl,(ix+24)
+    ld iy,(ix+12)
+    ld ix,(ix+9)
+.Lsprite_loop:
+.Lsprite_test:
+    ld a,0
+    cp a,(iy+0)
+    jr nc,.Lsprite_next
+    push hl
+    ld l,h
+    ld h,0
+.Lsprite_image:
+    ld bc,0
+    add hl,bc
+    ld a,(hl)
+    cp a,255
+    jr z,.Lsprite_transparent
+.Lsprite_light:
+    ld hl,0
+    ld l,a
+    ld a,(hl)
+    ld (ix+0),a
+.Lsprite_depth:
+    ld (iy+0),0
+.Lsprite_transparent:
+    pop hl
+.Lsprite_next:
+    inc ix
+    inc iy
+.Lsprite_stride:
+    .rept 12
+    .byte 0
+    .endr
+.Lsprite_step:
+    ld bc,0
+    add hl,bc
+    ex af,af'
+    dec a
+    jr z,.Lsprite_done
+    ex af,af'
+    jr .Lsprite_loop
+.Lsprite_done:
+    pop iy
+    pop ix
+    ret
+
+.section .text._d84_triple_columns,"ax",@progbits
+.global _d84_triple_columns
+/* A=rows (VIEW_H). Expand each 128-wide row in place; 128%3==2 at the end. */
+_d84_triple_columns:
+    push ix
+    ld ix,0
+    add ix,sp
+    ld hl,(ix+6)
+    ld b,(ix+9)
+.Ltriple_row:
+    push bc
+    ld b,42
+.Ltriple_group:
+    ld a,(hl)
+    inc hl
+    ld (hl),a
+    inc hl
+    ld (hl),a
+    inc hl
+    djnz .Ltriple_group
+    /* Columns 126..127 */
+    ld a,(hl)
+    inc hl
+    ld (hl),a
+    inc hl
+    pop bc
+    djnz .Ltriple_row
+    pop ix
+    ret
+
+.section .text._d84_quad_columns,"ax",@progbits
+.global _d84_quad_columns
+_d84_quad_columns:
+    push ix
+    ld ix,0
+    add ix,sp
+    ld hl,(ix+6)
+    ld bc,(ix+9)
+.Lquad_loop:
+    ld a,(hl)
+    inc hl
+    ld (hl),a
+    inc hl
+    ld (hl),a
+    inc hl
+    ld (hl),a
+    inc hl
+    dec bc
+    ld a,b
+    or c
+    jr nz,.Lquad_loop
+    pop ix
+    ret
+
+/* 2.5× nearest: 128×80 → 320×200 in a 320-wide buffer (full CE width).
+ * Even src pixels/rows → 2 dest; odd → 3. 64×(2+3)=320, 40×(2+3)=200. */

@@ -62,6 +62,18 @@ static const uint8_t *shade_rows[32];
 static uint8_t plane_colors[NUM_SECTORS*2];
 static uint8_t sky_flat;
 
+#ifdef __TICE__
+void d84_wall(uint8_t *dst,uint8_t *depth,const uint8_t *image,const uint8_t *light,unsigned count,int v,int step,unsigned z);
+void d84_span(uint8_t *dst,uint8_t *depth,const uint8_t *image,const uint8_t *light,unsigned count,int wx,int wy,int sx,int sy,unsigned z);
+void d84_span2(uint8_t *dst,uint8_t *depth,const uint8_t *image,const uint8_t *light,unsigned count,int wx,int wy,int sx,int sy,unsigned z);
+void d84_span3(uint8_t *dst,uint8_t *depth,const uint8_t *image,const uint8_t *light,unsigned count,int wx,int wy,int sx,int sy,unsigned z);
+void d84_span4(uint8_t *dst,uint8_t *depth,const uint8_t *image,const uint8_t *light,unsigned count,int wx,int wy,int sx,int sy,unsigned z);
+void d84_quad_columns(uint8_t *dst,unsigned count);
+void d84_triple_columns(uint8_t *dst,unsigned rows);
+void d84_fill_column(uint8_t *dst,unsigned count,unsigned color);
+void d84_double_columns(uint8_t *dst,unsigned count);
+void d84_sprite(uint8_t *dst,uint8_t *depth,const uint8_t *image,const uint8_t *light,unsigned count,unsigned u,unsigned step,unsigned z,unsigned stride);
+#else
 static void d84_wall(uint8_t *dst,uint8_t *depth,const uint8_t *image,const uint8_t *light,unsigned count,int v,int step,unsigned z) {
     while (count--) {*dst=light[image[(((unsigned)v>>8)&31)*32]];*depth=(uint8_t)z;dst+=VIEW_W;depth+=VIEW_W;v+=step;}
 }
@@ -94,6 +106,7 @@ static void d84_double_columns(uint8_t *dst,unsigned count) {while(count--) {dst
 static void d84_sprite(uint8_t *dst,uint8_t *depth,const uint8_t *image,const uint8_t *light,unsigned count,unsigned u,unsigned step,unsigned z,unsigned stride) {
     while(count--) {if(z<*depth) {uint8_t pixel=image[u>>8];if(pixel!=255) {*dst=light[pixel];*depth=(uint8_t)z;}}dst+=stride;depth+=stride;u+=step;}
 }
+#endif
 
 static unsigned reciprocal(unsigned value) {
     unsigned shift=0;
@@ -106,12 +119,14 @@ static inline int high_word(int32_t value) {
 static inline int16_t shr8(int value) {
     return (int16_t)(value >> 8);
 }
+#ifndef __TICE__
 static inline int screen_x(int r,int z) {
     int32_t prod = (int32_t)r * (int32_t)reciprocal((unsigned)z);
     return 64 + (int)(prod >> 14);
 }
 
 /* Only mutable data lives in RAM. Level and images stay in archived AppVars. */
+#endif
 static int16_t sector_ceiling[NUM_SECTORS],sector_target[NUM_SECTORS];
 static int16_t sector_floor[NUM_SECTORS],floor_target[NUM_SECTORS];
 static uint8_t floor_wait[NUM_SECTORS];
@@ -123,7 +138,17 @@ static uint8_t vertex_stamp[NUM_RENDER_POINTS],frame_stamp;
 int camx,camy;
 int camcos,camsin;
 int16_t d84_rotated[3];
+
+#ifdef __TICE__
+void d84_set_camera(void);
+void d84_rotate(int dx,int dy);
+int d84_screen_x(int r,int z);
+#define screen_x d84_screen_x
+#endif
+
+#ifndef __TICE__
 static void d84_rotate(int dx,int dy) {d84_rotated[0]=shr8(dx*camsin-dy*camcos);d84_rotated[1]=shr8(dx*camcos+dy*camsin);}
+#endif
 static uint8_t use_held;
 static uint16_t random_state;
 
@@ -970,6 +995,9 @@ void engine_render(void) {
     if (!frame_stamp) {memset(vertex_stamp,0,sizeof(vertex_stamp));frame_stamp=2;}
     camx=(int)(player.x/256);camy=(int)(player.y/256);
     camcos=icos(player.angle);camsin=isin(player.angle);
+#ifdef __TICE__
+d84_set_camera();
+#endif
     bsp(NUM_NODES-1,0);
     if(player.wireframe) {
         framebuffer[39*VIEW_W+64]=4;

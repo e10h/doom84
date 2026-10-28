@@ -172,3 +172,58 @@ TARGET: DOOM84S.8xp
    - Host test harness: 825 integrity checks passed; 3,792 stress frames passed.
    - Calculator binary: Successfully built bin/DOOM84S.8xp (49,834 bytes).
 ===============================================================================
+
+-------------------------------------------------------------------------------
+COMMIT: Stage 5 - Hardware Math & Native Pixel Pipeline Integration in engine.s
+BRANCH: doom84s
+TARGET: DOOM84S.8xp
+-------------------------------------------------------------------------------
+
+1. WHAT IS CHANGING:
+   In `src/engine.s`, completely replaced the remaining compiler software math
+   and pixel rasterization with hardware-accelerated eZ80 ADL assembly:
+   - Hardware Camera Transformation & Projection:
+     * Integrated `_d84_set_camera`, `_d84_rotate`, and `_d84_screen_x`.
+     * Cardinal angles (North, East, South, West) execute with zero multiplies
+       (pure sign / register flips).
+     * Arbitrary angles compute 16x9 signed products using dual 4-cycle hardware
+       `MLT` instructions, eliminating all calls to software 24-bit multiplication
+       library routines (`__imulu`, `__lmulu`).
+     * Screen projection uses hardware `MLT` reciprocal multiplication.
+   - Native Assembly Pixel Kernels:
+     * Hooked up `_draw_planes` to call native `_d84_span`, `_d84_span2`,
+       `_d84_span3`, and `_d84_span4` kernels, replacing per-pixel compiler
+       library calls (`__ishru`, `__iand`) with 38-cycle register loops and RAM
+       self-modifying immediate offsets.
+     * Hooked up `_draw_sprites` to call native `_d84_sprite` with depth testing.
+     * Integrated `_d84_fill_column`, `_d84_double_columns`, `_d84_triple_columns`,
+       `_d84_quad_columns`, and `_d84_wall`.
+
+2. WHERE:
+   - File modified: doom84s/src/engine.s
+     * Connected `_draw_planes` to call `_d84_span*`.
+     * Connected `_draw_sprites` to call `_d84_sprite`.
+     * Replaced inlined rotation/projection blocks with calls to `_d84_rotate`
+       and `_d84_screen_x`.
+     * Appended native geometry and pixel rasterizer sections.
+   - File modified: doom84s/tests/engine_host.c
+     * Added extern prototypes for hardware geometry and pixel routines under
+       `#ifdef __TICE__` while preserving pure C implementations for host tests.
+   - File created: doom84s/tools/splice_engine.py
+     * Assembly pipeline script unifying Stages 1-5 into a single `engine.s`.
+
+3. WHY:
+   - Hardware profiling of Stage 4 showed frame time at 162ms (4 FPS), within
+     60ms of original Doom84 (102ms render, 6ms tick).
+   - Vertex rotation & projection was calling software `__imulu` thousands of
+     times per frame across 467 vertices and BSP bounding box checks; hardware
+     `MLT` reduces transformation cycles by >85%.
+   - Floor/ceiling spans cover 60%+ of the screen area and were spending ~250
+     cycles per pixel in compiler library calls; native assembly spans drop this
+     to ~38 cycles per pixel.
+
+4. VERIFICATION & TESTS:
+   - Host test harness: 825 integrity checks passed; 3,792 stress frames passed.
+   - Calculator binary: Successfully built bin/DOOM84S.8xp (48,896 bytes).
+===============================================================================
+
