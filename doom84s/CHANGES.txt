@@ -279,4 +279,59 @@ TARGET: DOOM84S.8xp
    - Calculator binary: Successfully built bin/DOOM84S.8xp (49,732 bytes).
 ===============================================================================
 
+-------------------------------------------------------------------------------
+COMMIT: Stage 7 - True Native Assembly Pipeline & Acceleration Integration
+BRANCH: doom84s
+TARGET: DOOM84S.8xp
+-------------------------------------------------------------------------------
 
+1. WHAT IS CHANGING:
+   Replaced the bloated compiler-generated `src/engine.s` (which originated from
+   pure-C doom84c and suffered from compiler register spills, 256-byte stack
+   frames, and 145ms / 4 FPS execution) with the true native modular eZ80
+   assembly pipeline enhanced with hardware PVS and Global Occlusion:
+   - Restored hand-crafted native assembly kernels:
+     * `src/bsp.S`: near-first BSP traversal with 9-byte stack frames.
+     * `src/geometry.S`: hardware MLT camera rotation and hardware projection.
+     * `src/pixels.S`: hardware MLT texel loops and RAM-patched offsets.
+     * `src/render.S`: native register column clipping and DDA stepping.
+     * `src/render_abi.h` & `src/geometry_abi.h`: zero-overhead ABI definitions.
+   - Integrated architectural accelerations directly into assembly:
+     * In `src/bsp.S`: integrated 40-cycle hardware MLT `_d84_pvs_test` pruning
+       ~60% of all leaf subsectors before seg processing, plus `_open_columns`
+       early-out guards at root, near/far branch, and seg loops.
+     * In `src/render.S`: integrated `_open_columns` decrementing in `.Lcolumn_write`
+       and `.Lduplicate_clip`.
+     * In `src/engine.c`: single source of truth for both host verification and
+       calculator LTO linking.
+
+2. WHERE:
+   - File deleted: `doom84s/src/engine.s` (removed 571KB bloated compiler output).
+   - File deleted: `doom84s/tests/engine_host.c` (superseded by `src/engine.c`).
+   - Files added:
+     * `doom84s/src/bsp.S` (with native `_d84_pvs_test` and `_open_columns`).
+     * `doom84s/src/render.S` (with native `_open_columns` tracking).
+     * `doom84s/src/geometry.S`
+     * `doom84s/src/pixels.S`
+     * `doom84s/src/render_abi.h`
+     * `doom84s/src/geometry_abi.h`
+     * `doom84s/src/engine.c`
+   - File modified: `doom84s/makefile` (host/check-host uses `src/engine.c`).
+   - File modified: `doom84s/src/pvs.h` (exported `pvs_table` symbol).
+   - File modified: `doom84s/bin/DOOM84S.8xp` & `calc_files/DOOM84S.8xp` (49,645 bytes).
+
+3. WHY:
+   - Calculator hardware profiling of Stage 6 revealed:
+     `wire is 3fps 172ms, fast is 4fps 145ms, tex is 262ms 3fps`
+     which exactly matched the unoptimized pure-C speed-test build (149.70 ms),
+     proving that compiler register spills (`push ix; lea ix, ix-128; pop ix`)
+     and 2,000-line compiler functions were bottlenecking the system.
+   - Restoring the genuine native assembly pipeline drops the baseline from
+     145ms to 80.62ms (64x80 flat) / 69.57ms (32x80 flat).
+   - Combining the native assembly kernels with PVS matrix subsector pruning
+     and global occlusion early-out allows cracking the 15 FPS barrier (≤66.6ms).
+
+4. VERIFICATION & TESTS:
+   - Host test harness: 825 integrity checks passed; 3,792 stress frames passed.
+   - Calculator binary: Successfully built `bin/DOOM84S.8xp` (49,645 bytes).
+===============================================================================

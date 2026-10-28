@@ -8,7 +8,6 @@
 #include "geometry.h"
 #include "gun.h"
 #include "pvs.h"
-#include <stdio.h>
 #include <limits.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -37,6 +36,11 @@ _Static_assert(sizeof(MapActor)==14,"Actor disk layout");
 Player player;
 RenderStats render_stats;
 unsigned render_detail=1;
+uint8_t open_columns;
+__attribute__((unused)) static inline bool pvs_test(unsigned from, unsigned to) {
+    if (from >= 85 || to >= 85) return true;
+    return (pvs_table[from][to >> 3] & (1 << (to & 7))) != 0;
+}
 View engine_view;
 const Vertex *map_vertices;
 const Line *map_lines;
@@ -57,7 +61,9 @@ uint16_t reciprocal_table[2049];
 unsigned small_reciprocals[17];
 typedef struct __attribute__((packed)) {uint8_t sector,back,middle,upper,lower,flags;int16_t x,y;} Material;
 Material materials[NUM_SEGS];
+#ifndef __TICE__
 static const uint16_t row_offsets[VIEW_H]={0,128,256,384,512,640,768,896,1024,1152,1280,1408,1536,1664,1792,1920,2048,2176,2304,2432,2560,2688,2816,2944,3072,3200,3328,3456,3584,3712,3840,3968,4096,4224,4352,4480,4608,4736,4864,4992,5120,5248,5376,5504,5632,5760,5888,6016,6144,6272,6400,6528,6656,6784,6912,7040,7168,7296,7424,7552,7680,7808,7936,8064,8192,8320,8448,8576,8704,8832,8960,9088,9216,9344,9472,9600,9728,9856,9984,10112};
+#endif
 static const Sector *sector_at(unsigned index) {return (const Sector *)((const uint8_t *)map_sectors+sector_offsets[index]);}
 static uint8_t sector_shades[NUM_SECTORS];
 static const uint8_t *shade_rows[32];
@@ -65,16 +71,16 @@ static uint8_t plane_colors[NUM_SECTORS*2];
 static uint8_t sky_flat;
 
 #ifdef __TICE__
-void d84_wall(uint8_t *dst,uint8_t *depth,const uint8_t *image,const uint8_t *light,unsigned count,int v,int step,unsigned z);
-void d84_span(uint8_t *dst,uint8_t *depth,const uint8_t *image,const uint8_t *light,unsigned count,int wx,int wy,int sx,int sy,unsigned z);
-void d84_span2(uint8_t *dst,uint8_t *depth,const uint8_t *image,const uint8_t *light,unsigned count,int wx,int wy,int sx,int sy,unsigned z);
-void d84_span3(uint8_t *dst,uint8_t *depth,const uint8_t *image,const uint8_t *light,unsigned count,int wx,int wy,int sx,int sy,unsigned z);
-void d84_span4(uint8_t *dst,uint8_t *depth,const uint8_t *image,const uint8_t *light,unsigned count,int wx,int wy,int sx,int sy,unsigned z);
-void d84_quad_columns(uint8_t *dst,unsigned count);
-void d84_triple_columns(uint8_t *dst,unsigned rows);
-void d84_fill_column(uint8_t *dst,unsigned count,unsigned color);
-void d84_double_columns(uint8_t *dst,unsigned count);
-void d84_sprite(uint8_t *dst,uint8_t *depth,const uint8_t *image,const uint8_t *light,unsigned count,unsigned u,unsigned step,unsigned z,unsigned stride);
+void d84_wall(uint8_t *,uint8_t *,const uint8_t *,const uint8_t *,unsigned,int,int,unsigned);
+void d84_span(uint8_t *,uint8_t *,const uint8_t *,const uint8_t *,unsigned,int,int,int,int,unsigned);
+void d84_span2(uint8_t *,uint8_t *,const uint8_t *,const uint8_t *,unsigned,int,int,int,int,unsigned);
+void d84_span3(uint8_t *,uint8_t *,const uint8_t *,const uint8_t *,unsigned,int,int,int,int,unsigned);
+void d84_span4(uint8_t *,uint8_t *,const uint8_t *,const uint8_t *,unsigned,int,int,int,int,unsigned);
+void d84_fill_column(uint8_t *,unsigned,unsigned);
+void d84_double_columns(uint8_t *,unsigned);
+void d84_triple_columns(uint8_t *,unsigned);
+void d84_quad_columns(uint8_t *,unsigned);
+void d84_sprite(uint8_t *,uint8_t *,const uint8_t *,const uint8_t *,unsigned,unsigned,unsigned,unsigned,unsigned);
 #else
 static void d84_wall(uint8_t *dst,uint8_t *depth,const uint8_t *image,const uint8_t *light,unsigned count,int v,int step,unsigned z) {
     while (count--) {*dst=light[image[(((unsigned)v>>8)&31)*32]];*depth=(uint8_t)z;dst+=VIEW_W;depth+=VIEW_W;v+=step;}
@@ -108,6 +114,7 @@ static void d84_double_columns(uint8_t *dst,unsigned count) {while(count--) {dst
 static void d84_sprite(uint8_t *dst,uint8_t *depth,const uint8_t *image,const uint8_t *light,unsigned count,unsigned u,unsigned step,unsigned z,unsigned stride) {
     while(count--) {if(z<*depth) {uint8_t pixel=image[u>>8];if(pixel!=255) {*dst=light[pixel];*depth=(uint8_t)z;}}dst+=stride;depth+=stride;u+=step;}
 }
+
 #endif
 
 static unsigned reciprocal(unsigned value) {
@@ -115,41 +122,53 @@ static unsigned reciprocal(unsigned value) {
     while (value>2048) {value>>=1;++shift;}
     return (value<17?small_reciprocals[value?value:1]:reciprocal_table[value])>>shift;
 }
-static inline int high_word(int32_t value) {
-    return (int)(value >> 16);
-}
-static inline int16_t shr8(int value) {
-    return (int16_t)(value >> 8);
-}
 #ifndef __TICE__
-static inline int screen_x(int r,int z) {
-    int32_t prod = (int32_t)r * (int32_t)reciprocal((unsigned)z);
-    return 64 + (int)(prod >> 14);
+static int high_word(int32_t value) {
+    union {int32_t value;struct {uint16_t low;int16_t high;} words;} bits;
+    bits.value=value;
+    return bits.words.high;
+}
+#endif
+#ifndef __TICE__
+__attribute__((noinline)) static int16_t shr8(int value) {
+    union {int value;struct __attribute__((packed)){uint8_t low;int16_t high;} words;} bits;
+    bits.value=value;
+    return bits.words.high;
+}
+#endif
+#ifdef __TICE__
+int d84_screen_x(int r,int z);
+#define screen_x d84_screen_x
+#else
+static int screen_x(int r,int z) {
+    if(ABS(r)<=z*4) {
+        union {int value;struct __attribute__((packed)){uint8_t b0,b1;int8_t b2;} part;} p;
+        p.value=r*(int)reciprocal((unsigned)z);
+        return 64+(int)p.part.b2*4+(p.part.b1>>6);
+    }
+    union {int32_t value;struct{uint8_t b0,b1;int16_t high;} parts;} bits;
+    bits.value=(int32_t)r*reciprocal((unsigned)z);
+    return 64+bits.parts.high*4+(bits.parts.b1>>6);
 }
 
-/* Only mutable data lives in RAM. Level and images stay in archived AppVars. */
 #endif
+
+/* Only mutable data lives in RAM. Level and images stay in archived AppVars. */
 static int16_t sector_ceiling[NUM_SECTORS],sector_target[NUM_SECTORS];
 static int16_t sector_floor[NUM_SECTORS],floor_target[NUM_SECTORS];
 static uint8_t floor_wait[NUM_SECTORS];
 uint8_t depthbuffer[VIEW_W*VIEW_H];
 static uint8_t planes[VIEW_W*VIEW_H];
 static uint8_t cliptop[VIEW_W],clipbottom[VIEW_W];
-uint8_t open_columns;
 static int16_t vertex_side[NUM_RENDER_POINTS],vertex_depth[NUM_RENDER_POINTS],vertex_screen[NUM_RENDER_POINTS];
 static uint8_t vertex_stamp[NUM_RENDER_POINTS],frame_stamp;
 int camx,camy;
 int camcos,camsin;
 int16_t d84_rotated[3];
-
 #ifdef __TICE__
 void d84_set_camera(void);
 void d84_rotate(int dx,int dy);
-int d84_screen_x(int r,int z);
-#define screen_x d84_screen_x
-#endif
-
-#ifndef __TICE__
+#else
 static void d84_rotate(int dx,int dy) {d84_rotated[0]=shr8(dx*camsin-dy*camcos);d84_rotated[1]=shr8(dx*camcos+dy*camsin);}
 #endif
 static uint8_t use_held;
@@ -574,11 +593,14 @@ static int vertex_projection(unsigned v,int r,int z) {
 static int project(int height,int z) { return CENTER-(height-player.eye)*FOCAL/z; }
 static const uint8_t *lighting(unsigned sector,int z) {
     if(z>=4096) return shade_rows[31];
-    uint8_t distance=(uint8_t)(z>>7);
+    union {int value;struct __attribute__((packed)){uint8_t low,high;} bytes;} bits;
+    bits.value=z;
+    uint8_t distance=(uint8_t)(bits.bytes.high*2)+(bits.bytes.low>>7);
     uint8_t shade=sector_shades[sector]+distance;
     return shade_rows[MIN(shade,31)];
 }
 
+#ifndef __TICE__
 static uint8_t screen_y(int value) {
     if(value<=0) return 0;
     if(value>=VIEW_H*256) return VIEW_H;
@@ -594,6 +616,8 @@ static void plane_column(int x,int y1,int y2,uint8_t plane) {
     for (int y=y1;y<=y2;++y) planes[y*VIEW_W+x]=plane;
 }
 
+#endif
+
 typedef struct {const uint8_t *image; int base; int8_t shiftx,shifty;} WallStyle;
 static WallStyle wall_style(unsigned tex,int anchor,int yoff) {
     WallStyle style={NULL,0,0,0};
@@ -605,6 +629,7 @@ static WallStyle wall_style(unsigned tex,int anchor,int yoff) {
     }
     return style;
 }
+#ifndef __TICE__
 static void d84_wall_column(int x,int y1,int y2,const WallStyle *style,int iz,int uz,unsigned sector) {
     if (y1>y2 || !style->image) return;
     ++render_stats.wall_columns;
@@ -627,6 +652,8 @@ static void d84_wall_column(int x,int y1,int y2,const WallStyle *style,int iz,in
     unsigned offset=row_offsets[(uint8_t)y1]+x;
     d84_wall(framebuffer+offset,depthbuffer+offset,style->image+tx,light,(unsigned)(y2-y1+1),v,step,depth);
 }
+
+#endif
 
 typedef struct {
     int start,end,iz,diz,uz,duz,cyq,cy_step,fyq,fy_step,upperq,upper_step,lowerq,lower_step;
@@ -670,7 +697,6 @@ __attribute__((noinline)) static void render_wire_columns(void) {
                 for(int y=y1;y<=y2;++y) wire_plot(x,y,color);
             }
             cliptop[x]=clipbottom[x];
-            if(open_columns) --open_columns;
         } else {
             uint8_t upper=wire_screen_y(rw.upperq),lower=wire_screen_y(rw.lowerq);
             if(rw.draw_upper && upper>=top && upper<bottom) wire_plot(x,upper,color);
@@ -697,6 +723,27 @@ __attribute__((noinline)) static void render_wire_columns(void) {
     }
 }
 
+#ifdef __TICE__
+#include "render_abi.h"
+#define CHECK_RW(field,offset) _Static_assert(offsetof(RenderWall,field)==offset,"assembly packet: " #field)
+CHECK_RW(inverse,RW_INVERSE);CHECK_RW(z,RW_Z);CHECK_RW(v,RW_V);CHECK_RW(step,RW_STEP);
+CHECK_RW(tx,RW_TX);CHECK_RW(count,RW_COUNT);CHECK_RW(y1,RW_Y1);CHECK_RW(base_shade,RW_SHADE);CHECK_RW(light,RW_LIGHTBASE);
+CHECK_RW(start,RW_START);CHECK_RW(end,RW_END);CHECK_RW(iz,RW_IZ);CHECK_RW(diz,RW_DIZ);
+CHECK_RW(uz,RW_UZ);CHECK_RW(duz,RW_DUZ);CHECK_RW(cyq,RW_CYQ);CHECK_RW(cy_step,RW_CYSTEP);
+CHECK_RW(fyq,RW_FYQ);CHECK_RW(fy_step,RW_FYSTEP);CHECK_RW(upperq,RW_UPPERQ);CHECK_RW(upper_step,RW_UPPERSTEP);
+CHECK_RW(lowerq,RW_LOWERQ);CHECK_RW(lower_step,RW_LOWERSTEP);CHECK_RW(fs,RW_FS);CHECK_RW(solid,RW_SOLID);
+CHECK_RW(middle,RW_MIDDLE);CHECK_RW(upper,RW_UPPER);CHECK_RW(lower,RW_LOWER);CHECK_RW(x,RW_X);
+CHECK_RW(top,RW_TOP);CHECK_RW(bottom,RW_BOTTOM);CHECK_RW(cy,RW_CY);CHECK_RW(fy,RW_FY);
+CHECK_RW(up,RW_UP);CHECK_RW(low,RW_LOW);CHECK_RW(top_ptr,RW_TOPPTR);CHECK_RW(bottom_ptr,RW_BOTTOMPTR);
+CHECK_RW(draw_upper,RW_DRAWUPPER);CHECK_RW(draw_lower,RW_DRAWLOWER);CHECK_RW(fill_base,RW_FILLBASE);
+CHECK_RW(ceil_color,RW_CEILCOLOR);CHECK_RW(floor_color,RW_FLOORCOLOR);CHECK_RW(stride,RW_STRIDE);
+_Static_assert(sizeof(RenderWall)==RW_SIZE,"assembly packet size");
+void d84_render_columns(void);
+static void render_columns(void) {
+    if(player.wireframe) render_wire_columns();
+    else d84_render_columns();
+}
+#else
 __attribute__((noinline)) static void render_columns(void) {
     if(player.wireframe) {render_wire_columns();return;}
     for (int x=rw.start;x<rw.end;x+=(int)render_detail,rw.iz+=rw.diz,rw.uz+=rw.duz,rw.cyq+=rw.cy_step,rw.fyq+=rw.fy_step,rw.upperq+=rw.upper_step,rw.lowerq+=rw.lower_step) {
@@ -728,6 +775,8 @@ __attribute__((noinline)) static void render_columns(void) {
     }
 }
 
+#endif
+
 static int height_product(int height,int inverse) {
     if(inverse>=-16384 && inverse<=16383) return (height*inverse)>>4;
     return (int)(((int32_t)height*inverse)>>4);
@@ -754,7 +803,7 @@ static bool clip_seg_plane(int *r1,int *z1,int *u1,int *r2,int *z2,int *u2,int a
 }
 
 __attribute__((noinline)) void d84_draw_seg(const Seg *seg,const Material *side) {
-    if(!open_columns) return;
+    if (!open_columns) return;
     unsigned fs=side->sector;
     int bs=side->back==255?-1:side->back;
     if(bs>=0 && (side->flags&128) && sector_floor[fs]==sector_floor[bs] && sector_ceiling[fs]==sector_ceiling[bs] && side->middle==255) return;
@@ -837,7 +886,7 @@ __attribute__((noinline)) void d84_draw_seg(const Seg *seg,const Material *side)
 }
 
 __attribute__((noinline)) bool d84_bbox_visible(const int16_t *box,unsigned boxindex) {
-    if(!open_columns) return false;
+    if (!open_columns) return false;
     /* Doom bbox order: top, bottom, left, right. Conservative near-plane
      * handling avoids dropping geometry when the camera intersects a box. */
     /* Doom's silhouette-corner table needs only two transformed corners. */
@@ -863,29 +912,35 @@ __attribute__((noinline)) bool d84_bbox_visible(const int16_t *box,unsigned boxi
     return false;
 }
 
-static inline bool pvs_visible(unsigned from_sector, unsigned to_sector) {
-    if (from_sector >= 85 || to_sector >= 85) return true;
-    return (pvs_table[from_sector][to_sector >> 3] >> (to_sector & 7)) & 1;
-}
-
+#ifdef __TICE__
+const uint16_t *d84_node_offsets=node_offsets;
+__attribute__((noinline)) unsigned d84_node_side_camera(const Node *n) {return node_side(camx,camy,n);}
+void d84_bsp(unsigned index,unsigned depth);
+#define bsp d84_bsp
+#else
 static void bsp(unsigned index,unsigned depth) {
-    if(!open_columns) return;
+    if (!open_columns) return;
     if (depth>render_stats.bsp_depth) render_stats.bsp_depth=(uint8_t)depth;
     if (index&0x8000u) {
         const Subsector *sub=&subsectors[index&0x7fffu];
-        const Material *side=materials+sub->first;
-        if (!pvs_visible(player.sector, side->sector)) return;
+        const Material *mat=materials+sub->first;
+        if (!pvs_test(player.sector, mat->sector)) return;
         ++render_stats.subsectors;
-        const Seg *seg=segs+sub->first;
-        for (unsigned i=sub->count;i;--i,++seg,++side) d84_draw_seg(seg,side);
+        const Seg *seg=segs+sub->first;const Material *side=mat;
+        for (unsigned i=sub->count;i;--i,++seg,++side) {
+            if (!open_columns) break;
+            d84_draw_seg(seg,side);
+        }
         return;
     }
     const Node *n=(const Node *)((const uint8_t *)nodes+node_offsets[(uint8_t)index]);
     unsigned side=node_side(camx,camy,n);
     bsp(n->child[side],depth+1);
-    if(!open_columns) return;
+    if (!open_columns) return;
     if (d84_bbox_visible(n->bbox[side^1],index*2+(side^1))) bsp(n->child[side^1],depth+1);
 }
+
+#endif
 
 __attribute__((noinline)) static void draw_planes(void) {
     uint8_t *pixels=framebuffer,*depths=depthbuffer;
@@ -1011,13 +1066,13 @@ void engine_render(void) {
     if(player.texture_planes && !player.wireframe) memset(planes,255,sizeof(planes));
     memset(cliptop,0,sizeof(cliptop));
     memset(clipbottom,VIEW_H,sizeof(clipbottom));
-    open_columns=VIEW_W;
+    open_columns = (uint8_t)(VIEW_W / (player.wireframe ? 1 : render_detail));
     frame_stamp+=2;
     if (!frame_stamp) {memset(vertex_stamp,0,sizeof(vertex_stamp));frame_stamp=2;}
     camx=(int)(player.x/256);camy=(int)(player.y/256);
     camcos=icos(player.angle);camsin=isin(player.angle);
 #ifdef __TICE__
-d84_set_camera();
+    d84_set_camera();
 #endif
     bsp(NUM_NODES-1,0);
     if(player.wireframe) {
@@ -1070,28 +1125,4 @@ d84_set_camera();
     framebuffer[41*VIEW_W+64]=4;
     framebuffer[40*VIEW_W+63]=4;
     framebuffer[40*VIEW_W+65]=4;
-}
-
-void d84_blit_viewport(const uint8_t *src, uint8_t *dest) {
-    for (int y = 0; y < 80; ++y) {
-        uint8_t *dst_row = dest;
-        for (int x = 0; x < 128; x += 2) {
-            uint8_t p0 = src[x];
-            uint8_t p1 = src[x + 1];
-            dst_row[0] = p0;
-            dst_row[1] = p0;
-            dst_row[2] = p1;
-            dst_row[3] = p1;
-            dst_row[4] = p1;
-            dst_row += 5;
-        }
-        src += 128;
-        dest += 320;
-        memcpy(dest, dest - 320, 320);
-        dest += 320;
-        if (y & 1) {
-            memcpy(dest, dest - 320, 320);
-            dest += 320;
-        }
-    }
 }
