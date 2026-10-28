@@ -36,3 +36,34 @@ TARGET: DOOM84S.8xp
    - Host test harness: 825 integrity checks passed; 3,792 stress frames passed.
    - Calculator binary: Successfully built bin/DOOM84S.8xp (50,675 bytes).
 ===============================================================================
+
+-------------------------------------------------------------------------------
+COMMIT: Stage 1 - In-Place Optimization of _d84_blit_viewport in engine.s
+BRANCH: doom84s
+TARGET: DOOM84S.8xp
+-------------------------------------------------------------------------------
+
+1. WHAT IS CHANGING:
+   In `src/engine.s`, replaced the compiler-generated `_d84_blit_viewport` kernel
+   with a hand-optimized register expansion loop and hardware `LDIR` row copy.
+
+2. WHERE:
+   - File modified: doom84s/src/engine.s (lines ~21650-21740)
+     - Replaced 95 lines of compiler-emitted stack pushes/pops, 24-bit comparisons,
+       and software loop counters inside `_d84_blit_viewport`.
+     - Replaced with:
+       * `.Lblit_src_row`: 8-instruction inner loop (`lea ix, ix+5` + `djnz`)
+         storing paired pixels directly across 64 iterations in registers.
+       * `.Lblit_dup_row`: Native hardware `ldir` copying 320 bytes per row at
+         2 clock cycles per byte.
+
+3. WHY:
+   - The compiler emitted stack spills (`ix-3`, `ix-6`, `ix-12`), 24-bit subtracts,
+     and full `__iand` library calls for the inner loop running 5,120 times every frame.
+   - Hand-optimizing in-place reduces inner-loop cycles from ~50 cycles/pair to
+     ~14 cycles/pair and eliminates all stack memory access during blitting.
+
+4. VERIFICATION & TESTS:
+   - Host test harness: 825 integrity checks passed; 3,792 stress frames passed.
+   - Calculator binary: Successfully built bin/DOOM84S.8xp (50,651 bytes).
+===============================================================================

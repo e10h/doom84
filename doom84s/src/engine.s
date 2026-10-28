@@ -21649,99 +21649,62 @@ _draw_sprites:                          ; @draw_sprites
 	.globl	_d84_blit_viewport              ; -- Begin function d84_blit_viewport
 	.type	_d84_blit_viewport,@function
 _d84_blit_viewport:                     ; @d84_blit_viewport
-; %bb.0:
 	push	ix
-	ld	ix, 0
-	add	ix, sp
-	lea	hl, ix - 12
-	ld	sp, hl
-	ld	hl, (ix + 6)
-	ld	iy, (ix + 9)
-	ld	de, 0
-	ld	(ix - 9), de
-	.local	.LBB15_1
-.LBB15_1:                               ; =>This Loop Header: Depth=1
-                                        ;     Child Loop BB15_2 Depth 2
-	ld	de, 0
-	ld	(ix - 12), iy
-	ld	(ix - 3), hl
-	.local	.LBB15_2
-.LBB15_2:                               ;   Parent Loop BB15_1 Depth=1
-                                        ; =>  This Inner Loop Header: Depth=2
-	ld	(ix - 6), iy
-	push	hl
+	push	iy
+	ld	iy, 0
+	add	iy, sp
+	ld	hl, (iy + 9)
+	ld	ix, (iy + 12)
+	xor	a, a
+.Lblit_rows:
+	push	af
+	call	.Lblit_src_row
+	call	.Lblit_dup_row
+	pop	af
+	bit	0, a
+	jr	z, .Lblit_row_next
+	push	af
+	call	.Lblit_dup_row
+	pop	af
+.Lblit_row_next:
+	inc	a
+	cp	a, 80
+	jp	nz, .Lblit_rows
 	pop	iy
-	add	iy, de
-	lea	hl, iy + 0
+	pop	ix
+	ret
+
+.Lblit_src_row:
+	ld	b, 64
+.Lblit_pair_px:
 	ld	a, (hl)
-	ld	l, (iy + 1)
-	ld	iy, (ix - 6)
-	ld	(iy), a
-	ld	(iy + 1), a
-	ld	(iy + 2), l
-	ld	(iy + 3), l
-	ld	(iy + 4), l
-	lea	iy, iy + 5
-	push	de
-	pop	hl
-	ld	bc, 2
-	add	hl, bc
+	inc	hl
+	ld	(ix + 0), a
+	ld	(ix + 1), a
+	ld	a, (hl)
+	inc	hl
+	ld	(ix + 2), a
+	ld	(ix + 3), a
+	ld	(ix + 4), a
+	lea	ix, ix + 5
+	djnz	.Lblit_pair_px
+	ret
+
+.Lblit_dup_row:
 	push	hl
-	pop	bc
-	ex	de, hl
-	ld	de, 126
-	or	a, a
-	sbc	hl, de
-	ld	hl, (ix - 3)
-	push	bc
-	pop	de
-	jr	c, .LBB15_2
-; %bb.3:                                ;   in Loop: Header=BB15_1 Depth=1
-	ld	de, 128
-	add	hl, de
-	ld	(ix - 3), hl
-	ld	iy, (ix - 12)
-	lea	hl, iy + 0
+	ld	de, -320
+	add	ix, de
+	push	ix
+	pop	hl
 	ld	de, 320
-	push	de
-	pop	bc
-	add	hl, bc
-	ex	de, hl
-	lea	hl, iy + 0
-	ldir
-	lea	hl, iy + 0
-	ld	de, 640
-	add	hl, de
-	ex	de, hl
-	ld	hl, (ix - 9)
-	ld	bc, 1
-	call	__iand
-	bit	0, l
-	jr	nz, .LBB15_5
-; %bb.4:                                ;   in Loop: Header=BB15_1 Depth=1
-	push	de
-	pop	iy
-	jr	.LBB15_6
-	.local	.LBB15_5
-.LBB15_5:                               ;   in Loop: Header=BB15_1 Depth=1
-	lea	hl, iy + 0
+	add	ix, de
+	push	ix
+	pop	de
 	ld	bc, 320
 	ldir
-	ld	de, 960
-	add	iy, de
-	.local	.LBB15_6
-.LBB15_6:                               ;   in Loop: Header=BB15_1 Depth=1
-	ld	hl, (ix - 9)
-	inc	hl
-	ld	(ix - 9), hl
-	ld	de, 80
-	or	a, a
-	sbc	hl, de
-	ld	hl, (ix - 3)
-	jp	nz, .LBB15_1
-; %bb.7:
-	ld	sp, ix
+	push	de
 	pop	ix
+	pop	hl
 	ret
 	.local	.Lfunc_end15
 .Lfunc_end15:
