@@ -7,6 +7,8 @@
 #include "generated.h"
 #include "geometry.h"
 #include "gun.h"
+#include "pvs.h"
+#include <stdio.h>
 #include <limits.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -133,6 +135,7 @@ static uint8_t floor_wait[NUM_SECTORS];
 uint8_t depthbuffer[VIEW_W*VIEW_H];
 static uint8_t planes[VIEW_W*VIEW_H];
 static uint8_t cliptop[VIEW_W],clipbottom[VIEW_W];
+uint8_t open_columns;
 static int16_t vertex_side[NUM_RENDER_POINTS],vertex_depth[NUM_RENDER_POINTS],vertex_screen[NUM_RENDER_POINTS];
 static uint8_t vertex_stamp[NUM_RENDER_POINTS],frame_stamp;
 int camx,camy;
@@ -667,6 +670,7 @@ __attribute__((noinline)) static void render_wire_columns(void) {
                 for(int y=y1;y<=y2;++y) wire_plot(x,y,color);
             }
             cliptop[x]=clipbottom[x];
+            if(open_columns) --open_columns;
         } else {
             uint8_t upper=wire_screen_y(rw.upperq),lower=wire_screen_y(rw.lowerq);
             if(rw.draw_upper && upper>=top && upper<bottom) wire_plot(x,upper,color);
@@ -683,8 +687,10 @@ __attribute__((noinline)) static void render_wire_columns(void) {
             }
             cliptop[x]=(uint8_t)CLAMP(MAX(top,MAX(cy,upper)),top,bottom);
             clipbottom[x]=(uint8_t)CLAMP(MIN(bottom,MIN(fy,lower)),cliptop[x],bottom);
+            if(cliptop[x]>=clipbottom[x] && open_columns) --open_columns;
         }
         for(unsigned k=1;k<rw.stride && x+(int)k<VIEW_W;++k) {
+            if(cliptop[x]>=clipbottom[x] && cliptop[x+(int)k]<clipbottom[x+(int)k] && open_columns) --open_columns;
             cliptop[x+(int)k]=cliptop[x];
             clipbottom[x+(int)k]=clipbottom[x];
         }
@@ -702,6 +708,7 @@ __attribute__((noinline)) static void render_columns(void) {
         if (rw.solid) {
             d84_wall_column(x,MAX(top,cy),MIN(bottom-1,fy-1),&rw.middle,rw.iz,rw.uz,(unsigned)rw.fs);
             cliptop[x]=clipbottom[x];
+            if(open_columns) --open_columns;
         } else {
             uint8_t upper=screen_y(rw.upperq),lower=screen_y(rw.lowerq);
             if (rw.bceil<rw.fceil && !rw.skyportal) {
@@ -712,8 +719,10 @@ __attribute__((noinline)) static void render_columns(void) {
             }
             cliptop[x]=(uint8_t)CLAMP(MAX(top,MAX(cy,upper)),top,bottom);
             clipbottom[x]=(uint8_t)CLAMP(MIN(bottom,MIN(fy,lower)),cliptop[x],bottom);
+            if(cliptop[x]>=clipbottom[x] && open_columns) --open_columns;
         }
         for(unsigned k=1;k<render_detail && x+(int)k<VIEW_W;++k) {
+            if(cliptop[x]>=clipbottom[x] && cliptop[x+(int)k]<clipbottom[x+(int)k] && open_columns) --open_columns;
             cliptop[x+(int)k]=cliptop[x];clipbottom[x+(int)k]=clipbottom[x];
         }
     }
@@ -745,6 +754,7 @@ static bool clip_seg_plane(int *r1,int *z1,int *u1,int *r2,int *z2,int *u2,int a
 }
 
 __attribute__((noinline)) void d84_draw_seg(const Seg *seg,const Material *side) {
+    if(!open_columns) return;
     unsigned fs=side->sector;
     int bs=side->back==255?-1:side->back;
     if(bs>=0 && (side->flags&128) && sector_floor[fs]==sector_floor[bs] && sector_ceiling[fs]==sector_ceiling[bs] && side->middle==255) return;
@@ -827,6 +837,7 @@ __attribute__((noinline)) void d84_draw_seg(const Seg *seg,const Material *side)
 }
 
 __attribute__((noinline)) bool d84_bbox_visible(const int16_t *box,unsigned boxindex) {
+    if(!open_columns) return false;
     /* Doom bbox order: top, bottom, left, right. Conservative near-plane
      * handling avoids dropping geometry when the camera intersects a box. */
     /* Doom's silhouette-corner table needs only two transformed corners. */
@@ -852,18 +863,27 @@ __attribute__((noinline)) bool d84_bbox_visible(const int16_t *box,unsigned boxi
     return false;
 }
 
+static inline bool pvs_visible(unsigned from_sector, unsigned to_sector) {
+    if (from_sector >= 85 || to_sector >= 85) return true;
+    return (pvs_table[from_sector][to_sector >> 3] >> (to_sector & 7)) & 1;
+}
+
 static void bsp(unsigned index,unsigned depth) {
+    if(!open_columns) return;
     if (depth>render_stats.bsp_depth) render_stats.bsp_depth=(uint8_t)depth;
     if (index&0x8000u) {
         const Subsector *sub=&subsectors[index&0x7fffu];
+        const Material *side=materials+sub->first;
+        if (!pvs_visible(player.sector, side->sector)) return;
         ++render_stats.subsectors;
-        const Seg *seg=segs+sub->first;const Material *side=materials+sub->first;
+        const Seg *seg=segs+sub->first;
         for (unsigned i=sub->count;i;--i,++seg,++side) d84_draw_seg(seg,side);
         return;
     }
     const Node *n=(const Node *)((const uint8_t *)nodes+node_offsets[(uint8_t)index]);
     unsigned side=node_side(camx,camy,n);
     bsp(n->child[side],depth+1);
+    if(!open_columns) return;
     if (d84_bbox_visible(n->bbox[side^1],index*2+(side^1))) bsp(n->child[side^1],depth+1);
 }
 
@@ -991,6 +1011,7 @@ void engine_render(void) {
     if(player.texture_planes && !player.wireframe) memset(planes,255,sizeof(planes));
     memset(cliptop,0,sizeof(cliptop));
     memset(clipbottom,VIEW_H,sizeof(clipbottom));
+    open_columns=VIEW_W;
     frame_stamp+=2;
     if (!frame_stamp) {memset(vertex_stamp,0,sizeof(vertex_stamp));frame_stamp=2;}
     camx=(int)(player.x/256);camy=(int)(player.y/256);
