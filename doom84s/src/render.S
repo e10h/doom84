@@ -178,17 +178,6 @@ _d84_render_columns:
     ld de,(ix+RW_BOTTOMPTR)
     ld a,(ix+RW_BOTTOM)
     ld (de),a
-    cp a,(ix+RW_TOP)
-    jr c,.Lcol_dec
-    jr z,.Lcol_dec
-    jr .Lcol_stride
-.Lcol_dec:
-    ld a,(_open_columns)
-    or a,a
-    jr z,.Lcol_stride
-    dec a
-    ld (_open_columns),a
-.Lcol_stride:
     ld b,(ix+RW_STRIDE)
     dec b
     jr z,.Lcolumn_next
@@ -206,17 +195,6 @@ _d84_render_columns:
     ld (hl),a
     ld a,(ix+RW_BOTTOM)
     ld (de),a
-    cp a,(ix+RW_TOP)
-    jr c,.Ldup_dec
-    jr z,.Ldup_dec
-    jr .Ldup_loop_end
-.Ldup_dec:
-    ld a,(_open_columns)
-    or a,a
-    jr z,.Ldup_loop_end
-    dec a
-    ld (_open_columns),a
-.Ldup_loop_end:
     djnz .Lduplicate_clip
 .Lcolumn_next:
     advance RW_IZ,RW_DIZ

@@ -6,9 +6,6 @@
 .section .text._d84_bsp,"ax",@progbits
 .global _d84_bsp
 _d84_bsp:
-    ld a,(_open_columns)
-    or a,a
-    ret z
     push ix
     ld ix,0
     add ix,sp
@@ -50,9 +47,6 @@ _d84_bsp:
     add hl,sp
     ld sp,hl
 
-    ld a,(_open_columns)
-    or a,a
-    jr z,.Lbsp_return
     ld a,(ix-6)
     xor a,1
     ld e,a
@@ -153,16 +147,7 @@ _d84_bsp:
     ld de,_materials
     add hl,de
     ld (ix-6),hl
-    ld c,(hl)
-    ld a,(_player+26)
-    push bc
-    call _d84_pvs_test
-    pop bc
-    jr z,.Lbsp_return
 .Lbsp_seg:
-    ld a,(_open_columns)
-    or a,a
-    jr z,.Lbsp_return
     ld hl,(ix-9)
     ld de,0
     or a,a
@@ -187,47 +172,3 @@ _d84_bsp:
     add hl,de
     ld (ix-6),hl
     jr .Lbsp_seg
-
-.section .text._d84_pvs_test,"ax",@progbits
-.global _d84_pvs_test
-_d84_pvs_test:
-    cp a,85
-    jr c,.Lpvs_from_ok
-    or a,1
-    ret
-.Lpvs_from_ok:
-    ld b,a
-    ld a,c
-    cp a,85
-    jr c,.Lpvs_to_ok
-    or a,1
-    ret
-.Lpvs_to_ok:
-    ld hl,0
-    ld h,11
-    ld l,b
-    mlt hl
-    ld a,c
-    rrca
-    rrca
-    rrca
-    and a,0x1f
-    ld e,a
-    ld d,0
-    add hl,de
-    ld de,_pvs_table
-    add hl,de
-    ld b,(hl)
-    ld a,c
-    and a,7
-    ld e,a
-    ld d,0
-    ld hl,.Lpvs_bits
-    add hl,de
-    ld a,(hl)
-    and a,b
-    ret
-
-.Lpvs_bits:
-    .byte 1, 2, 4, 8, 16, 32, 64, 128
-
