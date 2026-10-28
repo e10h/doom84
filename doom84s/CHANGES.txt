@@ -100,3 +100,38 @@ TARGET: DOOM84S.8xp
    - Host test harness: 825 integrity checks passed; 3,792 stress frames passed.
    - Calculator binary: Successfully built bin/DOOM84S.8xp (50,606 bytes).
 ===============================================================================
+
+-------------------------------------------------------------------------------
+COMMIT: Stage 3 - In-Place Wall Pixel Rasterizer Optimization in engine.s
+BRANCH: doom84s
+TARGET: DOOM84S.8xp
+-------------------------------------------------------------------------------
+
+1. WHAT IS CHANGING:
+   In `src/engine.s`, replaced the compiler-generated inner texture column loop
+   inside `_d84_wall_column` with a hand-tuned assembly loop using 4-cycle hardware
+   `MLT` instructions and self-modifying immediate constants in RAM.
+
+2. WHERE:
+   - File modified: doom84s/src/engine.s (lines ~22485-22540)
+     - Replaced 40 lines of compiler-emitted stack memory reads/writes and software
+       helper calls (`__ishru`, `__iand`) inside `.LBB17_36`.
+     - Replaced with:
+       * Self-patched image pointer (`.Lwall_image+1`), light pointer (`.Lwall_light+1`),
+         and depth value (`.Lwall_depth+3`) patched once per column in RAM.
+       * Inner loop running entirely in registers (`hl`, `de`, `ix`, `iy`) with
+         hardware `mlt hl` for 2D texture indexing.
+
+3. WHY:
+   - In the compiler's output, every single vertical pixel on a wall made two
+     function calls to software arithmetic routines (`__ishru` and `__iand`) and
+     read/wrote stack variables 14 times, taking over 140 clock cycles per pixel.
+   - Hand-optimizing directly in `src/engine.s`:
+     * Eliminates all library helper calls and stack memory access during rendering.
+     * Computes `((v >> 8) & 31) * 32` via hardware `mlt hl` in 4 clock cycles.
+     * Drops pixel cost to ~38 clock cycles, delivering a ~4× speedup for wall texture columns.
+
+4. VERIFICATION & TESTS:
+   - Host test harness: 825 integrity checks passed; 3,792 stress frames passed.
+   - Calculator binary: Successfully built bin/DOOM84S.8xp (50,609 bytes).
+===============================================================================

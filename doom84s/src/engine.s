@@ -22485,56 +22485,56 @@ _d84_wall_column:                       ; @d84_wall_column
 	ld	a, -2
 	.local	.LBB17_35
 .LBB17_35:
-	ld	hl, (ix + 9)
-	dec	hl
-	ld	de, (ix + 12)
+	ld	(.Lwall_depth+3), a
+	ld	hl, (ix - 24)
+	ld	(.Lwall_light+1), hl
+	ld	hl, (ix - 6)
+	ld	(.Lwall_image+1), hl
+	ld	hl, (ix + 12)
+	ld	de, (ix + 9)
 	or	a, a
 	sbc	hl, de
-	ld	(ix - 18), hl
-	ld	de, (ix - 12)
+	inc	hl
+	ld	a, l
+	ex	af, af'
+	ld	de, (ix - 21)
 	push	bc
 	pop	hl
-	.local	.LBB17_36
-.LBB17_36:                              ; =>This Inner Loop Header: Depth=1
-	ld	(ix - 15), hl
-	ld	hl, (ix - 15)
-	ld	c, 3
-	call	__ishru
-	ld	bc, 992
-	call	__iand
-	push	hl
-	pop	bc
-	ld	hl, (ix - 6)
-	add	hl, bc
-	ld	l, (hl)
-	ld	bc, 0
-	ld	c, l
-	ld	hl, (ix - 24)
-	add	hl, bc
-	ld	l, (hl)
+	ld	iy, (ix - 12)
 	ld	bc, (ix - 9)
+	push	ix
 	push	bc
-	pop	iy
-	ld	(iy), l
-	push	de
-	pop	iy
-	ld	(iy), a
-	ld	de, 128
-	push	bc
+	pop	ix
+.Lwall_fast_loop:
+	push	hl
+	ld	a, h
+	and	31
+	ld	l, a
+	ld	h, 32
+	mlt	hl
+.Lwall_image:
+	ld	bc, 0
+	add	hl, bc
+	ld	a, (hl)
+.Lwall_light:
+	ld	hl, 0
+	ld	l, a
+	ld	a, (hl)
+	ld	(ix + 0), a
+.Lwall_depth:
+	ld	(iy + 0), 0
+	ld	bc, 128
+	add	ix, bc
+	add	iy, bc
 	pop	hl
 	add	hl, de
-	ld	(ix - 9), hl
-	ld	hl, (ix - 15)
-	add	iy, de
-	ld	(ix - 12), iy
-	ld	bc, (ix - 21)
-	add	hl, bc
-	ld	bc, 1
-	ld	iy, (ix - 18)
-	add	iy, bc
-	ld	(ix - 18), iy
-	ld	de, (ix - 12)
-	jr	nc, .LBB17_36
+	ex	af, af'
+	dec	a
+	jr	z, .Lwall_fast_done
+	ex	af, af'
+	jr	.Lwall_fast_loop
+.Lwall_fast_done:
+	pop	ix
 	.local	.LBB17_37
 .LBB17_37:
 	ld	sp, ix
