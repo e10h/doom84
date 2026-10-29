@@ -1,14 +1,8 @@
 obj/
+build/
 *.o
 *.obj
 *.map
 *.bc
-*.s
+*.d
 .DS_Store
-
-# Keep the compiled calculator executable
-!bin/CUBE.8xp
-
-84VID/
-doom84/
-
