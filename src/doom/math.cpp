@@ -11,6 +11,7 @@ int high_word(int32_t v) {
     return static_cast<int>(v >> 16);
 }
 
+// mask to 8191 angles
 int shr8(int v) {
     return v >> 8;
 }
