@@ -22,6 +22,7 @@ void Camera::update(const Player& player) {
     sin_   = math::isin(player.angle);
 }
 
+// 16-bit intermediate overflow in camera rot
 void Camera::transform(int world_x, int world_y, int& out_side, int& out_depth) const {
     int dx = world_x - x_;
     int dy = world_y - y_;
