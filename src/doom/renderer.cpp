@@ -17,7 +17,6 @@ const uint8_t* Renderer::framebuffer() const {
     return view.pixels;
 }
 
-// v step fixed
 void Renderer::vertex(unsigned v, const Map& map, int& r, int& z) {
     if ((vertex_stamp[v] & 254) != frame_stamp) {
         const Vertex* point = (v < NUM_VERTICES) ? (map.vertices + v) : (extra_points + (v - NUM_VERTICES));
