@@ -11,7 +11,7 @@ inline constexpr int Scale = 4;
 inline constexpr int WinW = doom::ViewWidth * Scale;
 inline constexpr int WinH = doom::ViewHeight * Scale;
 
-doom::Engine g_engine;
+doom::Engine& g_engine = doom::Engine::Instance();
 
 uint8_t* read_file(const char* path, unsigned* size) {
     std::FILE* f = std::fopen(path, "rb");
@@ -33,14 +33,14 @@ uint8_t* read_file(const char* path, unsigned* size) {
 
 uint8_t poll_input(const Uint8* keys) {
     uint8_t result = 0;
-    if (keys[SDL_SCANCODE_UP] || keys[SDL_SCANCODE_W])       result |= doom::Input::Forward;
-    if (keys[SDL_SCANCODE_DOWN] || keys[SDL_SCANCODE_S])     result |= doom::Input::Back;
-    if (keys[SDL_SCANCODE_LEFT] || keys[SDL_SCANCODE_A])     result |= doom::Input::Left;
-    if (keys[SDL_SCANCODE_RIGHT] || keys[SDL_SCANCODE_D])    result |= doom::Input::Right;
-    if (keys[SDL_SCANCODE_LCTRL] || keys[SDL_SCANCODE_RCTRL] || keys[SDL_SCANCODE_Z]) result |= doom::Input::Fire;
-    if (keys[SDL_SCANCODE_SPACE] || keys[SDL_SCANCODE_E])    result |= doom::Input::Use;
-    if (keys[SDL_SCANCODE_LSHIFT] || keys[SDL_SCANCODE_RSHIFT]) result |= doom::Input::Run;
-    if (keys[SDL_SCANCODE_LALT] || keys[SDL_SCANCODE_RALT])  result |= doom::Input::Strafe;
+    if (keys[SDL_SCANCODE_UP] || keys[SDL_SCANCODE_W])       result |= doom::InputMask::Forward;
+    if (keys[SDL_SCANCODE_DOWN] || keys[SDL_SCANCODE_S])     result |= doom::InputMask::Back;
+    if (keys[SDL_SCANCODE_LEFT] || keys[SDL_SCANCODE_A])     result |= doom::InputMask::Left;
+    if (keys[SDL_SCANCODE_RIGHT] || keys[SDL_SCANCODE_D])    result |= doom::InputMask::Right;
+    if (keys[SDL_SCANCODE_LCTRL] || keys[SDL_SCANCODE_RCTRL] || keys[SDL_SCANCODE_Z]) result |= doom::InputMask::Fire;
+    if (keys[SDL_SCANCODE_SPACE] || keys[SDL_SCANCODE_E])    result |= doom::InputMask::Use;
+    if (keys[SDL_SCANCODE_LSHIFT] || keys[SDL_SCANCODE_RSHIFT]) result |= doom::InputMask::Run;
+    if (keys[SDL_SCANCODE_LALT] || keys[SDL_SCANCODE_RALT])  result |= doom::InputMask::Strafe;
     return result;
 }
 

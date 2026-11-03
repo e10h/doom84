@@ -14,7 +14,7 @@ namespace {
 unsigned checks = 0;
 bool hash_frames = false;
 uint64_t frame_hash = 14695981039346656037ull;
-doom::Engine g_engine;
+doom::Engine& g_engine = doom::Engine::Instance();
 
 void render_frame() {
     g_engine.render();
@@ -128,7 +128,7 @@ void run_tests() {
         int y = (a->y + b->y) / 2 - static_cast<int>(dx * 40 / length);
         pose(x, y, static_cast<unsigned>(static_cast<int>(std::lround(std::atan2(dx, -dy) * 1024 / (2 * 3.141592653589793)))) & 1023);
 
-        for (unsigned tic = 0; tic < 40; ++tic) g_engine.tick(doom::Input::Forward);
+        for (unsigned tic = 0; tic < 40; ++tic) g_engine.tick(doom::InputMask::Forward);
 
         unsigned target = 0;
         while (target < NUM_SECTORS && g_engine.map.sectors[target].tag != l->tag) ++target;
@@ -165,7 +165,7 @@ void run_tests() {
         g_engine.player().angle  = static_cast<unsigned>(static_cast<int>(std::lround(std::atan2(dx, -dy) * 1024 / (2 * 3.141592653589793)))) & 1023;
 
         CHECK(!g_engine.world.can_move(mx, my, g_engine.player().floor));
-        g_engine.tick(doom::Input::Use);
+        g_engine.tick(doom::InputMask::Use);
         for (unsigned tic = 0; tic < 65; ++tic) g_engine.tick(0);
         CHECK(g_engine.world.can_move(mx, my, g_engine.player().floor));
     }
@@ -177,7 +177,7 @@ void run_tests() {
     g_engine.player().floor  = g_engine.map.sectors[g_engine.player().sector].floor;
     g_engine.player().eye    = g_engine.player().floor + 41;
     g_engine.player().angle  = 512;
-    g_engine.tick(doom::Input::Use);
+    g_engine.tick(doom::InputMask::Use);
     CHECK(g_engine.player().exited);
 
     g_engine.reset();
@@ -201,7 +201,7 @@ void run_tests() {
 
     g_engine.reset();
     for (unsigned i = 0; i < 400; ++i) {
-        g_engine.tick(doom::Input::Forward);
+        g_engine.tick(doom::InputMask::Forward);
         CHECK(g_engine.world.can_move(g_engine.player().world_x(), g_engine.player().world_y(), g_engine.player().floor));
     }
 
@@ -236,7 +236,7 @@ void run_tests() {
     g_engine.reset();
     {
         int ammo = g_engine.player().ammo;
-        g_engine.tick(doom::Input::Fire);
+        g_engine.tick(doom::InputMask::Fire);
         CHECK(g_engine.player().fire == 19);
         CHECK(g_engine.player().ammo == ammo);
         for (int i = 0; i < 4; ++i) g_engine.tick(0);
@@ -246,9 +246,9 @@ void run_tests() {
 
     g_engine.reset();
     for (unsigned i = 0; i < 500; ++i) {
-        g_engine.tick((i % 100 < 50 ? doom::Input::Forward : doom::Input::Right) |
-                      doom::Input::Fire |
-                      ((i % 35 == 0) ? doom::Input::Use : 0));
+        g_engine.tick((i % 100 < 50 ? doom::InputMask::Forward : doom::InputMask::Right) |
+                      doom::InputMask::Fire |
+                      ((i % 35 == 0) ? doom::InputMask::Use : 0));
     }
     CHECK(g_engine.player().health >= 0 && g_engine.player().health <= 200);
     CHECK(g_engine.player().ammo >= 0 && g_engine.player().ammo <= 200);

@@ -291,23 +291,23 @@ void World::tick(uint8_t input) {
     if (player.fire) {
         --player.fire;
         if (player.fire == PistolFireAt) fire_shot();
-        if (player.fire == 0 && (input & Input::Fire) && player.ammo) player.fire = PistolTotal;
+        if (player.fire == 0 && (input & InputMask::Fire) && player.ammo) player.fire = PistolTotal;
     }
     if (player.damage) --player.damage;
 
-    if (!(input & Input::Strafe)) {
-        int turn = (input & Input::Run) ? 6 : 3;
-        if (input & Input::Left)  player.angle = (player.angle + turn) & 1023;
-        if (input & Input::Right) player.angle = (player.angle - turn) & 1023;
+    if (!(input & InputMask::Strafe)) {
+        int turn = (input & InputMask::Run) ? 6 : 3;
+        if (input & InputMask::Left)  player.angle = (player.angle + turn) & 1023;
+        if (input & InputMask::Right) player.angle = (player.angle - turn) & 1023;
     }
 
-    int forward = ((input & Input::Forward) != 0) - ((input & Input::Back) != 0);
-    int strafe  = (input & Input::Strafe) ? (((input & Input::Right) != 0) - ((input & Input::Left) != 0)) : 0;
+    int forward = ((input & InputMask::Forward) != 0) - ((input & InputMask::Back) != 0);
+    int strafe  = (input & InputMask::Strafe) ? (((input & InputMask::Right) != 0) - ((input & InputMask::Left) != 0)) : 0;
     int oldx = player.world_x(), oldy = player.world_y();
 
     if (forward || strafe) {
         int c = math::icos(player.angle), s = math::isin(player.angle);
-        int speed = (input & Input::Run) ? 8 : 4;
+        int speed = (input & InputMask::Run) ? 8 : 4;
         int32_t nx = player.x + (forward * c + strafe * s) * speed;
         int32_t ny = player.y + (forward * s - strafe * c) * speed;
         if (nx != player.x && can_move(static_cast<int>(nx / 256), player.world_y(), player.floor)) player.x = nx;
@@ -330,9 +330,9 @@ void World::tick(uint8_t input) {
         else if (floor_wait[i] && floor_wait[i] < 255 && !--floor_wait[i]) floor_target[i] = (*map->sector_at(i)).floor;
     }
 
-    if ((input & Input::Use) && !use_held) use();
-    use_held = (input & Input::Use) != 0;
-    if (input & Input::Fire) shoot();
+    if ((input & InputMask::Use) && !use_held) use();
+    use_held = (input & InputMask::Use) != 0;
+    if (input & InputMask::Fire) shoot();
 
     if (!(player.ticks & 31)) {
         uint8_t spec = (*map->sector_at(player.sector)).special;

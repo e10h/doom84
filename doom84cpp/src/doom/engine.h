@@ -1,17 +1,19 @@
 #pragma once
 
-#include "types.h"
-#include "map.h"
-#include "world.h"
-#include "renderer.h"
-#include "statusbar.h"
-#include "automap.h"
-#include "video.h"
+#include "doom/types.h"
+#include "doom/map.h"
+#include "doom/world.h"
+#include "doom/renderer.h"
+#include "doom/statusbar.h"
+#include "doom/automap.h"
+#include "doom/video.h"
 
 namespace doom {
 
 class Engine {
 public:
+    static Engine& Instance();
+
     Map       map;
     World     world;
     Renderer  renderer;
@@ -21,10 +23,13 @@ public:
 
     Engine();
 
+    bool init();
     bool init(const uint8_t* map_blob, unsigned size, const uint8_t* const* banks, const unsigned* sizes);
+
     void reset();
-    void tick(uint8_t input);
+    void update(float dt);
     void render();
+    void tick(uint8_t input);
 
     Player& player();
     const Player& player() const;
@@ -34,6 +39,17 @@ public:
 
     uint8_t* framebuffer();
     const uint8_t* framebuffer() const;
+
+    bool is_automap_active() const;
+    void toggle_automap();
+
+    bool is_paused() const;
+    void toggle_pause();
+
+private:
+    float tic_accumulator_ = 0.0f;
+    bool  show_automap_ = false;
+    bool  paused_ = false;
 };
 
 } // namespace doom

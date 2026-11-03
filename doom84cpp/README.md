@@ -28,6 +28,11 @@ All subsystems live inside the clean `doom::` namespace:
 doom84cpp/
 ├── src/
 │   ├── doom/
+│   │   ├── context.h / .cpp     # Display device, double-buffer & alert presentation
+│   │   ├── clock.h / .cpp       # Delta time & frame timer abstraction
+│   │   ├── input.h / .cpp       # Keypad event handling & debouncing
+│   │   ├── assets.h / .cpp      # Level and texture bank AppVar archive manager
+│   │   ├── engine.h / .cpp      # Engine singleton facade encapsulating subsystems
 │   │   ├── types.h / .cpp       # Core types, packed disk structs & assertions
 │   │   ├── math.h / .cpp        # Fixed-point math, fast angle trig, screen projection
 │   │   ├── map.h / .cpp         # Map asset unpacking and query subsystem
@@ -38,9 +43,8 @@ doom84cpp/
 │   │   ├── draw.h / .cpp        # Low-level wall column & floor span rasterizers
 │   │   ├── statusbar.h / .cpp   # Status bar, numbers, animated mugshot face
 │   │   ├── automap.h / .cpp     # 2D vector minimap
-│   │   ├── video.h / .cpp       # 2.5× nearest-neighbor LCD viewport blitter
-│   │   └── engine.h / .cpp      # Top-level Engine facade encapsulating all objects
-│   ├── main.cpp                 # Calculator entry point with double-buffering
+│   │   └── video.h / .cpp       # 2.5× nearest-neighbor LCD viewport blitter
+│   ├── main.cpp                 # Declarative application loop (reads like a book)
 │   ├── generated.h              # Level constants and lookup tables
 │   ├── geometry.h               # Precomputed BSP bounding-box geometry
 │   ├── gun.h                    # HUD weapon sprites

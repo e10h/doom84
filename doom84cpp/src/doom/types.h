@@ -15,7 +15,7 @@ constexpr int NearZ      = 4;
 #define D84_FRUSTUM_CULL 1
 #endif
 
-namespace Input {
+namespace InputMask {
     constexpr uint8_t Forward = 1;
     constexpr uint8_t Back    = 2;
     constexpr uint8_t Left    = 4;
