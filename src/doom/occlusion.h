@@ -9,7 +9,7 @@ class OcclusionBuffer {
 public:
     OcclusionBuffer();
 
-    // portal clipping broke
+    // fix window leak
     void clear();
 
     // open columns underflow fix
