@@ -39,6 +39,9 @@ doom84cpp/
 │   │   ├── player.h / .cpp      # Player entity, movement, combat, weapon state
 │   │   ├── actor.h / .cpp       # Monsters, barrels, items, and animations
 │   │   ├── world.h / .cpp       # Physics, blockmap collision, line-of-sight, AI
+│   │   ├── camera.h / .cpp      # 3D view transformation & perspective projection
+│   │   ├── occlusion.h / .cpp   # 1D solid and portal column occlusion clipping
+│   │   ├── wall_segment.h / .cpp# Fixed-point wall column interpolator
 │   │   ├── renderer.h / .cpp    # BSP traversal, wall segs, visplanes, sprites
 │   │   ├── draw.h / .cpp        # Low-level wall column & floor span rasterizers
 │   │   ├── statusbar.h / .cpp   # Status bar, numbers, animated mugshot face

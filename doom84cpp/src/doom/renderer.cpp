@@ -1,11 +1,13 @@
-#include "renderer.h"
-#include "draw.h"
-#include "math.h"
+#include "doom/renderer.h"
+#include "doom/draw.h"
+#include "doom/math.h"
 #include "../geometry.h"
 #include "../gun.h"
 #include <cstring>
 
 namespace doom {
+
+Renderer::Renderer() = default;
 
 uint8_t* Renderer::framebuffer() {
     return view.pixels;
@@ -15,17 +17,12 @@ const uint8_t* Renderer::framebuffer() const {
     return view.pixels;
 }
 
-void Renderer::rotate(int dx, int dy, int& out_r, int& out_z) const {
-    out_r = math::shr8(dx * camsin - dy * camcos);
-    out_z = math::shr8(dx * camcos + dy * camsin);
-}
-
 void Renderer::vertex(unsigned v, const Map& map, int& r, int& z) {
     if ((vertex_stamp[v] & 254) != frame_stamp) {
         const Vertex* point = (v < NUM_VERTICES) ? (map.vertices + v) : (extra_points + (v - NUM_VERTICES));
-        int dx = point->x - camx, dy = point->y - camy;
-        int vr, vz;
-        rotate(dx, dy, vr, vz);
+        int vr = 0;
+        int vz = 0;
+        camera.transform(point->x, point->y, vr, vz);
         vertex_side[v] = static_cast<int16_t>(vr);
         vertex_depth[v] = static_cast<int16_t>(vz);
         vertex_stamp[v] = frame_stamp;
@@ -35,16 +32,12 @@ void Renderer::vertex(unsigned v, const Map& map, int& r, int& z) {
 }
 
 int Renderer::vertex_projection(unsigned v, int r, int z) {
-    if (z < 32) return math::screen_x(r, z);
+    if (z < 32) return camera.project_x(r, z);
     if (!(vertex_stamp[v] & 1)) {
-        vertex_screen[v] = static_cast<int16_t>(math::screen_x(r, z));
+        vertex_screen[v] = static_cast<int16_t>(camera.project_x(r, z));
         vertex_stamp[v] |= 1;
     }
     return vertex_screen[v];
-}
-
-int Renderer::project(int height, int z, int player_eye) const {
-    return CenterY - (height - player_eye) * Focal / z;
 }
 
 const uint8_t* Renderer::lighting(const Map& map, unsigned sector, int z) const {
@@ -69,13 +62,13 @@ bool Renderer::bbox_visible(const int16_t* box, unsigned boxindex, const Map& ma
         {2,1},{2,0},{3,0},{0,0},{0,1},{0,0},
         {3,2},{0,0},{0,3},{1,3},{1,2},{0,0}
     };
-    uint8_t pos = ((camx <= box[2] ? 0 : camx < box[3] ? 1 : 2) +
-                   (camy >= box[0] ? 0 : camy > box[1] ? 4 : 8));
+    uint8_t pos = ((camera.x() <= box[2] ? 0 : camera.x() < box[3] ? 1 : 2) +
+                   (camera.y() >= box[0] ? 0 : camera.y() > box[1] ? 4 : 8));
     if (pos == 5) return true;
 
     const uint16_t* points = box_points[boxindex];
     unsigned v1 = points[corners[pos][0]], v2 = points[corners[pos][1]];
-    int r1, z1, r2, z2;
+    int r1 = 0, z1 = 0, r2 = 0, z2 = 0;
     vertex(v1, map, r1, z1);
     vertex(v2, map, r2, z2);
 
@@ -95,10 +88,7 @@ bool Renderer::bbox_visible(const int16_t* box, unsigned boxindex, const Map& ma
     int left  = math::max(0, math::min(x1, x2));
     int right = math::min(ViewWidth - 1, math::max(x1, x2));
 
-    for (int x = left; x <= right; ++x) {
-        if (cliptop[x] < clipbottom[x]) return true;
-    }
-    return false;
+    return occlusion.is_range_visible(left, right);
 }
 
 void Renderer::plane_column(int x, int y1, int y2, uint8_t plane, const World& world, const Map& map) {
@@ -161,45 +151,53 @@ void Renderer::wall_column(int x, int y1, int y2, const WallStyle* style, int iz
 }
 
 void Renderer::render_wire_columns() {
-    uint8_t color = rw.solid ? 4 : 196;
-    for (int x = rw.start; x < rw.end; x += static_cast<int>(rw.stride),
-         rw.iz += rw.diz, rw.cyq += rw.cy_step, rw.fyq += rw.fy_step,
-         rw.upperq += rw.upper_step, rw.lowerq += rw.lower_step) {
-        int top = cliptop[x], bottom = clipbottom[x];
-        if (top >= bottom || rw.iz <= 0) continue;
-        uint8_t cy = wire_screen_y(rw.cyq), fy = wire_screen_y(rw.fyq);
+    uint8_t color = wall_segment.is_solid ? 4 : 196;
+    for (int x = wall_segment.start_x; x < wall_segment.end_x; x += static_cast<int>(wall_segment.stride),
+         wall_segment.inv_depth += wall_segment.inv_depth_step,
+         wall_segment.ceil_screen_y += wall_segment.ceil_screen_step,
+         wall_segment.floor_screen_y += wall_segment.floor_screen_step,
+         wall_segment.upper_screen_y += wall_segment.upper_screen_step,
+         wall_segment.lower_screen_y += wall_segment.lower_screen_step) {
+        int top = occlusion.top(x);
+        int bottom = occlusion.bottom(x);
+        if (top >= bottom || wall_segment.inv_depth <= 0) continue;
+        uint8_t cy = wire_screen_y(wall_segment.ceil_screen_y);
+        uint8_t fy = wire_screen_y(wall_segment.floor_screen_y);
         if (cy >= top && cy < bottom) draw::wire_plot(framebuffer(), x, cy, color);
         if (fy > top && fy <= bottom) draw::wire_plot(framebuffer(), x, fy - 1, color);
 
-        if (rw.solid) {
-            if (x == rw.start || x + static_cast<int>(rw.stride) >= rw.end) {
+        if (wall_segment.is_solid) {
+            if (x == wall_segment.start_x || x + static_cast<int>(wall_segment.stride) >= wall_segment.end_x) {
                 int y1 = math::max(top, static_cast<int>(cy));
                 int y2 = math::min(bottom - 1, static_cast<int>(fy - 1));
                 for (int y = y1; y <= y2; ++y) draw::wire_plot(framebuffer(), x, y, color);
             }
-            cliptop[x] = clipbottom[x];
+            occlusion.set_top(x, static_cast<uint8_t>(bottom));
         } else {
-            uint8_t upper = wire_screen_y(rw.upperq), lower = wire_screen_y(rw.lowerq);
-            if (rw.draw_upper && upper >= top && upper < bottom) draw::wire_plot(framebuffer(), x, upper, color);
-            if (rw.draw_lower && lower >= top && lower < bottom) draw::wire_plot(framebuffer(), x, lower, color);
-            if (x == rw.start || x + static_cast<int>(rw.stride) >= rw.end) {
-                if (rw.draw_upper) {
+            uint8_t upper = wire_screen_y(wall_segment.upper_screen_y);
+            uint8_t lower = wire_screen_y(wall_segment.lower_screen_y);
+            if (wall_segment.draw_upper && upper >= top && upper < bottom) draw::wire_plot(framebuffer(), x, upper, color);
+            if (wall_segment.draw_lower && lower >= top && lower < bottom) draw::wire_plot(framebuffer(), x, lower, color);
+            if (x == wall_segment.start_x || x + static_cast<int>(wall_segment.stride) >= wall_segment.end_x) {
+                if (wall_segment.draw_upper) {
                     int y1 = math::max(top, static_cast<int>(cy));
                     int y2 = math::min(bottom - 1, static_cast<int>(upper - 1));
                     for (int y = y1; y <= y2; y += 2) draw::wire_plot(framebuffer(), x, y, color);
                 }
-                if (rw.draw_lower) {
+                if (wall_segment.draw_lower) {
                     int y1 = math::max(top, static_cast<int>(lower));
                     int y2 = math::min(bottom - 1, static_cast<int>(fy - 1));
                     for (int y = y1; y <= y2; y += 2) draw::wire_plot(framebuffer(), x, y, color);
                 }
             }
-            cliptop[x] = static_cast<uint8_t>(math::clamp(math::max(top, math::max(static_cast<int>(cy), static_cast<int>(upper))), top, bottom));
-            clipbottom[x] = static_cast<uint8_t>(math::clamp(math::min(bottom, math::min(static_cast<int>(fy), static_cast<int>(lower))), static_cast<int>(cliptop[x]), bottom));
+            uint8_t new_top = static_cast<uint8_t>(math::clamp(math::max(top, math::max(static_cast<int>(cy), static_cast<int>(upper))), top, bottom));
+            uint8_t new_bot = static_cast<uint8_t>(math::clamp(math::min(bottom, math::min(static_cast<int>(fy), static_cast<int>(lower))), static_cast<int>(new_top), bottom));
+            occlusion.set_top(x, new_top);
+            occlusion.set_bottom(x, new_bot);
         }
-        for (unsigned k = 1; k < rw.stride && x + static_cast<int>(k) < ViewWidth; ++k) {
-            cliptop[x + static_cast<int>(k)] = cliptop[x];
-            clipbottom[x + static_cast<int>(k)] = clipbottom[x];
+        for (unsigned k = 1; k < wall_segment.stride && x + static_cast<int>(k) < ViewWidth; ++k) {
+            occlusion.set_top(x + static_cast<int>(k), occlusion.top(x));
+            occlusion.set_bottom(x + static_cast<int>(k), occlusion.bottom(x));
         }
     }
 }
@@ -209,32 +207,47 @@ void Renderer::render_columns(const World& world, const Map& map) {
         render_wire_columns();
         return;
     }
-    for (int x = rw.start; x < rw.end; x += static_cast<int>(detail),
-         rw.iz += rw.diz, rw.uz += rw.duz, rw.cyq += rw.cy_step, rw.fyq += rw.fy_step,
-         rw.upperq += rw.upper_step, rw.lowerq += rw.lower_step) {
-        int top = cliptop[x], bottom = clipbottom[x];
-        if (top >= bottom || rw.iz <= 0) continue;
-        uint8_t cy = screen_y(rw.cyq), fy = screen_y(rw.fyq);
-        plane_column(x, top, math::min(bottom - 1, cy - 1), static_cast<uint8_t>(rw.fs | 128), world, map);
-        plane_column(x, math::max(top, static_cast<int>(fy)), bottom - 1, static_cast<uint8_t>(rw.fs), world, map);
+    for (int x = wall_segment.start_x; x < wall_segment.end_x; x += static_cast<int>(detail),
+         wall_segment.inv_depth += wall_segment.inv_depth_step,
+         wall_segment.tex_u_depth += wall_segment.tex_u_depth_step,
+         wall_segment.ceil_screen_y += wall_segment.ceil_screen_step,
+         wall_segment.floor_screen_y += wall_segment.floor_screen_step,
+         wall_segment.upper_screen_y += wall_segment.upper_screen_step,
+         wall_segment.lower_screen_y += wall_segment.lower_screen_step) {
+        int top = occlusion.top(x);
+        int bottom = occlusion.bottom(x);
+        if (top >= bottom || wall_segment.inv_depth <= 0) continue;
+        uint8_t cy = screen_y(wall_segment.ceil_screen_y);
+        uint8_t fy = screen_y(wall_segment.floor_screen_y);
+        plane_column(x, top, math::min(bottom - 1, cy - 1), static_cast<uint8_t>(wall_segment.front_sector | 128), world, map);
+        plane_column(x, math::max(top, static_cast<int>(fy)), bottom - 1, static_cast<uint8_t>(wall_segment.front_sector), world, map);
 
-        if (rw.solid) {
-            wall_column(x, math::max(top, static_cast<int>(cy)), math::min(bottom - 1, static_cast<int>(fy - 1)), &rw.middle, rw.iz, rw.uz, static_cast<unsigned>(rw.fs), map);
-            cliptop[x] = clipbottom[x];
+        if (wall_segment.is_solid) {
+            wall_column(x, math::max(top, static_cast<int>(cy)), math::min(bottom - 1, static_cast<int>(fy - 1)),
+                        &wall_segment.middle, wall_segment.inv_depth, wall_segment.tex_u_depth,
+                        static_cast<unsigned>(wall_segment.front_sector), map);
+            occlusion.set_top(x, static_cast<uint8_t>(bottom));
         } else {
-            uint8_t upper = screen_y(rw.upperq), lower = screen_y(rw.lowerq);
-            if (rw.bceil < rw.fceil && !rw.skyportal) {
-                wall_column(x, math::max(top, static_cast<int>(cy)), math::min(bottom - 1, static_cast<int>(upper - 1)), &rw.upper, rw.iz, rw.uz, static_cast<unsigned>(rw.fs), map);
+            uint8_t upper = screen_y(wall_segment.upper_screen_y);
+            uint8_t lower = screen_y(wall_segment.lower_screen_y);
+            if (wall_segment.back_ceiling_z < wall_segment.front_ceiling_z && !wall_segment.is_sky_portal) {
+                wall_column(x, math::max(top, static_cast<int>(cy)), math::min(bottom - 1, static_cast<int>(upper - 1)),
+                            &wall_segment.upper, wall_segment.inv_depth, wall_segment.tex_u_depth,
+                            static_cast<unsigned>(wall_segment.front_sector), map);
             }
-            if (rw.bfloor > rw.ffloor) {
-                wall_column(x, math::max(top, static_cast<int>(lower)), math::min(bottom - 1, static_cast<int>(fy - 1)), &rw.lower, rw.iz, rw.uz, static_cast<unsigned>(rw.fs), map);
+            if (wall_segment.back_floor_z > wall_segment.front_floor_z) {
+                wall_column(x, math::max(top, static_cast<int>(lower)), math::min(bottom - 1, static_cast<int>(fy - 1)),
+                            &wall_segment.lower, wall_segment.inv_depth, wall_segment.tex_u_depth,
+                            static_cast<unsigned>(wall_segment.front_sector), map);
             }
-            cliptop[x] = static_cast<uint8_t>(math::clamp(math::max(top, math::max(static_cast<int>(cy), static_cast<int>(upper))), top, bottom));
-            clipbottom[x] = static_cast<uint8_t>(math::clamp(math::min(bottom, math::min(static_cast<int>(fy), static_cast<int>(lower))), static_cast<int>(cliptop[x]), bottom));
+            uint8_t new_top = static_cast<uint8_t>(math::clamp(math::max(top, math::max(static_cast<int>(cy), static_cast<int>(upper))), top, bottom));
+            uint8_t new_bot = static_cast<uint8_t>(math::clamp(math::min(bottom, math::min(static_cast<int>(fy), static_cast<int>(lower))), static_cast<int>(new_top), bottom));
+            occlusion.set_top(x, new_top);
+            occlusion.set_bottom(x, new_bot);
         }
         for (unsigned k = 1; k < detail && x + static_cast<int>(k) < ViewWidth; ++k) {
-            cliptop[x + static_cast<int>(k)] = cliptop[x];
-            clipbottom[x + static_cast<int>(k)] = clipbottom[x];
+            occlusion.set_top(x + static_cast<int>(k), occlusion.top(x));
+            occlusion.set_bottom(x + static_cast<int>(k), occlusion.bottom(x));
         }
     }
 }
@@ -273,7 +286,7 @@ void Renderer::draw_seg(const Seg* seg, const Material* side, const World& world
         return;
     }
 
-    int r1, z1, r2, z2;
+    int r1 = 0, z1 = 0, r2 = 0, z2 = 0;
     vertex(seg->v1, map, r1, z1);
     vertex(seg->v2, map, r2, z2);
 
@@ -300,8 +313,8 @@ void Renderer::draw_seg(const Seg* seg, const Material* side, const World& world
     unsigned step = world.player.wireframe ? 1 : detail;
     if (step > 1) start = ((start + static_cast<int>(step) - 1) / static_cast<int>(step)) * static_cast<int>(step);
 
-    while (start < end && cliptop[start] >= clipbottom[start]) start += static_cast<int>(step);
-    while (end > start && cliptop[end - 1] >= clipbottom[end - 1]) --end;
+    while (start < end && occlusion.is_column_blocked(start)) start += static_cast<int>(step);
+    while (end > start && occlusion.is_column_blocked(end - 1)) --end;
     if (start >= end) return;
 
     int iz1 = static_cast<int>(math::reciprocal(static_cast<unsigned>(z1)) >> 2);
@@ -345,23 +358,33 @@ void Renderer::draw_seg(const Seg* seg, const Material* side, const World& world
     lower_step *= static_cast<int>(step);
 
     ++stats.segs;
-    rw = InternalRenderWall{};
-    rw.start = start; rw.end = end;
-    rw.iz = iz; rw.diz = diz;
-    rw.uz = uz; rw.duz = duz;
-    rw.cyq = cyq; rw.cy_step = cy_step;
-    rw.fyq = fyq; rw.fy_step = fy_step;
-    rw.upperq = upperq; rw.upper_step = upper_step;
-    rw.lowerq = lowerq; rw.lower_step = lower_step;
-    rw.fceil = fceil; rw.ffloor = ffloor;
-    rw.bceil = bceil; rw.bfloor = bfloor;
-    rw.fs = static_cast<int>(fs);
-    rw.solid = solid;
-    rw.skyportal = skyportal;
-    rw.side = side;
-    rw.draw_upper = static_cast<uint8_t>(bceil < fceil && !skyportal);
-    rw.draw_lower = static_cast<uint8_t>(bfloor > ffloor);
-    rw.stride = static_cast<uint8_t>(step);
+
+    wall_segment = WallSegment{};
+    wall_segment.start_x = start;
+    wall_segment.end_x = end;
+    wall_segment.inv_depth = iz;
+    wall_segment.inv_depth_step = diz;
+    wall_segment.tex_u_depth = uz;
+    wall_segment.tex_u_depth_step = duz;
+    wall_segment.ceil_screen_y = cyq;
+    wall_segment.ceil_screen_step = cy_step;
+    wall_segment.floor_screen_y = fyq;
+    wall_segment.floor_screen_step = fy_step;
+    wall_segment.upper_screen_y = upperq;
+    wall_segment.upper_screen_step = upper_step;
+    wall_segment.lower_screen_y = lowerq;
+    wall_segment.lower_screen_step = lower_step;
+    wall_segment.front_ceiling_z = fceil;
+    wall_segment.front_floor_z = ffloor;
+    wall_segment.back_ceiling_z = bceil;
+    wall_segment.back_floor_z = bfloor;
+    wall_segment.front_sector = static_cast<int>(fs);
+    wall_segment.is_solid = solid;
+    wall_segment.is_sky_portal = skyportal;
+    wall_segment.material = side;
+    wall_segment.draw_upper = static_cast<uint8_t>(bceil < fceil && !skyportal);
+    wall_segment.draw_lower = static_cast<uint8_t>(bfloor > ffloor);
+    wall_segment.stride = static_cast<uint8_t>(step);
 
     if (world.player.wireframe) {
         render_wire_columns();
@@ -373,15 +396,15 @@ void Renderer::draw_seg(const Seg* seg, const Material* side, const World& world
         if (tex == 255 && bs >= 0) tex = side->upper;
         if (tex == 255 && bs >= 0) tex = side->lower;
         int anchor = (tex != 255 && (side->flags & 16)) ? (ffloor + (1 << tile_info[tex][2])) : fceil;
-        rw.middle = make_wall_style(tex, anchor, side->y, world, map);
+        wall_segment.middle = make_wall_style(tex, anchor, side->y, world, map);
     } else {
         if (bceil < fceil && !skyportal) {
             int anchor = (side->flags & 8) ? fceil : (bceil + (side->upper == 255 ? 128 : (1 << tile_info[side->upper][2])));
-            rw.upper = make_wall_style(side->upper, anchor, side->y, world, map);
+            wall_segment.upper = make_wall_style(side->upper, anchor, side->y, world, map);
         }
         if (bfloor > ffloor) {
             int anchor = (side->flags & 16) ? fceil : bfloor;
-            rw.lower = make_wall_style(side->lower, anchor, side->y, world, map);
+            wall_segment.lower = make_wall_style(side->lower, anchor, side->y, world, map);
         }
     }
 
@@ -403,11 +426,11 @@ void Renderer::render_bsp_node(unsigned index, unsigned depth, const World& worl
 
     const Node* n = reinterpret_cast<const Node*>(reinterpret_cast<const uint8_t*>(map.nodes) + node_offsets[static_cast<uint8_t>(index)]);
     unsigned side;
-    if (!n->dx) side = (camx <= n->x) ? (n->dy > 0) : (n->dy < 0);
-    else if (!n->dy) side = (camy <= n->y) ? (n->dx < 0) : (n->dx > 0);
+    if (!n->dx) side = (camera.x() <= n->x) ? (n->dy > 0) : (n->dy < 0);
+    else if (!n->dy) side = (camera.y() <= n->y) ? (n->dx < 0) : (n->dx > 0);
     else {
-        int32_t left  = static_cast<int32_t>(camx - n->x) * n->dy;
-        int32_t right = static_cast<int32_t>(camy - n->y) * n->dx;
+        int32_t left  = static_cast<int32_t>(camera.x() - n->x) * n->dy;
+        int32_t right = static_cast<int32_t>(camera.y() - n->y) * n->dx;
         side = (right >= left);
     }
 
@@ -467,9 +490,9 @@ void Renderer::draw_planes(const World& world, const Map& map) {
                 continue;
             }
 
-            int stepx = (z * camsin) >> 6, stepy = (-z * camcos) >> 6;
-            int wx = static_cast<int>(world.player.x) + z * camcos + stepx * (x - 64);
-            int wy = static_cast<int>(world.player.y) + z * camsin + stepy * (x - 64);
+            int stepx = (z * camera.sin()) >> 6, stepy = (-z * camera.cos()) >> 6;
+            int wx = static_cast<int>(world.player.x) + z * camera.cos() + stepx * (x - 64);
+            int wy = static_cast<int>(world.player.y) + z * camera.sin() + stepy * (x - 64);
             uint8_t depth = static_cast<uint8_t>(math::clamp(z / 16, 1, 254));
 
             if (detail == 4) {
@@ -491,9 +514,8 @@ void Renderer::draw_sprites(const World& world, const Map& map) {
     unsigned count = 0;
     for (unsigned i = 0; i < NUM_ACTORS; ++i) {
         if (world.actors[i].removed) continue;
-        int dx = world.actors[i].x - camx, dy = world.actors[i].y - camy;
-        int z, r;
-        rotate(dx, dy, r, z);
+        int r = 0, z = 0;
+        camera.transform(world.actors[i].x, world.actors[i].y, r, z);
         if (z < 8 || math::abs(r) > z + 64) continue;
         sprite_z[i] = static_cast<int16_t>(z);
         sprite_x[i] = static_cast<int16_t>(r);
@@ -543,16 +565,19 @@ void Renderer::draw_sprites(const World& world, const Map& map) {
 
         int height = math::max(1, hworld * Focal / z);
         int left   = center - width / 2;
-        int bottom = project(world.sector_floor[a->sector], z, world.player.eye);
+        int bottom = camera.project_y(world.sector_floor[a->sector], z);
         int top    = bottom - height;
 
         const uint8_t* pix = map.images[image];
         uint8_t depth = static_cast<uint8_t>(math::clamp(z / 16, 1, 254));
 
-        int x1 = math::max(0, left), x2 = math::min(ViewWidth, left + width);
-        int y1 = math::max(0, top),  y2 = math::min(ViewHeight, bottom);
+        int x1 = math::max(0, left);
+        int x2 = math::min(ViewWidth, left + width);
+        int y1 = math::max(0, top);
+        int y2 = math::min(ViewHeight, bottom);
 
-        unsigned sxstep = (64u * 256) / width, systep = (64u * 256) / height;
+        unsigned sxstep = (64u * 256) / width;
+        unsigned systep = (64u * 256) / height;
         if (detail > 1) x1 = ((x1 + static_cast<int>(detail) - 1) / static_cast<int>(detail)) * static_cast<int>(detail);
         if (x1 >= x2 || y1 >= y2) continue;
 
@@ -579,9 +604,8 @@ void Renderer::draw_hud_weapon(const World& world) {
         else if (world.player.fire > 5) frame = 2;
         else frame = 1;
     }
-
     const uint8_t* gun = gun_frames[frame];
-    int bob = world.player.fire ? 0 : (math::isin(world.player.ticks * 16) / 128);
+    int bob = (world.player.fire == 0) ? (math::isin((world.player.ticks * 16) & 1023) * 3 / 256) : 0;
 
     for (int y = 0; y < GUN_H; ++y) {
         int dest = GUN_Y + y + bob;
@@ -603,42 +627,56 @@ void Renderer::draw_hud_weapon(const World& world) {
         }
     }
 
-    // Subtle crosshair
+    draw_crosshair();
+}
+
+void Renderer::draw_crosshair() {
     framebuffer()[39 * ViewWidth + 64] = 4;
     framebuffer()[41 * ViewWidth + 64] = 4;
     framebuffer()[40 * ViewWidth + 63] = 4;
     framebuffer()[40 * ViewWidth + 65] = 4;
 }
 
-void Renderer::render(const World& world, const Map& map) {
-    stats.reset();
+void Renderer::apply_detail_replication() {
+    if (detail == 4) {
+        draw::quad_columns(framebuffer(), ViewWidth * ViewHeight / 4);
+    } else if (detail == 3) {
+        draw::triple_columns(framebuffer(), ViewHeight);
+    } else if (detail == 2) {
+        draw::double_columns(framebuffer(), ViewWidth * ViewHeight / 2);
+    }
+}
+
+void Renderer::clear_buffers(const World& world) {
     std::memset(framebuffer(), 0, ViewWidth * ViewHeight);
     if (!world.player.wireframe) std::memset(depthbuffer, 255, sizeof(depthbuffer));
     if (world.player.texture_planes && !world.player.wireframe) std::memset(planes, 255, sizeof(planes));
-    std::memset(cliptop, 0, sizeof(cliptop));
-    std::memset(clipbottom, ViewHeight, sizeof(clipbottom));
+    occlusion.clear();
+}
 
+void Renderer::advance_frame_stamp() {
     frame_stamp += 2;
     if (!frame_stamp) {
         std::memset(vertex_stamp, 0, sizeof(vertex_stamp));
         frame_stamp = 2;
     }
+}
 
-    camx   = world.player.world_x();
-    camy   = world.player.world_y();
-    camcos = math::icos(world.player.angle);
-    camsin = math::isin(world.player.angle);
+void Renderer::render(const World& world, const Map& map) {
+    stats.reset();
+    clear_buffers(world);
+    camera.update(world.player);
+    advance_frame_stamp();
 
+    // Pass 1: Front-to-back BSP traversal and wall rasterization
     render_bsp_node(NUM_NODES - 1, 0, world, map);
 
     if (world.player.wireframe) {
-        framebuffer()[39 * ViewWidth + 64] = 4;
-        framebuffer()[41 * ViewWidth + 64] = 4;
-        framebuffer()[40 * ViewWidth + 63] = 4;
-        framebuffer()[40 * ViewWidth + 65] = 4;
+        draw_crosshair();
         return;
     }
 
+    // Pass 2: Floor and ceiling visplane rasterization
     if (world.player.texture_planes) {
         if (detail == 4) draw::quad_columns(planes, ViewWidth * ViewHeight / 4);
         else if (detail == 3) draw::triple_columns(planes, ViewHeight);
@@ -646,12 +684,13 @@ void Renderer::render(const World& world, const Map& map) {
         draw_planes(world, map);
     }
 
+    // Pass 3: Depth-sorted billboard sprite rasterization
     draw_sprites(world, map);
 
-    if (detail == 4) draw::quad_columns(framebuffer(), ViewWidth * ViewHeight / 4);
-    else if (detail == 3) draw::triple_columns(framebuffer(), ViewHeight);
-    else if (detail == 2) draw::double_columns(framebuffer(), ViewWidth * ViewHeight / 2);
+    // Pass 4: Screen detail replication
+    apply_detail_replication();
 
+    // Pass 5: HUD weapon overlay and crosshair
     draw_hud_weapon(world);
 }
 
