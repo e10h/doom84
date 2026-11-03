@@ -1,4 +1,4 @@
-// solid wall textures working!
+// wireframe overlay
 #include "doom/wall_segment.h"
 
 namespace doom {
