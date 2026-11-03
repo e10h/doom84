@@ -24,25 +24,19 @@ void Input::update() {
 #ifdef __TICE__
     kb_Scan();
 
-    auto set_key = [this](Key key, bool active) {
-        if (active) {
-            current_keys_ |= static_cast<uint16_t>(1u << static_cast<uint8_t>(key));
-        }
-    };
-
-    set_key(Key::Forward,      (kb_Data[7] & kb_Up) != 0);
-    set_key(Key::Backward,     (kb_Data[7] & kb_Down) != 0);
-    set_key(Key::Left,         (kb_Data[7] & kb_Left) != 0);
-    set_key(Key::Right,        (kb_Data[7] & kb_Right) != 0);
-    set_key(Key::Fire,         (kb_Data[1] & kb_2nd) != 0);
-    set_key(Key::Use,          (kb_Data[2] & kb_Math) != 0);
-    set_key(Key::Run,          (kb_Data[2] & kb_Alpha) != 0);
-    set_key(Key::Automap,      (kb_Data[1] & kb_Graph) != 0);
-    set_key(Key::ToggleFlats,  (kb_Data[1] & kb_Window) != 0);
-    set_key(Key::ToggleDetail, (kb_Data[1] & kb_Trace) != 0);
-    set_key(Key::Pause,        (kb_Data[1] & kb_Yequ) != 0);
-    set_key(Key::Reset,        (kb_Data[1] & kb_Zoom) != 0);
-    set_key(Key::Quit,         (kb_Data[6] & kb_Clear) != 0);
+    if (kb_Data[7] & kb_Up)    current_keys_ |= static_cast<uint16_t>(1u << static_cast<uint8_t>(Key::Forward));
+    if (kb_Data[7] & kb_Down)  current_keys_ |= static_cast<uint16_t>(1u << static_cast<uint8_t>(Key::Backward));
+    if (kb_Data[7] & kb_Left)  current_keys_ |= static_cast<uint16_t>(1u << static_cast<uint8_t>(Key::Left));
+    if (kb_Data[7] & kb_Right) current_keys_ |= static_cast<uint16_t>(1u << static_cast<uint8_t>(Key::Right));
+    if (kb_Data[1] & kb_2nd)   current_keys_ |= static_cast<uint16_t>(1u << static_cast<uint8_t>(Key::Fire));
+    if (kb_Data[2] & kb_Math)  current_keys_ |= static_cast<uint16_t>(1u << static_cast<uint8_t>(Key::Use));
+    if (kb_Data[2] & kb_Alpha) current_keys_ |= static_cast<uint16_t>(1u << static_cast<uint8_t>(Key::Run));
+    if (kb_Data[1] & kb_Graph) current_keys_ |= static_cast<uint16_t>(1u << static_cast<uint8_t>(Key::Automap));
+    if (kb_Data[1] & kb_Window)current_keys_ |= static_cast<uint16_t>(1u << static_cast<uint8_t>(Key::ToggleFlats));
+    if (kb_Data[1] & kb_Trace) current_keys_ |= static_cast<uint16_t>(1u << static_cast<uint8_t>(Key::ToggleDetail));
+    if (kb_Data[1] & kb_Yequ)  current_keys_ |= static_cast<uint16_t>(1u << static_cast<uint8_t>(Key::Pause));
+    if (kb_Data[1] & kb_Zoom)  current_keys_ |= static_cast<uint16_t>(1u << static_cast<uint8_t>(Key::Reset));
+    if (kb_Data[6] & kb_Clear) current_keys_ |= static_cast<uint16_t>(1u << static_cast<uint8_t>(Key::Quit));
 #endif
 }
 

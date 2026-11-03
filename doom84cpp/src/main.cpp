@@ -3,8 +3,8 @@
 #include "doom/engine.h"
 
 int main() {
-    auto& context = doom::Context::Instance();
-    auto& engine  = doom::Engine::Instance();
+    doom::Context& context = doom::Context::Instance();
+    doom::Engine& engine   = doom::Engine::Instance();
 
     if (!context.init() || !engine.init()) {
         context.show_alert(

@@ -17,7 +17,7 @@ Engine::Engine()
 }
 
 bool Engine::init() {
-    auto& assets = AssetManager::Instance();
+    AssetManager& assets = AssetManager::Instance();
     if (!assets.load_all()) {
         return false;
     }
@@ -46,7 +46,7 @@ void Engine::reset() {
 }
 
 void Engine::update(float dt) {
-    auto& input = Input::Instance();
+    Input& input = Input::Instance();
 
     if (input.was_pressed(Key::Automap)) {
         show_automap_ = !show_automap_;
@@ -93,7 +93,7 @@ void Engine::tick(uint8_t input) {
 }
 
 void Engine::render() {
-    auto& context = Context::Instance();
+    Context& context = Context::Instance();
 
     if (show_automap_) {
         automap.draw(world.player, map);
