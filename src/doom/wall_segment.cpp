@@ -1,3 +1,4 @@
+// solid wall textures working!
 #include "doom/wall_segment.h"
 
 namespace doom {
