@@ -1,4 +1,4 @@
-#include "../src/doom/engine.hpp"
+#include "../src/doom/engine.h"
 
 #include <cassert>
 #include <cmath>

@@ -1,4 +1,4 @@
-#include "doom/engine.hpp"
+#include "doom/engine.h"
 
 #include <fileioc.h>
 #include <graphx.h>
@@ -10,8 +10,8 @@
 
 namespace {
 
-inline constexpr int ViewY  = 8;
-inline constexpr int StbarY  = 208;
+constexpr int ViewY  = 8;
+constexpr int StbarY = 208;
 
 const uint8_t* banks[NUM_BANKS];
 unsigned bank_lengths[NUM_BANKS];
@@ -87,7 +87,7 @@ int main() {
 
     for (unsigned i = 0; i < 2; ++i) {
         gfx_FillScreen(0);
-        doom::hud::draw_status(gfx_vbuffer, StbarY, g_engine.player());
+        doom::StatusBar::draw_calc(StbarY, g_engine.player());
         gfx_SwapDraw();
     }
 
@@ -149,14 +149,14 @@ int main() {
 
         clock_t t0 = clock();
         if (showmap) {
-            doom::automap::draw(g_engine.player(), g_engine.map);
+            doom::Automap::draw(g_engine.player(), g_engine.map);
         } else {
             g_engine.render();
-            doom::video::blit_viewport(g_engine.framebuffer(), gfx_vbuffer[ViewY]);
+            doom::Video::blit_viewport(g_engine.framebuffer(), gfx_vbuffer[ViewY]);
         }
         render_ms = static_cast<unsigned>((clock() - t0) * 1000 / CLOCKS_PER_SEC);
 
-        unsigned cur_face = doom::hud::face_index(g_engine.player());
+        unsigned cur_face = doom::StatusBar::face_index(g_engine.player());
         if (g_engine.player().health != hud_health ||
             g_engine.player().armor  != hud_armor ||
             g_engine.player().ammo   != hud_ammo ||
@@ -169,7 +169,7 @@ int main() {
         }
 
         if (hud_dirty) {
-            doom::hud::draw_status(gfx_vbuffer, StbarY, g_engine.player());
+            doom::StatusBar::draw_calc(StbarY, g_engine.player());
             --hud_dirty;
         }
 

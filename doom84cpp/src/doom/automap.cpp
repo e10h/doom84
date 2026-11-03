@@ -1,19 +1,13 @@
-#pragma once
-
-#include "player.hpp"
-#include "map.hpp"
-#include "math.hpp"
+#include "automap.h"
+#include "math.h"
 
 #ifdef __TICE__
 #include <graphx.h>
 #endif
 
-namespace doom::automap {
+namespace doom {
 
-inline constexpr int ViewY = 8;
-inline constexpr int ViewHeightDst = 200;
-
-inline void draw(const Player& player, const MapData& map) noexcept {
+void Automap::draw(const Player& player, const Map& map) {
 #ifdef __TICE__
     gfx_SetClipRegion(0, ViewY, 320, ViewY + ViewHeightDst);
     gfx_SetColor(0);
@@ -41,4 +35,4 @@ inline void draw(const Player& player, const MapData& map) noexcept {
 #endif
 }
 
-} // namespace doom::automap
+} // namespace doom

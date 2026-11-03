@@ -1,11 +1,9 @@
-#pragma once
-
-#include <cstdint>
+#include "video.h"
 #include <cstring>
 
-namespace doom::video {
+namespace doom {
 
-inline void blit_viewport(const uint8_t* src, uint8_t* dest) noexcept {
+void Video::blit_viewport(const uint8_t* src, uint8_t* dest) {
     for (int y = 0; y < 80; ++y) {
         uint8_t* dst_row = dest;
         for (int x = 0; x < 128; x += 2) {
@@ -29,4 +27,4 @@ inline void blit_viewport(const uint8_t* src, uint8_t* dest) noexcept {
     }
 }
 
-} // namespace doom::video
+} // namespace doom

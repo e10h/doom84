@@ -28,31 +28,31 @@ All subsystems live inside the clean `doom::` namespace:
 doom84cpp/
 ├── src/
 │   ├── doom/
-│   │   ├── types.hpp       # Core types, packed disk structs & layout assertions
-│   │   ├── math.hpp        # Fixed-point math, fast angle trig, screen projection
-│   │   ├── map.hpp         # MapData asset unpacking and query subsystem
-│   │   ├── player.hpp      # Player entity, movement, combat, weapon state
-│   │   ├── actor.hpp       # Monsters, barrels, items, and animations
-│   │   ├── world.hpp       # Physics, blockmap collision, line-of-sight, AI
-│   │   ├── renderer.hpp    # BSP traversal, wall segs, visplanes, sprites
-│   │   ├── draw.hpp        # Fast wall column & floor span rasterizers
-│   │   ├── hud.hpp         # Status bar, numbers, animated mugshot face
-│   │   ├── automap.hpp     # 2D vector minimap
-│   │   ├── video.hpp       # 2.5× nearest-neighbor LCD viewport blitter
-│   │   └── engine.hpp      # Top-level DoomEngine facade
-│   ├── main.cpp            # Calculator entry point with double-buffering
-│   ├── generated.h         # Level constants and lookup tables
-│   ├── geometry.h          # Precomputed BSP bounding-box geometry
-│   ├── gun.h               # HUD weapon sprites
-│   └── hud.h               # Status bar & font sprites
+│   │   ├── types.h / .cpp       # Core types, packed disk structs & assertions
+│   │   ├── math.h / .cpp        # Fixed-point math, fast angle trig, screen projection
+│   │   ├── map.h / .cpp         # Map asset unpacking and query subsystem
+│   │   ├── player.h / .cpp      # Player entity, movement, combat, weapon state
+│   │   ├── actor.h / .cpp       # Monsters, barrels, items, and animations
+│   │   ├── world.h / .cpp       # Physics, blockmap collision, line-of-sight, AI
+│   │   ├── renderer.h / .cpp    # BSP traversal, wall segs, visplanes, sprites
+│   │   ├── draw.h / .cpp        # Low-level wall column & floor span rasterizers
+│   │   ├── statusbar.h / .cpp   # Status bar, numbers, animated mugshot face
+│   │   ├── automap.h / .cpp     # 2D vector minimap
+│   │   ├── video.h / .cpp       # 2.5× nearest-neighbor LCD viewport blitter
+│   │   └── engine.h / .cpp      # Top-level Engine facade encapsulating all objects
+│   ├── main.cpp                 # Calculator entry point with double-buffering
+│   ├── generated.h              # Level constants and lookup tables
+│   ├── geometry.h               # Precomputed BSP bounding-box geometry
+│   ├── gun.h                    # HUD weapon sprites
+│   └── hud.h                    # Status bar & font sprites
 ├── tests/
-│   ├── host.cpp            # Automated test harness (825 checks)
-│   └── play.cpp            # Interactive SDL2 desktop player
+│   ├── host.cpp                 # Automated test harness (825 checks)
+│   └── play.cpp                 # Interactive SDL2 desktop player
 ├── bin/
-│   ├── DOOM84CP.8xp        # TI-84 Plus CE executable (42.2 KB)
-│   └── D84*.8xv            # AppVar level and texture data
-├── calc_files/             # All files ready to transfer with TI Connect CE
-└── makefile                # Multi-target build system
+│   ├── DOOM84CP.8xp             # TI-84 Plus CE executable (42.4 KB)
+│   └── D84*.8xv                 # AppVar level and texture data
+├── calc_files/                  # All files ready to transfer with TI Connect CE
+└── makefile                     # Multi-target build system
 ```
 
 ---
