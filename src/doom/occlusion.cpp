@@ -1,3 +1,4 @@
+// bounds check column range
 #include "doom/occlusion.h"
 #include "doom/math.h"
 #include <cstring>
