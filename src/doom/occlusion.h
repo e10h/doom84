@@ -9,8 +9,7 @@ class OcclusionBuffer {
 public:
     OcclusionBuffer();
 
-    // fix window leak
-    void clear();
+        void clear();
 
     // open columns underflow fix
     bool is_column_blocked(int x) const;
