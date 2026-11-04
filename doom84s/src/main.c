@@ -1,6 +1,11 @@
 #include "engine.h"
 #include "generated.h"
+#ifdef __TICE__
+#include "usb_hud.h"
+#else
 #include "hud.h"
+#endif
+#include "sound.h"
 #include <fileioc.h>
 #include <graphx.h>
 #include <keypadc.h>
@@ -136,15 +141,19 @@ static void automap(void) {
 int main(void) {
     unsigned map_length=0;
     const uint8_t *map=open_asset("D84MAP",MAP_SIZE,&map_length);
-    bool valid=map!=NULL;
+    unsigned ui_length=0;
+    d84_ui_data=open_asset("D84UI",23141,&ui_length);
+    unsigned sound_length=0;
+    bool valid=map!=NULL && d84_ui_data!=NULL && open_asset("D84SFX",34134,&sound_length)!=NULL;
     for(unsigned i=0;i<NUM_BANKS;++i) {
         char name[]="D84T0";name[4]=(char)('0'+i);
         banks[i]=open_asset(name,bank_sizes[i],&bank_lengths[i]);
         if(!banks[i]) valid=false;
     }
+    if(valid)valid=d84_music_open()!=0;
     if(!valid || !engine_init(map,map_length,banks,bank_lengths)) {
         os_ClrHome();
-        os_PutStrFull("E1M1 assets missing,");os_NewLine();
+        os_PutStrFull("Doom assets missing,");os_NewLine();
         os_PutStrFull("unarchived or outdated.");os_NewLine();
         os_PutStrFull("Send ALL D84*.8xv");os_NewLine();
         os_PutStrFull("files to Archive.");os_NewLine();
@@ -152,6 +161,7 @@ int main(void) {
         while(!os_GetCSC());
         return 1;
     }
+    d84_audio_start();
     gfx_Begin();
     render_detail=2;player.texture_planes=false;
     for(unsigned i=0;i<256;++i) gfx_palette[i]=gfx_RGBTo1555(map_palette[i*3],map_palette[i*3+1],map_palette[i*3+2]);
@@ -167,6 +177,7 @@ int main(void) {
     unsigned frames=0,fps=0,render_ms=0;
     int hud_health=-1,hud_armor=-1,hud_ammo=-1;unsigned hud_face=999,hud_dirty=0;
     for(;;) {
+        d84_audio_poll();
         kb_Scan();
         if(kb_Data[6]&kb_Clear) break;
         bool mapkey=(kb_Data[1]&kb_Graph)!=0;
@@ -210,6 +221,7 @@ int main(void) {
         render_ms=showmap?0:(unsigned)((clock()-begin)*1000/CLOCKS_PER_SEC);
         gfx_SetColor(0);
         gfx_FillRectangle_NoClip(0,0,320,VIEW_Y);
+        sound_frame_step();
         if(showmap) automap();
         else {
 #ifdef __TICE__
@@ -227,7 +239,7 @@ int main(void) {
         char line[40];
         snprintf(line,sizeof(line),"E1M1 %uFPS %ums %s",fps,render_ms,
                  player.wireframe?"WIRE":player.texture_planes?"TEX":"FAST");
-        text(line,4,0);
+        text(line,4,198);
         if(paused) text("PAUSED",136,VIEW_Y+90);
         if(player.dead) text("YOU DIED - ZOOM RESTART",64,VIEW_Y+90);
         if(player.exited) text("E1M1 EXIT - ZOOM RESTART",64,VIEW_Y+90);
@@ -236,6 +248,7 @@ int main(void) {
         ++frames;
         if(clock()-fps_start>=CLOCKS_PER_SEC) {clock_t duration=clock()-fps_start;fps=(unsigned)((uint32_t)frames*CLOCKS_PER_SEC/duration);frames=0;fps_start=clock();}
     }
+    d84_audio_stop();
     gfx_End();
     return 0;
 }

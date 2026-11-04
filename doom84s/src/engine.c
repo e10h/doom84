@@ -6,11 +6,26 @@
 #include "engine.h"
 #include "generated.h"
 #include "geometry.h"
+#ifdef __TICE__
+#include "usb_gun.h"
+#else
 #include "gun.h"
+#endif
+#include "sound.h"
 #include <limits.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+
+uint16_t sound_active_mask = 0;
+uint8_t sound_sequence = 0;
+uint8_t sound_hold_frames[NUM_SFX] = {0};
+uint8_t sound_music_active = 1;
+uint8_t sound_music_beat = 0;
+uint8_t sound_music_phase = 0;
+uint8_t sound_sfx_pitch = 7;
+uint8_t sound_sfx_pan = 7;
+uint8_t sound_sfx_vol = 15;
 
 _Static_assert(sizeof(Vertex)==4,"Vertex disk layout");
 _Static_assert(sizeof(Line)==14,"Line disk layout");
@@ -261,6 +276,7 @@ bool engine_init(const uint8_t *map,unsigned size,const uint8_t *const *banks,co
 
 void engine_reset(void) {
     memset(&player,0,sizeof(player));
+    sound_init();
     player.x=(int32_t)START_X*256;
     player.y=(int32_t)START_Y*256;
     player.angle=START_ANGLE;
@@ -412,14 +428,15 @@ static void use(void) {
         if (z>0 && z<best) { best=z;found=l; }
     }
     if (!found) return;
-    if (found->special==11) {player.exited=true;return;}
-    if (found->side[1]!=65535u) activate_sector(sides[found->side[1]].sector);
+    if (found->special==11) {player.exited=true;sound_trigger(SFX_SWTCHN);return;}
+    if (found->side[1]!=65535u) {activate_sector(sides[found->side[1]].sector);sound_trigger(SFX_DOROPN);}
 }
 
 static void hurt(int damage) {
     int absorbed=MIN(player.armor,damage/3);
     player.armor-=absorbed; player.health-=damage-absorbed; player.damage=5;
-    if (player.health<=0) {player.health=0;player.dead=true;}
+    if (player.health<=0) {player.health=0;player.dead=true;sound_trigger(SFX_PLDETH);}
+    else {sound_trigger(SFX_PLPAIN);}
 }
 
 /* Doom pistol states (tics): A4 -> B6(+fire/flash) -> C4 -> B5(refire). */
@@ -428,18 +445,36 @@ static void hurt(int damage) {
 
 static void explode_barrel(unsigned index);
 
+static inline void sound_trigger_actor(uint8_t sfx_id, int ax, int ay) {
+    int px = (int)(player.x / 256), py = (int)(player.y / 256);
+    int dx = ax - px, dy = ay - py;
+    int dist = MAX(ABS(dx), ABS(dy));
+    uint8_t vol = 15;
+    if (dist > 64) {
+        int v = 15 - (dist - 64) / 40;
+        vol = (uint8_t)(v < 3 ? 3 : v > 15 ? 15 : v);
+    }
+    int c = icos(player.angle), s = isin(player.angle);
+    int rx = (int)(((int32_t)dx * s - (int32_t)dy * c) / 256);
+    int pan = 7 + rx / 32;
+    if (pan < 1) pan = 1;
+    if (pan > 14) pan = 14;
+    uint8_t pitch = (uint8_t)(7 + (int)(rnd() % 3) - 1);
+    sound_trigger_ext(sfx_id, (uint8_t)pan, vol, pitch);
+}
+
 static void damage_actor(unsigned index,int damage) {
     Actor *a=&actors[index];
     const MapActor *m=&map_actors[index];
     if (!a->hp || a->removed || a->explode || a->die) return;
     if (damage<a->hp) {
         a->hp=(uint8_t)(a->hp-damage);
-        if (m->kind==1) a->pain=12;
+        if (m->kind==1) {a->pain=12;sound_trigger_actor(SFX_POPAIN, a->x, a->y);}
         return;
     }
     a->hp=0;
     a->pain=0;
-    if (m->kind==1) {a->die=1;++player.kills;player.ammo+=5;}
+    if (m->kind==1) {a->die=1;++player.kills;player.ammo+=5;sound_trigger_actor(SFX_PODTH, a->x, a->y);}
     if (m->kind==3) explode_barrel(index);
 }
 
@@ -448,6 +483,7 @@ static void explode_barrel(unsigned index) {
     if (a->removed || a->explode) return;
     a->hp=0;
     a->explode=1;
+    sound_trigger_actor(SFX_BAREXP, a->x, a->y);
     int bx=a->x,by=a->y;
     int px=(int)(player.x/256),py=(int)(player.y/256);
     int pdist=MAX(ABS(px-bx),ABS(py-by));
@@ -465,6 +501,7 @@ static void explode_barrel(unsigned index) {
 static void fire_shot(void) {
     if (!player.ammo) return;
     --player.ammo;
+    sound_trigger(SFX_PISTOL);
     int c=icos(player.angle),s=isin(player.angle),best=2048,index=-1;
     int x=(int)(player.x/256),y=(int)(player.y/256);
     for (unsigned i=0;i<NUM_ACTORS;++i) {
@@ -551,12 +588,12 @@ void engine_tick(uint8_t input) {
                 case 2018:case 2019:player.armor=MAX(player.armor,m->type==2018?100:200);break;
                 default:player.ammo=MIN(200,player.ammo+10);break;
             }
-            if (take) a->removed=1;
+            if (take) {a->removed=1;sound_trigger(SFX_ITEMUP);}
         }
         if (m->kind!=1 || !a->hp || dist>768) continue;
         if (a->cooldown) --a->cooldown;
         if (((player.ticks+i)&7)!=0 || !sight(a->x,a->y,x,y,player.eye)) continue;
-        if (dist<384 && !a->cooldown) {hurt(2+(rnd()%7));a->cooldown=35;}
+        if (dist<384 && !a->cooldown) {hurt(2+(rnd()%7));a->cooldown=35;sound_trigger(SFX_PISTOL);}
         if (dist>48) {
             int mx=a->x+CLAMP(dx,-4,4),my=a->y+CLAMP(dy,-4,4);
             if (engine_can_move(mx,a->y,sector_floor[a->sector])) a->x=mx;
@@ -792,6 +829,7 @@ static bool clip_seg_plane(int *r1,int *z1,int *u1,int *r2,int *z2,int *u2,int a
 }
 
 __attribute__((noinline)) void d84_draw_seg(const Seg *seg,const Material *side) {
+    d84_audio_poll();
     unsigned fs=side->sector;
     int bs=side->back==255?-1:side->back;
     if(bs>=0 && (side->flags&128) && sector_floor[fs]==sector_floor[bs] && sector_ceiling[fs]==sector_ceiling[bs] && side->middle==255) return;
@@ -926,6 +964,7 @@ __attribute__((noinline)) static void draw_planes(void) {
     uint8_t *pixels=framebuffer,*depths=depthbuffer;
     const uint8_t *cursor=planes;
     for (int y=0;y<VIEW_H;++y) {
+        if (!(y & 7)) d84_audio_poll();
         const uint8_t *row=cursor,*endrow=row+VIEW_W;
         while(cursor<endrow) {
             const uint8_t *begin=cursor;
