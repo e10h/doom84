@@ -13,6 +13,7 @@ void wall(uint8_t* dst, uint8_t* depth, const uint8_t* image, const uint8_t* lig
     }
 }
 
+// flats broken but close
 void span(uint8_t* dst, uint8_t* depth, const uint8_t* image, const uint8_t* light,
           unsigned count, int wx, int wy, int sx, int sy, unsigned z) {
     while (count--) {
