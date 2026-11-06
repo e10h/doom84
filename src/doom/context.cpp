@@ -1,3 +1,4 @@
+// fix lcd freeze on clear
 #include "doom/context.h"
 #include "doom/input.h"
 #include "doom/statusbar.h"
