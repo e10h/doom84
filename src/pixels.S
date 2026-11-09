@@ -1,13 +1,7 @@
-; hardware ldir for lcd 2.5x blit
 ; pixels.S - e10h
 ; fast 2.5x nearest-neighbor viewport blitter
 ; unrolled LDIR row copies to LCD VRAM
 ; self-modifying RAM-patched texel steps for inner column loops
-/* GPL-2.0-or-later. eZ80 ADL pixel kernels, executed from program RAM.
- * IX/IY are preserved. Other registers, including alternate AF, are scratch.
- * Immediate operands are patched once per span/column, never per pixel.
- * Shade tables must be 256-byte aligned. Count is 1..128.
- */
 .assume ADL=1
 .section .text._d84_fill_column,"ax",@progbits
 .global _d84_fill_column

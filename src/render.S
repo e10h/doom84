@@ -1,9 +1,5 @@
 ; render.S - e10h
 ; 1D column clipping entirely in IX/IY/HL registers without stack spills
-/* GPL-2.0-or-later. Native ADL column clipping and projected-height DDAs.
- * IX holds the verified RenderWall packet across calls into C. All screen
- * bounds are bytes, avoiding general 24-bit shifts, masks and comparisons.
- */
 #include "render_abi.h"
 .assume ADL=1
 .section .text._d84_render_columns,"ax",@progbits

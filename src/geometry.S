@@ -1,12 +1,6 @@
 ; geometry.S - e10h
 ; hardware MLT on eZ80 takes 4 cycles vs 150+ cycles in software __mulsi3
 ; 8.8 fixed-point yaw rotation: cos * dx - sin * dy
-/* GPL-2.0-or-later. Exact signed 8.8 camera transforms for eZ80 ADL.
- * Cardinal views are permutations/sign changes. Other views use four signed
- * 16x9 products; each non-cardinal multiply uses two hardware MLTs.
- * Rotated output contains two signed words. The spare third word permits
- * native 24-bit stores without touching any other object.
- */
 .assume ADL=1
 .section .text._d84_set_camera,"ax",@progbits
 .global _d84_set_camera

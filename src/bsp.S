@@ -2,10 +2,6 @@
 ; hand-tailored near-first bsp walker
 ; clang pushed 250+ bytes per frame, shrunk down to 9 bytes on stack!
 ; 40-cycle MLT PVS skip
-/* GPL-2.0-or-later. Exact near-first BSP traversal. Stack frames contain
- * the node/seg pointer, side/material pointer, and remaining leaf seg count.
- * Projection and near clipping retain their C implementation.
- */
 .assume ADL=1
 .section .text._d84_bsp,"ax",@progbits
 .global _d84_bsp
