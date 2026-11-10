@@ -1,4 +1,4 @@
-; hardware MLT takes 4 cycles vs 150+ in clang
+; fix signed rot with unsigned mlt
 ; geometry.S - e10h
 ; hardware MLT on eZ80 takes 4 cycles vs 150+ cycles in software __mulsi3
 ; 8.8 fixed-point yaw rotation: cos * dx - sin * dy
