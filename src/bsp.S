@@ -1,3 +1,4 @@
+; shrink stack frame to 8 bytes
 ; bsp.S - e10h
 ; hand-tailored near-first bsp walker
 ; clang pushed 250+ bytes per frame, shrunk down to 9 bytes on stack!
