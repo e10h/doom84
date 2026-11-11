@@ -1,4 +1,3 @@
-; unrolled column pixel loop
 ; pixels.S - e10h
 ; fast 2.5x nearest-neighbor viewport blitter
 ; unrolled LDIR row copies to LCD VRAM
