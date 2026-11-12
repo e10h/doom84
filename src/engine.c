@@ -1,4 +1,3 @@
-/* pvs early out */
 // doom84s - e10h
 // compiling doom84cpp to assembly and hand-tuning kernels for speed
 // ez80-clang generates bloated stack frames and 32-bit mul calls
