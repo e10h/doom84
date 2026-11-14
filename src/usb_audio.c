@@ -1,4 +1,4 @@
-/* clock divider 11025Hz fix */
+/* double buffered dma ring */
 // optical/usb pcm audio streaming - e10h
 // 2-channel 11kHz pcm over calculator USB port
 // doom sfx + e1m1 midi synthesizer
