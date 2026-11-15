@@ -1,4 +1,3 @@
-; 70ms on hardware!!
 ; render.S - e10h
 ; 1D column clipping entirely in IX/IY/HL registers without stack spills
 #include "render_abi.h"
