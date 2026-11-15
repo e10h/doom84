@@ -5,11 +5,7 @@
 #include "engine.h"
 #include "generated.h"
 #include "geometry.h"
-#ifdef __TICE__
-#include "usb_gun.h"
-#else
 #include "gun.h"
-#endif
 #include "sound.h"
 #include <limits.h>
 #include <stddef.h>

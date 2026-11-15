@@ -1,10 +1,6 @@
 #include "engine.h"
 #include "generated.h"
-#ifdef __TICE__
-#include "usb_hud.h"
-#else
 #include "hud.h"
-#endif
 #include "sound.h"
 #include <fileioc.h>
 #include <graphx.h>
@@ -141,16 +137,12 @@ static void automap(void) {
 int main(void) {
     unsigned map_length=0;
     const uint8_t *map=open_asset("D84MAP",MAP_SIZE,&map_length);
-    unsigned ui_length=0;
-    d84_ui_data=open_asset("D84UI",23141,&ui_length);
-    unsigned sound_length=0;
-    bool valid=map!=NULL && d84_ui_data!=NULL && open_asset("D84SFX",34134,&sound_length)!=NULL;
+    bool valid=map!=NULL;
     for(unsigned i=0;i<NUM_BANKS;++i) {
         char name[]="D84T0";name[4]=(char)('0'+i);
         banks[i]=open_asset(name,bank_sizes[i],&bank_lengths[i]);
         if(!banks[i]) valid=false;
     }
-    if(valid)valid=d84_music_open()!=0;
     if(!valid || !engine_init(map,map_length,banks,bank_lengths)) {
         os_ClrHome();
         os_PutStrFull("Doom assets missing,");os_NewLine();
