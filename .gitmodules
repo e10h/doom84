@@ -1,0 +1,4 @@
+[submodule "lib/doomvision"]
+	path = lib/doomvision
+	url = git@github.com:e10h/doomvision.git
+	branch = audio-lib

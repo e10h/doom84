@@ -153,7 +153,21 @@ int main(void) {
         while(!os_GetCSC());
         return 1;
     }
-    d84_audio_start();
+    sound_init();
+#ifdef __TICE__
+    static const uint16_t d84_sfx_offsets[9] = {0, 2046, 6028, 11516, 16210, 19330, 24330, 26590, 27398};
+    static const uint16_t d84_sfx_lengths[9] = {2046, 3982, 5488, 4694, 3120, 5000, 2260, 808, 6736};
+    uint8_t sh = ti_Open("D84SFX", "r");
+    if (sh) {
+        if (ti_IsArchived(sh) && ti_GetSize(sh) == 34134) {
+            const uint8_t *sdata = ti_GetDataPtr(sh);
+            for (unsigned i = 0; i < 9; ++i) {
+                dv_audio_register_sfx(i + 1, sdata + d84_sfx_offsets[i], d84_sfx_lengths[i], 4000);
+            }
+        }
+        ti_Close(sh);
+    }
+#endif
     gfx_Begin();
     render_detail=2;player.texture_planes=false;
     for(unsigned i=0;i<256;++i) gfx_palette[i]=gfx_RGBTo1555(map_palette[i*3],map_palette[i*3+1],map_palette[i*3+2]);
@@ -169,9 +183,9 @@ int main(void) {
     unsigned frames=0,fps=0,render_ms=0;
     int hud_health=-1,hud_armor=-1,hud_ammo=-1;unsigned hud_face=999,hud_dirty=0;
     for(;;) {
-        d84_audio_poll();
+        sound_poll();
         kb_Scan();
-        if(kb_Data[6]&kb_Clear) break;
+        if(kb_Data[6]&kb_Clear) { sound_cleanup(); break; }
         bool mapkey=(kb_Data[1]&kb_Graph)!=0;
         if(mapkey && !mapheld) showmap=!showmap;
         mapheld=mapkey;
@@ -240,7 +254,7 @@ int main(void) {
         ++frames;
         if(clock()-fps_start>=CLOCKS_PER_SEC) {clock_t duration=clock()-fps_start;fps=(unsigned)((uint32_t)frames*CLOCKS_PER_SEC/duration);frames=0;fps_start=clock();}
     }
-    d84_audio_stop();
+    sound_cleanup();
     gfx_End();
     return 0;
 }
