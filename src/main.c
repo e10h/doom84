@@ -213,17 +213,19 @@ int main(void) {
         if(pausekey && !pauseheld) paused=!paused;
         pauseheld=pausekey;
         clock_t now=clock(),elapsed=now-last;last=now;
-        /* Limit catch-up to six 35 Hz tics. Prevents a slow frame from
+        /* Limit catch-up to two 35 Hz tics. Prevents a slow frame from
          * causing a long unresponsive simulation burst. */
         accumulator+=elapsed;
-        if(accumulator>CLOCKS_PER_SEC*6/35) accumulator=CLOCKS_PER_SEC*6/35;
+        if(accumulator>CLOCKS_PER_SEC*2/35) accumulator=CLOCKS_PER_SEC*2/35;
         uint8_t keys=input();
         while(accumulator>=CLOCKS_PER_SEC/35) {
             if(!paused && !showmap) engine_tick(keys);
             accumulator-=CLOCKS_PER_SEC/35;
         }
+        sound_poll();
         clock_t begin=clock();
         if(!showmap) engine_render();
+        sound_poll();
         render_ms=showmap?0:(unsigned)((clock()-begin)*1000/CLOCKS_PER_SEC);
         gfx_SetColor(0);
         gfx_FillRectangle_NoClip(0,0,320,VIEW_Y);

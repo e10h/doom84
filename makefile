@@ -63,5 +63,5 @@ usb-build: usb-sounds
 # Keep the renderer compact; optimize the audio hot loop for speed.
 $(OBJDIR)/lib/doomvision/src_lib/doomvision_audio.c.bc: override CFLAGS = -Wall -Wextra -O3 -fno-omit-frame-pointer -Ilib/doomvision/include
 
-D84_ENGINE_OPT ?= -Oz
+D84_ENGINE_OPT ?= -O3 -fno-inline-functions
 $(OBJDIR)/src/engine.c.bc: override CFLAGS = -Wall -Wextra $(D84_ENGINE_OPT) -fno-omit-frame-pointer -Ilib/doomvision/include

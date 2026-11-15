@@ -355,9 +355,10 @@ static bool sight(int x,int y,int tx,int ty,int eye) {
         }
         int32_t c1=(int32_t)(a->x-x)*dy-(int32_t)(a->y-y)*dx;
         int32_t c2=(int32_t)(b->x-x)*dy-(int32_t)(b->y-y)*dx;
+        if ((c1<0)==(c2<0)) continue;
         int32_t c3=(int32_t)(x-a->x)*(b->y-a->y)-(int32_t)(y-a->y)*(b->x-a->x);
         int32_t c4=(int32_t)(tx-a->x)*(b->y-a->y)-(int32_t)(ty-a->y)*(b->x-a->x);
-        if ((c1<0)!=(c2<0) && (c3<0)!=(c4<0)) return false;
+        if ((c3<0)!=(c4<0)) return false;
     }
     return true;
 }
@@ -824,7 +825,6 @@ static bool clip_seg_plane(int *r1,int *z1,int *u1,int *r2,int *z2,int *u2,int a
 }
 
 __attribute__((noinline)) void d84_draw_seg(const Seg *seg,const Material *side) {
-    d84_audio_poll();
     unsigned fs=side->sector;
     int bs=side->back==255?-1:side->back;
     if(bs>=0 && (side->flags&128) && sector_floor[fs]==sector_floor[bs] && sector_ceiling[fs]==sector_ceiling[bs] && side->middle==255) return;
@@ -959,7 +959,6 @@ __attribute__((noinline)) static void draw_planes(void) {
     uint8_t *pixels=framebuffer,*depths=depthbuffer;
     const uint8_t *cursor=planes;
     for (int y=0;y<VIEW_H;++y) {
-        if (!(y & 7)) d84_audio_poll();
         const uint8_t *row=cursor,*endrow=row+VIEW_W;
         while(cursor<endrow) {
             const uint8_t *begin=cursor;
