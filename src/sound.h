@@ -63,11 +63,10 @@ static inline void sound_init(void) {
 }
 
 static inline void sound_trigger_ext(uint8_t sfx_id, uint8_t pan, uint8_t vol, uint8_t pitch) {
-    (void)pan;
 #ifdef __TICE__
-    dv_audio_trigger(sfx_id, vol, pitch);
+    dv_audio_trigger_ext(sfx_id, pan, vol, pitch);
 #else
-    (void)sfx_id; (void)vol; (void)pitch;
+    (void)sfx_id; (void)pan; (void)vol; (void)pitch;
 #endif
 }
 

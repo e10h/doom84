@@ -154,20 +154,6 @@ int main(void) {
         return 1;
     }
     sound_init();
-#ifdef __TICE__
-    static const uint16_t d84_sfx_offsets[9] = {0, 2046, 6028, 11516, 16210, 19330, 24330, 26590, 27398};
-    static const uint16_t d84_sfx_lengths[9] = {2046, 3982, 5488, 4694, 3120, 5000, 2260, 808, 6736};
-    uint8_t sh = ti_Open("D84SFX", "r");
-    if (sh) {
-        if (ti_IsArchived(sh) && ti_GetSize(sh) == 34134) {
-            const uint8_t *sdata = ti_GetDataPtr(sh);
-            for (unsigned i = 0; i < 9; ++i) {
-                dv_audio_register_sfx(i + 1, sdata + d84_sfx_offsets[i], d84_sfx_lengths[i], 4000);
-            }
-        }
-        ti_Close(sh);
-    }
-#endif
     gfx_Begin();
     render_detail=2;player.texture_planes=false;
     for(unsigned i=0;i<256;++i) gfx_palette[i]=gfx_RGBTo1555(map_palette[i*3],map_palette[i*3+1],map_palette[i*3+2]);
