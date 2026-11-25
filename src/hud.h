@@ -12,8 +12,8 @@
 #define ST_AMMO_X 44
 #define ST_HEALTH_X 90
 #define ST_ARMOR_X 221
-#define ST_FACE_X 143
-#define ST_FACE_Y 0
+#define ST_FACE_X 148
+#define ST_FACE_Y 2
 #define ST_NUM_Y 3
 #define ST_AMMO0_X 288
 #define ST_MAXAMMO0_X 314

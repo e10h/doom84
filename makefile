@@ -2,8 +2,15 @@ NAME = DOOM84
 DESCRIPTION = "Doom84 Assembly Optimized"
 COMPRESSED = YES
 ARCHIVED = YES
-CFLAGS = -Wall -Wextra -O3 -fno-omit-frame-pointer -Ilib/doomvision/include
+DISABLE_AUDIO ?= 1
+ifeq ($(DISABLE_AUDIO),1)
+AUDIO_CFLAGS = -DD84_DISABLE_AUDIO
+EXTRA_C_SOURCES =
+else
+AUDIO_CFLAGS = -Ilib/doomvision/include
 EXTRA_C_SOURCES = lib/doomvision/src_lib/doomvision_audio.c
+endif
+CFLAGS = -Wall -Wextra -O3 -fno-omit-frame-pointer $(AUDIO_CFLAGS)
 CXXFLAGS = $(CFLAGS)
 PREFER_OS_LIBC = NO
 CEDEV ?= $(HOME)/CEdev
@@ -60,8 +67,10 @@ usb-build: usb-sounds
 	$(MAKE) NAME=D84USB5 BINDIR=build/usb-music5 OBJDIR=build/usb-music5-obj CFLAGS='-Wall -Wextra -Oz -fno-omit-frame-pointer' LTOFLAGS='-O3 -fno-omit-frame-pointer' D84_ENGINE_OPT='-O3 -fno-inline-functions'
 	python3 tools/package_usb_music.py
 
+ifneq ($(DISABLE_AUDIO),1)
 # Keep the renderer compact; optimize the audio hot loop for speed.
 $(OBJDIR)/lib/doomvision/src_lib/doomvision_audio.c.bc: override CFLAGS = -Wall -Wextra -O3 -fno-omit-frame-pointer -Ilib/doomvision/include
+endif
 
-D84_ENGINE_OPT ?= -O3 -fno-inline-functions
-$(OBJDIR)/src/engine.c.bc: override CFLAGS = -Wall -Wextra $(D84_ENGINE_OPT) -fno-omit-frame-pointer -Ilib/doomvision/include
+D84_ENGINE_OPT ?= -O3
+$(OBJDIR)/src/engine.c.bc: override CFLAGS = -Wall -Wextra $(D84_ENGINE_OPT) -fno-omit-frame-pointer $(AUDIO_CFLAGS)

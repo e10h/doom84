@@ -164,6 +164,7 @@ static uint8_t floor_wait[NUM_SECTORS];
 uint8_t depthbuffer[VIEW_W*VIEW_H];
 static uint8_t planes[VIEW_W*VIEW_H];
 static uint8_t cliptop[VIEW_W],clipbottom[VIEW_W];
+static int first_open,last_open;
 static int16_t vertex_side[NUM_RENDER_POINTS],vertex_depth[NUM_RENDER_POINTS],vertex_screen[NUM_RENDER_POINTS];
 static uint8_t vertex_stamp[NUM_RENDER_POINTS],frame_stamp;
 int camx,camy;
@@ -530,7 +531,7 @@ void engine_tick(uint8_t input) {
     if (player.damage) --player.damage;
     if (!(input&INPUT_STRAFE)) {
         /* Keyboard turn in 1024-circle units (slower than Doom BAM 640/1280). */
-        int turn=(input&INPUT_RUN)?6:3;
+        int turn=(input&INPUT_RUN)?10:6;
         if (input&INPUT_LEFT) player.angle=(player.angle+turn)&1023;
         if (input&INPUT_RIGHT) player.angle=(player.angle-turn)&1023;
     }
@@ -538,7 +539,7 @@ void engine_tick(uint8_t input) {
     int strafe=(input&INPUT_STRAFE)?(((input&INPUT_RIGHT)!=0)-((input&INPUT_LEFT)!=0)):0;
     int oldx=(int)(player.x/256),oldy=(int)(player.y/256);
     if(forward || strafe) {
-        int c=icos(player.angle),s=isin(player.angle),speed=(input&INPUT_RUN)?8:4;
+        int c=icos(player.angle),s=isin(player.angle),speed=(input&INPUT_RUN)?16:8;
         int32_t nx=player.x+(forward*c+strafe*s)*speed;
         int32_t ny=player.y+(forward*s-strafe*c)*speed;
         if (nx!=player.x && engine_can_move((int)(nx/256),(int)(player.y/256),player.floor)) player.x=nx;
@@ -825,6 +826,7 @@ static bool clip_seg_plane(int *r1,int *z1,int *u1,int *r2,int *z2,int *u2,int a
 }
 
 __attribute__((noinline)) void d84_draw_seg(const Seg *seg,const Material *side) {
+    if(first_open>=last_open) return;
     unsigned fs=side->sector;
     int bs=side->back==255?-1:side->back;
     if(bs>=0 && (side->flags&128) && sector_floor[fs]==sector_floor[bs] && sector_ceiling[fs]==sector_ceiling[bs] && side->middle==255) return;
@@ -849,7 +851,7 @@ __attribute__((noinline)) void d84_draw_seg(const Seg *seg,const Material *side)
     /* Clipped endpoints are not map vertices — never use vertex_screen[]. */
     int sx1=screen_x(r1,z1),sx2=screen_x(r2,z2);
     if (sx1>=sx2 || sx2<=0 || sx1>=VIEW_W) return;
-    int start=MAX(0,sx1),end=MIN(VIEW_W,sx2);
+    int start=MAX(first_open,sx1),end=MIN(last_open,sx2);
     /* Wireframe always samples every column so edges stay continuous. */
     unsigned step=player.wireframe?1:render_detail;
     /* Align to step (not just power-of-two masks — detail 3 needs this). */
@@ -904,9 +906,12 @@ __attribute__((noinline)) void d84_draw_seg(const Seg *seg,const Material *side)
     rw.ceil_color=player.texture_planes?(uint8_t)(fs|128):plane_colors[fs+NUM_SECTORS];
     rw.floor_color=player.texture_planes?(uint8_t)fs:plane_colors[fs];
     render_columns();
+    while(first_open<last_open && cliptop[first_open]>=clipbottom[first_open]) first_open+=(int)step;
+    while(last_open>first_open && cliptop[last_open-1]>=clipbottom[last_open-1]) --last_open;
 }
 
 __attribute__((noinline)) bool d84_bbox_visible(const int16_t *box,unsigned boxindex) {
+    if(first_open>=last_open) return false;
     /* Doom bbox order: top, bottom, left, right. Conservative near-plane
      * handling avoids dropping geometry when the camera intersects a box. */
     /* Doom's silhouette-corner table needs only two transformed corners. */
@@ -927,8 +932,10 @@ __attribute__((noinline)) bool d84_bbox_visible(const int16_t *box,unsigned boxi
     }
     if(z1<NEAR_Z || z2<NEAR_Z) return z1>=NEAR_Z || z2>=NEAR_Z;
     int x1=vertex_projection(v1,r1,z1),x2=vertex_projection(v2,r2,z2);
-    int left=MAX(0,MIN(x1,x2)),right=MIN(VIEW_W-1,MAX(x1,x2));
-    for (int x=left;x<=right;++x) if (cliptop[x]<clipbottom[x]) return true;
+    int left=MAX(first_open,MIN(x1,x2)),right=MIN(last_open-1,MAX(x1,x2));
+    int step=player.wireframe?1:(int)render_detail;
+    for (int x=left;x<=right;x+=step) if (cliptop[x]<clipbottom[x]) return true;
+    if (step>1 && left<=right && cliptop[right]<clipbottom[right]) return true;
     return false;
 }
 
@@ -1057,9 +1064,9 @@ __attribute__((noinline)) static void draw_sprites(void) {
         const uint8_t *pixels=images[image];
         uint8_t depth=(uint8_t)CLAMP(z/16,1,254);
         int x1=MAX(0,left),x2=MIN(VIEW_W,left+width),y1=MAX(0,top),y2=MIN(VIEW_H,bottom);
-        unsigned sxstep=(64u*256)/width,systep=(64u*256)/height;
         if(render_detail>1) x1=((x1+(int)render_detail-1)/(int)render_detail)*(int)render_detail;
         if(x1>=x2 || y1>=y2) continue;
+        unsigned sxstep=(64u*256)/width,systep=(64u*256)/height;
         unsigned count=(unsigned)(x2-x1+(int)render_detail-1)/render_detail;
         if(!count) continue;
         unsigned sxpos=(unsigned)(x1-left)*sxstep;
@@ -1079,6 +1086,7 @@ void engine_render(void) {
     if(player.texture_planes && !player.wireframe) memset(planes,255,sizeof(planes));
     memset(cliptop,0,sizeof(cliptop));
     memset(clipbottom,VIEW_H,sizeof(clipbottom));
+    first_open=0;last_open=VIEW_W;
     frame_stamp+=2;
     if (!frame_stamp) {memset(vertex_stamp,0,sizeof(vertex_stamp));frame_stamp=2;}
     camx=(int)(player.x/256);camy=(int)(player.y/256);
@@ -1117,18 +1125,22 @@ void engine_render(void) {
     for (int y=0;y<GUN_H;++y) {
         int dest=GUN_Y+y+bob;
         if (dest<0 || dest>=VIEW_H) continue;
+        const uint8_t *src=gun+y*GUN_W;
+        uint8_t *dst=framebuffer+dest*VIEW_W+GUN_X;
         for (int x=0;x<GUN_W;++x) {
-            uint8_t pixel=gun[y*GUN_W+x];
-            if (pixel!=255) framebuffer[dest*VIEW_W+GUN_X+x]=pixel;
+            uint8_t pixel=src[x];
+            if (pixel!=255) dst[x]=pixel;
         }
     }
     if (player.fire && player.fire<=PISTOL_FIRE_AT && player.fire>9) {
         for (int y=0;y<GUN_H;++y) {
             int dest=GUN_Y+y+bob;
             if (dest<0 || dest>=VIEW_H) continue;
+            const uint8_t *src=gun_flash+y*GUN_W;
+            uint8_t *dst=framebuffer+dest*VIEW_W+GUN_X;
             for (int x=0;x<GUN_W;++x) {
-                uint8_t pixel=gun_flash[y*GUN_W+x];
-                if (pixel!=255) framebuffer[dest*VIEW_W+GUN_X+x]=pixel;
+                uint8_t pixel=src[x];
+                if (pixel!=255) dst[x]=pixel;
             }
         }
     }

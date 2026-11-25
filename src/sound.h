@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-#ifdef __TICE__
+#if defined(__TICE__) && !defined(D84_DISABLE_AUDIO)
 #include "doomvision_audio.h"
 #endif
 
@@ -34,6 +34,9 @@ extern uint8_t sound_sfx_pan;
 extern uint8_t sound_sfx_vol;
 
 static inline void sound_frame_step(void) {
+#ifdef D84_DISABLE_AUDIO
+    return;
+#else
     uint16_t new_mask = 0;
     for (unsigned i = 1; i < NUM_SFX; ++i) {
         if (sound_hold_frames[i] > 0) {
@@ -45,9 +48,13 @@ static inline void sound_frame_step(void) {
     }
     sound_active_mask = new_mask;
     sound_music_phase = (uint8_t)(sound_music_phase + 1);
+#endif
 }
 
 static inline void sound_init(void) {
+#ifdef D84_DISABLE_AUDIO
+    return;
+#else
     sound_active_mask = 0;
     sound_sequence = 0;
     sound_music_active = 1;
@@ -60,10 +67,11 @@ static inline void sound_init(void) {
 #ifdef __TICE__
     dv_audio_init();
 #endif
+#endif
 }
 
 static inline void sound_trigger_ext(uint8_t sfx_id, uint8_t pan, uint8_t vol, uint8_t pitch) {
-#ifdef __TICE__
+#if defined(__TICE__) && !defined(D84_DISABLE_AUDIO)
     dv_audio_trigger_ext(sfx_id, pan, vol, pitch);
 #else
     (void)sfx_id; (void)pan; (void)vol; (void)pitch;
@@ -75,7 +83,7 @@ static inline void sound_trigger(uint8_t sfx_id) {
 }
 
 static inline void sound_poll(void) {
-#ifdef __TICE__
+#if defined(__TICE__) && !defined(D84_DISABLE_AUDIO)
     dv_audio_poll();
 #endif
 }
@@ -85,7 +93,7 @@ static inline void d84_audio_poll(void) {
 }
 
 static inline void sound_cleanup(void) {
-#ifdef __TICE__
+#if defined(__TICE__) && !defined(D84_DISABLE_AUDIO)
     dv_audio_cleanup();
 #endif
 }

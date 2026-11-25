@@ -374,17 +374,20 @@ _d84_quad_columns:
 .section .text._d84_blit_viewport,"ax",@progbits
 .global _d84_blit_viewport
 _d84_blit_viewport:
-    push ix
-    push iy
-    ld iy,0
-    add iy,sp
-    ld hl,(iy+9)
-    ld ix,(iy+12)
+    ld hl,3
+    add hl,sp
+    ld de,(hl)
+    inc hl
+    inc hl
+    inc hl
+    ld hl,(hl)
+    ex de,hl
+    /* HL = src, DE = dest. */
     xor a
 .Lblit_rows:
     push af
     call .Lblit_src_row
-    /* IX points one past the row just written. Duplicate it. */
+    /* DE points one past the row just written. Duplicate it. */
     call .Lblit_dup_row
     pop af
     bit 0,a
@@ -397,41 +400,35 @@ _d84_blit_viewport:
     inc a
     cp a,80
     jp nz,.Lblit_rows
-    pop iy
-    pop ix
     ret
 
-/* HL=src, IX=dest. One 320-wide scaled row; HL+=128, IX+=320. */
+/* HL=src, DE=dest. One 320-wide scaled row; HL+=128, DE+=320. */
 .Lblit_src_row:
     ld b,64
 .Lblit_pair_px:
     ld a,(hl)
     inc hl
-    ld (ix+0),a
-    ld (ix+1),a
+    ld (de),a
+    inc de
+    ld (de),a
+    inc de
     ld a,(hl)
     inc hl
-    ld (ix+2),a
-    ld (ix+3),a
-    ld (ix+4),a
-    lea ix,ix+5
+    ld (de),a
+    inc de
+    ld (de),a
+    inc de
+    ld (de),a
+    inc de
     djnz .Lblit_pair_px
     ret
 
-/* Copy the previous dest row (IX-320) onto IX; IX+=320. Preserves HL. */
+/* Copy the previous dest row (DE-320) onto DE; DE+=320. Preserves HL. */
 .Lblit_dup_row:
     push hl
-    ld de,-320
-    add ix,de
-    push ix
-    pop hl
-    ld de,320
-    add ix,de
-    push ix
-    pop de
+    ld hl,-320
+    add hl,de
     ld bc,320
     ldir
-    push de
-    pop ix
     pop hl
     ret

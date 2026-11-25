@@ -46,7 +46,7 @@ static void blit_trans(const uint8_t *src,int dx,int dy,int w,int h,int stride) 
     }
 }
 
-/* Doom ST_* big numbers are right-aligned to the given x. */
+/* Doom ST_* big numbers are right-aligned to the given x; '%' sits to the right of x. */
 static void draw_stt(int value,int x,int y,bool percent) {
     char buf[8];
     int n=0;
@@ -55,9 +55,9 @@ static void draw_stt(int value,int x,int y,bool percent) {
     if(value>=100) buf[n++]=(char)('0'+value/100);
     if(value>=10) buf[n++]=(char)('0'+(value/10)%10);
     buf[n++]=(char)('0'+value%10);
-    if(percent) buf[n++]='%';
+    if(percent) blit_trans(stt_digits[10],x,y,stt_w[10],STT_H,STT_W);
     for(int i=n-1;i>=0;--i) {
-        int digit=buf[i]=='%'?10:buf[i]-'0';
+        int digit=buf[i]-'0';
         int w=stt_w[digit];
         x-=w;
         blit_trans(stt_digits[digit],x,y,w,STT_H,STT_W);
@@ -202,7 +202,7 @@ int main(void) {
         /* Limit catch-up to two 35 Hz tics. Prevents a slow frame from
          * causing a long unresponsive simulation burst. */
         accumulator+=elapsed;
-        if(accumulator>CLOCKS_PER_SEC*2/35) accumulator=CLOCKS_PER_SEC*2/35;
+        if(accumulator>CLOCKS_PER_SEC*4/35) accumulator=CLOCKS_PER_SEC*4/35;
         uint8_t keys=input();
         while(accumulator>=CLOCKS_PER_SEC/35) {
             if(!paused && !showmap) engine_tick(keys);
