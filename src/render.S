@@ -51,6 +51,23 @@ _d84_render_columns:
     or a,(ix+RW_IZ+1)
     or a,(ix+RW_IZ)
     jp z,.Lcolumn_next
+    /* Compute RW_INVERSE and RW_Z once per column for both floor depth and walls. */
+    ld hl,(ix+RW_IZ)
+    call .Lreciprocal
+    ld (ix+RW_INVERSE),hl
+    ld a,(ix+RW_INVERSE+2)
+    or a,a
+    jr nz,.Lcol_z_wide
+    srl h
+    rr l
+    srl h
+    rr l
+    jr .Lcol_z_ready
+.Lcol_z_wide:
+    call .Lshr24
+    call .Lshr24
+.Lcol_z_ready:
+    ld (ix+RW_Z),hl
     clamp_y RW_CYQ,RW_CY
     clamp_y RW_FYQ,RW_FY
 
@@ -228,9 +245,128 @@ _d84_render_columns:
     ld de,0
     ld e,(ix+RW_X)
     add hl,de
+    push hl
     ld de,(ix+RW_FILLBASE)
     add hl,de
+    /* Check if filling framebuffer (FAST mode) vs planes (TEX mode). */
+    push af
+    push hl
+    ld hl,_engine_view+2
+    ld de,(ix+RW_FILLBASE)
+    or a,a
+    sbc hl,de
+    pop hl
+    jp nz,.Lcolumn_fill_planes
+    pop af
+    /* FAST mode: write seg depth to depthbuffer for [y1, y1+count). */
+    pop de              /* DE = pixel offset (y1*128 + x) */
+    pop bc              /* B = count, C = y1 */
+    push af
+    push bc
+    push hl
+    ex de,hl            /* HL = offset */
+    ld de,_depthbuffer
+    add hl,de
+    ld a,(ix+RW_Z+2)
+    or a,a
+    jr nz,.Lfill_z_far
+    ld a,(ix+RW_Z+1)
+    cp a,16
+    jr nc,.Lfill_z_far
+    add a,a
+    add a,a
+    add a,a
+    add a,a
+    ld c,a
+    ld a,(ix+RW_Z)
+    rrca
+    rrca
+    rrca
+    rrca
+    and a,15
+    or a,c
+    or a,a
+    jr nz,.Lfill_z_ok
+    inc a
+    jr .Lfill_z_ok
+.Lfill_z_far:
+    ld a,254
+.Lfill_z_ok:
+    ld de,128
+.Lfill_depth_loop:
+    ld (hl),a
+    add hl,de
+    djnz .Lfill_depth_loop
+    pop hl
     pop bc
+    pop af
+    /* Keep sky clean and unshaded. */
+    ld de,_sky_flat
+    ex de,hl
+    cp a,(hl)
+    ex de,hl
+    jp z,.Lcolumn_fill_flat
+    /* Perspective horizon depth shading with 2x2 Bayer dither via ram_colormaps. */
+    push ix
+    push iy
+    push hl
+    pop iy
+    ld d,a
+    ld hl,_d84_row_shade
+    ld a,(ix+RW_X)
+    bit 1,a
+    jr z,.Lshade_p0
+    ld a,d
+    ld de,80
+    add hl,de
+    ld d,a
+.Lshade_p0:
+    ld a,d
+    ld de,0
+    ld e,c
+    add hl,de
+    push hl
+    pop ix
+    ld hl,_ram_colormaps
+    ld e,a
+    add hl,de
+    ld de,128
+    ld c,h
+    ld a,c
+    cp a,244
+    jr nc,.Lshade_carry_loop
+.Lshade_fast_loop:
+    ld a,(ix+0)
+    inc ix
+    add a,c
+    ld h,a
+    ld a,(hl)
+    ld (iy+0),a
+    add iy,de
+    djnz .Lshade_fast_loop
+    pop iy
+    pop ix
+    ret
+.Lshade_carry_loop:
+    push hl
+    ld de,0
+    ld d,(ix+0)
+    inc ix
+    add hl,de
+    ld a,(hl)
+    pop hl
+    ld de,128
+    ld (iy+0),a
+    add iy,de
+    djnz .Lshade_carry_loop
+    pop iy
+    pop ix
+    ret
+.Lcolumn_fill_planes:
+    pop af
+    pop de              /* discard saved offset */
+    pop bc              /* restore B=count, C=y1 */
+.Lcolumn_fill_flat:
     ld de,128
 .Lcolumn_fill_loop:
     ld (hl),a
@@ -262,23 +398,7 @@ _d84_render_columns:
     inc hl
     inc (hl)
 .Lwall_counted:
-    ld hl,(ix+RW_IZ)
-    call .Lreciprocal
-    ld (ix+RW_INVERSE),hl
-    /* Reciprocal >> 2. Rare >16-bit values use the ADL shift helper. */
-    ld a,(ix+RW_INVERSE+2)
-    or a,a
-    jr nz,.Lwall_z_wide
-    srl h
-    rr l
-    srl h
-    rr l
-    jr .Lwall_z_ready
-.Lwall_z_wide:
-    call .Lshr24
-    call .Lshr24
-.Lwall_z_ready:
-    ld (ix+RW_Z),hl
+    ld hl,(ix+RW_Z)
     ld (ix+RW_STEP),hl
 
     /* Six MLTs produce exactly the texture-relevant product byte. */

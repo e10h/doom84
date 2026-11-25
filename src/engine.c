@@ -6,6 +6,7 @@
 #include "generated.h"
 #include "geometry.h"
 #include "gun.h"
+#include "fireball.h"
 #include "sound.h"
 #include <limits.h>
 #include <stddef.h>
@@ -60,7 +61,7 @@ static const uint8_t *colormaps;
 static const uint8_t *images[NUM_TILES];
 /* Aligned shade rows allow the eZ80 pixel loops to replace a pointer add
  * with LD L,A. Reciprocal lookup replaces divisions inside wall columns. */
-static uint8_t ram_colormaps[32*256] __attribute__((aligned(256)));
+uint8_t ram_colormaps[32*256] __attribute__((aligned(256)));
 uint16_t reciprocal_table[2049];
 unsigned small_reciprocals[17];
 typedef struct __attribute__((packed)) {uint8_t sector,back,middle,upper,lower,flags;int16_t x,y;} Material;
@@ -72,7 +73,8 @@ static const Sector *sector_at(unsigned index) {return (const Sector *)((const u
 static uint8_t sector_shades[NUM_SECTORS];
 static const uint8_t *shade_rows[32];
 static uint8_t plane_colors[NUM_SECTORS*2];
-static uint8_t sky_flat;
+uint8_t sky_flat;
+uint8_t d84_row_shade[2][VIEW_H];
 
 #ifdef __TICE__
 void d84_wall(uint8_t *,uint8_t *,const uint8_t *,const uint8_t *,unsigned,int,int,unsigned);
@@ -180,11 +182,14 @@ static uint8_t use_held;
 static uint16_t random_state;
 
 /* pain: remaining hurt-flash tics. die: 0 alive, 1..DEATH_TICS animating, 255 corpse. */
-#define DEATH_TICS 14
-typedef struct { int16_t x,y; uint8_t sector,hp,removed,cooldown,explode,pain,die; } Actor;
+#define DEATH_TICS 24
+typedef struct { int16_t x,y; uint8_t sector,hp,removed,cooldown,explode,pain,die,attack; } Actor;
 static Actor actors[NUM_ACTORS];
 static uint8_t sprite_order[NUM_ACTORS];
 static int16_t sprite_z[NUM_ACTORS],sprite_x[NUM_ACTORS];
+#define MAX_PROJ 8
+typedef struct { int32_t x,y,vx,vy; int16_t z; uint8_t active,life; } Projectile;
+static Projectile projectiles[MAX_PROJ];
 #define EXPLODE_TIC 3
 #define EXPLODE_TOTAL (NUM_BARREL_EXP*EXPLODE_TIC)
 
@@ -265,6 +270,17 @@ bool engine_init(const uint8_t *map,unsigned size,const uint8_t *const *banks,co
         plane_colors[i]=light[images[s->flat][528]];
         plane_colors[i+NUM_SECTORS]=s->ceiltex==255?sky_flat:light[images[s->ceiltex][528]];
     }
+    static const uint8_t bayer[2][2]={{0,2},{3,1}};
+    for(unsigned y=0;y<VIEW_H;++y) {
+        int dy=(int)y-CENTER;
+        if(dy<0) dy=-dy;
+        if(dy<1) dy=1;
+        int base=320/dy-8;
+        for(unsigned p=0;p<2;++p) {
+            int s=(base+(int)bayer[y&1][p])>>2;
+            d84_row_shade[p][y]=(uint8_t)CLAMP(s,0,12);
+        }
+    }
     engine_view.width=VIEW_W;engine_view.height=VIEW_H;
     engine_reset();
     return true;
@@ -285,13 +301,14 @@ void engine_reset(void) {
     random_state=1;
     use_held=0;
     memset(floor_wait,0,sizeof(floor_wait));
+    memset(projectiles,0,sizeof(projectiles));
     for (unsigned i=0;i<NUM_SECTORS;++i) {
         sector_target[i]=sector_ceiling[i]=(*sector_at(i)).ceiling;
         floor_target[i]=sector_floor[i]=(*sector_at(i)).floor;
     }
     for (unsigned i=0;i<NUM_ACTORS;++i) {
         const MapActor *m=&map_actors[i];
-        actors[i]=(Actor){m->x,m->y,engine_sector(m->x,m->y),m->hp,0,0,0,0,0};
+        actors[i]=(Actor){m->x,m->y,engine_sector(m->x,m->y),m->hp,0,0,0,0,0,0};
         if (m->kind==1) ++player.total;
     }
 }
@@ -340,6 +357,23 @@ bool engine_can_move(int x,int y,int floor) {
     }
     uint8_t s=engine_sector(x,y);
     return sector_floor[s]-floor<=24 && sector_ceiling[s]-MAX(sector_floor[s],floor)>=56;
+}
+
+static bool actor_blocks(int x,int y,int oldx,int oldy) {
+    for (unsigned i=0;i<NUM_ACTORS;++i) {
+        const Actor *a=&actors[i];
+        if (a->removed || !a->hp || a->die || a->explode) continue;
+        const MapActor *m=&map_actors[i];
+        if (m->kind!=1 && m->kind!=3) continue;
+        int r=m->kind==1?28:24;
+        if (ABS(x-a->x)<r && ABS(y-a->y)<r) {
+            /* Allow moving away if already overlapping so player never gets stuck. */
+            int old_d=MAX(ABS(oldx-a->x),ABS(oldy-a->y));
+            int new_d=MAX(ABS(x-a->x),ABS(y-a->y));
+            if (old_d>=r || new_d<=old_d) return true;
+        }
+    }
+    return false;
 }
 
 /* Segment crossing test for shooting/AI. The prototype treats the shot as
@@ -471,6 +505,7 @@ static void damage_actor(unsigned index,int damage) {
     }
     a->hp=0;
     a->pain=0;
+    a->attack=0;
     if (m->kind==1) {a->die=1;++player.kills;player.ammo+=5;sound_trigger_actor(SFX_PODTH, a->x, a->y);}
     if (m->kind==3) explode_barrel(index);
 }
@@ -542,8 +577,9 @@ void engine_tick(uint8_t input) {
         int c=icos(player.angle),s=isin(player.angle),speed=(input&INPUT_RUN)?16:8;
         int32_t nx=player.x+(forward*c+strafe*s)*speed;
         int32_t ny=player.y+(forward*s-strafe*c)*speed;
-        if (nx!=player.x && engine_can_move((int)(nx/256),(int)(player.y/256),player.floor)) player.x=nx;
-        if (ny!=player.y && engine_can_move((int)(player.x/256),(int)(ny/256),player.floor)) player.y=ny;
+        if (nx!=player.x && engine_can_move((int)(nx/256),oldy,player.floor) && !actor_blocks((int)(nx/256),oldy,oldx,oldy)) player.x=nx;
+        int curx=(int)(player.x/256);
+        if (ny!=player.y && engine_can_move(curx,(int)(ny/256),player.floor) && !actor_blocks(curx,(int)(ny/256),curx,oldy)) player.y=ny;
     }
     int x=(int)(player.x/256),y=(int)(player.y/256);
     if(x!=oldx || y!=oldy) player.sector=engine_sector(x,y);
@@ -566,6 +602,7 @@ void engine_tick(uint8_t input) {
     for (unsigned i=0;i<NUM_ACTORS;++i,++a,++m) {
         if (a->removed) continue;
         if (a->pain) --a->pain;
+        if (a->attack) --a->attack;
         if (a->die && a->die!=255) {
             if (++a->die>=DEATH_TICS) a->die=255;
             continue;
@@ -590,13 +627,46 @@ void engine_tick(uint8_t input) {
         if (m->kind!=1 || !a->hp || dist>768) continue;
         if (a->cooldown) --a->cooldown;
         if (((player.ticks+i)&7)!=0 || !sight(a->x,a->y,x,y,player.eye)) continue;
-        if (dist<384 && !a->cooldown) {hurt(2+(rnd()%7));a->cooldown=35;sound_trigger(SFX_PISTOL);}
+        if (dist<384 && !a->cooldown) {
+            a->attack=12;
+            if (m->type==3001 && dist>32) {
+                /* Imp launches a flying fireball projectile. */
+                for (unsigned p=0;p<MAX_PROJ;++p) {
+                    if (!projectiles[p].active) {
+                        int d=MAX(1,dist);
+                        projectiles[p]=(Projectile){(int32_t)a->x*256,(int32_t)a->y*256,(int32_t)dx*2560/d,(int32_t)dy*2560/d,(int16_t)(sector_floor[a->sector]+32),1,100};
+                        break;
+                    }
+                }
+                a->cooldown=45;
+            } else {
+                hurt(2+(rnd()%7));
+                a->cooldown=35;
+                sound_trigger(SFX_PISTOL);
+            }
+        }
         if (dist>48) {
             int mx=a->x+CLAMP(dx,-4,4),my=a->y+CLAMP(dy,-4,4);
             if (engine_can_move(mx,a->y,sector_floor[a->sector])) a->x=mx;
             if (engine_can_move(a->x,my,sector_floor[a->sector])) a->y=my;
             a->sector=engine_sector(a->x,a->y);
         }
+    }
+    for (unsigned p=0;p<MAX_PROJ;++p) {
+        Projectile *pr=&projectiles[p];
+        if (!pr->active) continue;
+        int32_t nx=pr->x+pr->vx,ny=pr->y+pr->vy;
+        int px=(int)(nx/256),py=(int)(ny/256);
+        if (ABS(px-x)<20 && ABS(py-y)<20) {
+            hurt(3+(rnd()%18));
+            pr->active=0;
+            continue;
+        }
+        if (!engine_can_move(px,py,pr->z-16) || !--pr->life) {
+            pr->active=0;
+            continue;
+        }
+        pr->x=nx;pr->y=ny;
     }
 }
 
@@ -1042,16 +1112,22 @@ __attribute__((noinline)) static void draw_sprites(void) {
             hworld=MAX(hworld,hworld*5/4);
             light=shade_rows[0];
         } else if (m->hp && a->die && a->die!=255) {
-            /* Stand → walk → corpse while shrinking to gib height. */
-            uint8_t d=a->die;
-            image=d<5?m->image:d<9?m->walk:m->death;
-            int hcorp=MAX(1,hworld/4);
-            hworld=hworld-(hworld-hcorp)*(int)(d-1)/(DEATH_TICS-1);
-            light=shade_rows[0];
+            /* Real multi-frame Doom death sequence (*H0 -> *I0 -> *J0 -> corpse). */
+            int slot=m->type==3004?0:m->type==9?1:m->type==3001?2:-1;
+            unsigned frame=MIN(NUM_DEATH_FRAMES-1,(unsigned)(a->die-1)/(DEATH_TICS/NUM_DEATH_FRAMES));
+            image=slot>=0?monster_death[slot][frame]:m->death;
+            if (frame==NUM_DEATH_FRAMES-1) hworld=MAX(1,hworld/3);
+            else if (frame==NUM_DEATH_FRAMES-2) hworld=MAX(1,hworld*2/3);
+            light=frame==0?shade_rows[0]:lighting(a->sector,z);
         } else if (m->hp && !a->hp) {
             image=m->death;
-            hworld=MAX(1,hworld/4);
+            hworld=MAX(1,hworld/3);
             light=lighting(a->sector,z);
+        } else if (a->attack) {
+            /* Real Doom firing/muzzle-flash sprite (*F1 / TROOG1), full-bright. */
+            int slot=m->type==3004?0:m->type==9?1:m->type==3001?2:-1;
+            image=slot>=0?monster_attack[slot]:m->walk;
+            light=shade_rows[0];
         } else if (a->pain) {
             image=m->walk;
             light=shade_rows[0];
@@ -1075,6 +1151,33 @@ __attribute__((noinline)) static void draw_sprites(void) {
         for (int y=y1;y<y2;++y,sypos+=systep,offset+=VIEW_W) {
             unsigned sy=MIN(63,sypos>>8);
             d84_sprite(framebuffer+offset,depthbuffer+offset,pixels+sy*64,light,count,sxpos,sxstep*render_detail,depth,render_detail);
+        }
+    }
+    /* Render flying Imp fireballs (16x16 BAL1A0/BAL1B0, full-bright). */
+    const uint8_t *fb_pixels=fireball_frames[(player.ticks>>2)&1];
+    for (unsigned p=0;p<MAX_PROJ;++p) {
+        const Projectile *pr=&projectiles[p];
+        if (!pr->active) continue;
+        int dx=(int)(pr->x/256)-camx,dy=(int)(pr->y/256)-camy;
+        d84_rotate(dx,dy);
+        int z=d84_rotated[1],r=d84_rotated[0];
+        if (z<8 || ABS(r)>z+64) continue;
+        int center=64+r*FOCAL/z;
+        int width=MAX(1,18*FOCAL/z),height=MAX(1,18*FOCAL/z);
+        int left=center-width/2,bottom=project(pr->z-9,z),top=bottom-height;
+        uint8_t depth=(uint8_t)CLAMP(z/16,1,254);
+        int x1=MAX(0,left),x2=MIN(VIEW_W,left+width),y1=MAX(0,top),y2=MIN(VIEW_H,bottom);
+        if(render_detail>1) x1=((x1+(int)render_detail-1)/(int)render_detail)*(int)render_detail;
+        if(x1>=x2 || y1>=y2) continue;
+        unsigned sxstep=(FIREBALL_SZ*256u)/width,systep=(FIREBALL_SZ*256u)/height;
+        unsigned pcount=(unsigned)(x2-x1+(int)render_detail-1)/render_detail;
+        if(!pcount) continue;
+        unsigned sxpos=(unsigned)(x1-left)*sxstep;
+        unsigned sypos=(unsigned)(y1-top)*systep;
+        unsigned offset=(unsigned)(y1*VIEW_W+x1);
+        for (int y=y1;y<y2;++y,sypos+=systep,offset+=VIEW_W) {
+            unsigned sy=MIN(FIREBALL_SZ-1,sypos>>8);
+            d84_sprite(framebuffer+offset,depthbuffer+offset,fb_pixels+sy*FIREBALL_SZ,shade_rows[0],pcount,sxpos,sxstep*render_detail,depth,render_detail);
         }
     }
 }
